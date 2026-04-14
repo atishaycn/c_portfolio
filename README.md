@@ -2,7 +2,7 @@
 
 Static portfolio site with placeholder content for safe editing and later content replacement.
 
-Uses placeholder images only.
+Uses local images for `The Natural World` on the home page and placeholder images elsewhere.
 
 ## Files
 

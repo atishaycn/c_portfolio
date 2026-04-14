@@ -10,112 +10,59 @@ const createGalleryItems = (prefix, specs) =>
 		location: hasLocation ? "Location Placeholder" : "",
 	}));
 
+const createLocalGalleryItems = (prefix, folder, specs) =>
+	specs.map(([file, width, height], index) => ({
+		id: `${prefix}-${index + 1}`,
+		title: "",
+		width,
+		height,
+		location: "",
+		image: `./${folder}/${file}`,
+	}));
+
 const galleryPages = [
 	{
-		key: "architectural-details",
-		label: "architectural details",
+		key: "the-natural-world",
+		label: "the natural world",
 		path: "./index.html",
-		items: createGalleryItems("architectural-details", [
-			[1666, 2000, true],
-			[1000, 1500, true],
-			[2000, 1333, true],
-			[1333, 2000, true],
-			[1333, 2000, true],
-			[2000, 1333, true],
-			[1600, 2000, true],
-			[1500, 1000, true],
-			[1333, 2000, true],
-			[1200, 1500, true],
-			[1600, 1100, true],
-			[1400, 1800, true],
-		]),
-	},
-	{
-		key: "street-abstractions",
-		label: "street abstractions",
-		path: "./street-abstractions.html",
-		items: createGalleryItems("street-abstractions", [
-			[1500, 2000, true],
-			[1800, 1200, true],
-			[1333, 2000, true],
-			[2000, 1333, true],
-			[1500, 1000, true],
-			[1200, 1600, true],
-			[1700, 1100, true],
-			[1400, 1900, true],
-		]),
-	},
-	{
-		key: "multiple-exposures",
-		label: "multiple exposures",
-		path: "./multiple-exposures.html",
-		items: createGalleryItems("multiple-exposures", [
-			[1333, 2000, true],
-			[2000, 1333, true],
-			[1500, 2000, true],
-			[2000, 1333, true],
-			[1200, 1600, true],
-			[1700, 1100, true],
-			[1400, 1900, true],
-			[1600, 1100, true],
-		]),
-	},
-	{
-		key: "music",
-		label: "live music",
-		path: "./music.html",
-		items: createGalleryItems("music", [
-			[1600, 1100, true],
-			[1333, 2000, true],
-			[2000, 1333, true],
-			[1500, 2000, true],
-			[1800, 1200, true],
-			[1200, 1600, true],
-			[1600, 1100, true],
-			[1400, 1900, true],
-		]),
-	},
-	{
-		key: "nyc",
-		label: "placeholder series",
-		path: "./nyc.html",
-		items: createGalleryItems("nyc", [
-			[1333, 2000, true],
-			[2000, 1333, true],
-			[1500, 2000, true],
-			[1800, 1200, true],
-			[1200, 1600, true],
-			[1600, 1100, true],
-			[1400, 1900, true],
-			[1600, 1100, true],
-		]),
-	},
-	{
-		key: "out-of-town",
-		label: "out of town",
-		path: "./out-of-town.html",
-		items: createGalleryItems("out-of-town", [
-			[2000, 1333, true],
-			[1333, 2000, true],
-			[1500, 2000, true],
-			[1800, 1200, true],
-			[1600, 1100, true],
-			[1200, 1600, true],
-			[1400, 1900, true],
-			[1600, 1100, true],
-		]),
-	},
-	{
-		key: "self-reflections",
-		label: "self reflections",
-		path: "./self-reflections.html",
-		items: createGalleryItems("self-reflections", [
-			[1333, 2000, true],
-			[2000, 1333, true],
-			[1500, 2000, true],
-			[1800, 1200, true],
-			[1200, 1600, true],
-			[1600, 1100, true],
+		items: createLocalGalleryItems("the-natural-world", "The Natural World", [
+			["IMG_2404 copy.JPG", 5184, 3456],
+			["IMG_2410 copy.JPG", 5184, 3456],
+			["IMG_2871 copy.JPG", 4384, 3197],
+			["IMG_9417 copy.jpg", 5184, 3456],
+			["IMG_9547 copy.jpg", 5184, 3456],
+			["IMG_9707 copy.jpg", 5184, 3456],
+			["IMG_9944 copy.jpg", 5184, 3456],
+			["P1036451.JPG", 3888, 5184],
+			["P1038431 copy.JPG", 5184, 3888],
+			["P1043267 copy.JPG", 5184, 3888],
+			["P1043477 copy.JPG", 5184, 3888],
+			["P1053803 copy.JPG", 5184, 3888],
+			["P1054309_1 copy.JPG", 5184, 3888],
+			["P1054405 copy.JPG", 3888, 5184],
+			["P1054959.JPG", 5184, 3888],
+			["P1055059.JPG", 5011, 3758],
+			["P1055075.JPG", 5125, 3844],
+			["P1055152.JPG", 5184, 3888],
+			["P1055381.JPG", 5184, 3710],
+			["P1056673 copy.JPG", 3888, 5184],
+			["P1057399 copy.JPG", 5184, 3888],
+			["P1070555_1.JPG", 3888, 3974],
+			["P1071486.JPG", 3888, 3843],
+			["P1071764.JPG", 3888, 5184],
+			["P1071960.JPG", 5184, 3888],
+			["P1072814.JPG", 3888, 5184],
+			["P1073298.JPG", 4903, 3677],
+			["P1073702.JPG", 5184, 3888],
+			["P1083750.JPG", 5184, 3888],
+			["P1086210_2.JPG", 3429, 2546],
+			["P1086246.JPG", 4961, 3800],
+			["P1086442.JPG", 3888, 5184],
+			["P1086530_3.JPG", 2772, 3698],
+			["P1086547.JPG", 3520, 4278],
+			["jpgIMG_7933.jpg", 5184, 3456],
+			["jpgIMG_7959.jpg", 5184, 3456],
+			["jpgIMG_8054.jpg", 5184, 3456],
 		]),
 	},
 ];
@@ -139,7 +86,7 @@ const placeholderUrl = (item) => {
 	return `https://picsum.photos/seed/${item.id}/${width}/${height}`;
 };
 
-const currentPageKey = document.body.dataset.page || "architectural-details";
+const currentPageKey = document.body.dataset.page || "the-natural-world";
 
 const renderSidebarNav = (links, nested = false) => `
 	<ul class="${nested ? "subnav-list" : "nav-list"}">
@@ -159,17 +106,23 @@ const renderGallery = (page) => `
 	<section class="gallery-page">
 		<div class="masonry-grid">
 			${page.items
-				.map(
-					(item) => `
+				.map((item) => {
+					const imageSrc = item.image ? encodeURI(item.image) : placeholderUrl(item);
+					const hasCaption = item.title || item.location;
+					return `
 						<figure class="gallery-card">
-							<img src="${placeholderUrl(item)}" alt="${item.title}" width="${item.width}" height="${item.height}" loading="lazy" />
-							<figcaption>
-								<span>${item.title}</span>
-								${item.location ? `<small>${item.location} // © Placeholder</small>` : ""}
-							</figcaption>
+							<img src="${imageSrc}" alt="${item.title || page.label}" width="${item.width}" height="${item.height}" loading="lazy" />
+							${
+								hasCaption
+									? `<figcaption>
+										${item.title ? `<span>${item.title}</span>` : ""}
+										${item.location ? `<small>${item.location}</small>` : ""}
+									</figcaption>`
+									: ""
+							}
 						</figure>
-					`,
-				)
+					`;
+				})
 				.join("")}
 		</div>
 	</section>
