@@ -257,7 +257,7 @@ const renderWorkshops = () => `
 const renderAbout = () => `
 	<section class="detail-page about-page">
 		<div class="about-image-wrap">
-			<img src="${resolveImageUrl({ image: "./PHOTO-2025-12-19-16-40-24.jpg", publicId: "about/portrait" })}" data-local-src="${localImageUrl("./PHOTO-2025-12-19-16-40-24.jpg")}" alt="Claire Thomas portrait" width="3888" height="5184" />
+			<img src="${resolveImageUrl({ image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" })}" data-local-src="${localImageUrl("./fqs 2025-12-19 161703.086.jpg")}" alt="Claire Thomas portrait" width="3024" height="4536" />
 		</div>
 		<div class="about-copy">
 			<p>Photo credit placeholder.</p>
