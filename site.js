@@ -70,7 +70,6 @@ const galleryPages = [
 const portfolioLinks = [...galleryPages.map((page) => ({ label: page.label, path: page.path, key: page.key }))];
 
 const secondaryLinks = [
-	{ label: "workshops", path: "./workshops.html", key: "workshops" },
 	{ label: "newsletter", path: "https://example.com/newsletter", external: true },
 	{ label: "prints", path: "https://example.com/prints", external: true },
 	{ label: "zines", path: "https://example.com/zines", external: true },
@@ -140,7 +139,7 @@ const renderWorkshops = () => `
 const renderAbout = () => `
 	<section class="detail-page about-page">
 		<div class="about-image-wrap">
-			<img src="https://picsum.photos/seed/about-contact/1000/1250" alt="Portrait placeholder" width="1000" height="1250" />
+			<img src="./about-contact-photo.JPG" alt="Claire Thomas portrait" width="3888" height="5184" />
 		</div>
 		<div class="about-copy">
 			<p>Photo credit placeholder.</p>
