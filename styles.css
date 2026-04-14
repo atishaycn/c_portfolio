@@ -158,7 +158,7 @@ input {
 }
 
 .masonry-grid {
-	column-width: 320px;
+	column-width: 480px;
 	column-gap: 28px;
 }
 
