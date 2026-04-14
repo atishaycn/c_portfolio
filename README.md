@@ -2,7 +2,7 @@
 
 Static portfolio site with placeholder content for safe editing and later content replacement.
 
-Uses local images by default, with Cloudinary delivery currently enabled for `The Natural World` and local fallback for everything else.
+Uses local images by default, with Cloudinary delivery currently enabled for `The Natural World`, `Protests`, and `Shapes & Shadows`, plus local fallback for everything else.
 
 ## Files
 
@@ -39,7 +39,9 @@ Cloudinary is configured in `site.js` with:
 
 Current behavior:
 - `The Natural World` uses explicit Cloudinary public IDs
-- all other images still use local files
+- `Protests` uses Cloudinary public IDs in the `protests/...` path
+- `Shapes & Shadows` uses Cloudinary public IDs in the `shapes-and-shadows/...` path
+- other images still use local files
 - gallery images and the lightbox fall back to local files if a Cloudinary asset fails to load
 
 To move more series to Cloudinary:

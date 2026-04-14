@@ -35,7 +35,7 @@ const createGalleryItems = (prefix, specs) =>
 		location: hasLocation ? "Location Placeholder" : "",
 	}));
 
-const createLocalGalleryItems = (prefix, folder, specs) =>
+const createLocalGalleryItems = (prefix, folder, specs, options = {}) =>
 	specs.map(([file, width, height], index) => ({
 		id: `${prefix}-${index + 1}`,
 		title: "",
@@ -43,7 +43,10 @@ const createLocalGalleryItems = (prefix, folder, specs) =>
 		height,
 		location: "",
 		image: `./${folder}/${file}`,
+		publicId: options.publicIdBase ? `${options.publicIdBase}/${pathBasename(file)}` : undefined,
 	}));
+
+const pathBasename = (file) => file.replace(/\.[^.]+$/, "");
 
 const naturalWorldSpecs = [
 	["1.jpg", 5184, 3456, "1_vnpnhf"],
@@ -163,13 +166,15 @@ const galleryPages = [
 		key: "protests",
 		label: "protests",
 		path: "./protests.html",
-		items: createLocalGalleryItems("protests", "Protests", protestsSpecs),
+		items: createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }),
 	},
 	{
 		key: "shapes-and-shadows",
 		label: "shapes & shadows",
 		path: "./shapes-and-shadows.html",
-		items: createLocalGalleryItems("shapes-and-shadows", "Shapes & Shadows", shapesAndShadowsSpecs),
+		items: createLocalGalleryItems("shapes-and-shadows", "Shapes & Shadows", shapesAndShadowsSpecs, {
+			publicIdBase: "shapes-and-shadows",
+		}),
 	},
 ];
 
