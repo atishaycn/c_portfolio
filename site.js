@@ -1,6 +1,31 @@
 const siteTitle = "CLAIRE THOMAS";
 const tagline = "Placeholder tagline";
 
+const cloudinaryConfig = {
+	enabled: true,
+	cloudName: "dpmdkrggj",
+	transformation: "f_auto,q_auto",
+};
+
+const buildCloudinaryUrl = (publicId) => {
+	if (!cloudinaryConfig.enabled || !cloudinaryConfig.cloudName || !publicId) return "";
+	const encodedSegments = publicId.split("/").map(encodeURIComponent).join("/");
+	return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${cloudinaryConfig.transformation}/${encodedSegments}`;
+};
+
+const resolveImageUrl = (itemOrPath) => {
+	if (!itemOrPath) return itemOrPath;
+	if (typeof itemOrPath === "string") return encodeURI(itemOrPath);
+	if (itemOrPath.publicId) return buildCloudinaryUrl(itemOrPath.publicId);
+	return encodeURI(itemOrPath.image);
+};
+
+const localImageUrl = (itemOrPath) => {
+	if (!itemOrPath) return itemOrPath;
+	if (typeof itemOrPath === "string") return encodeURI(itemOrPath);
+	return encodeURI(itemOrPath.image);
+};
+
 const createGalleryItems = (prefix, specs) =>
 	specs.map(([width, height, hasLocation], index) => ({
 		id: `${prefix}-${index + 1}`,
@@ -21,43 +46,43 @@ const createLocalGalleryItems = (prefix, folder, specs) =>
 	}));
 
 const naturalWorldSpecs = [
-	[5184, 3456],
-	[5184, 3456],
-	[4384, 3197],
-	[5184, 3456],
-	[5184, 3456],
-	[5184, 3456],
-	[5184, 3456],
-	[3888, 5184],
-	[5184, 3888],
-	[5184, 3888],
-	[5184, 3888],
-	[5184, 3888],
-	[5184, 3888],
-	[3888, 5184],
-	[5184, 3888],
-	[5011, 3758],
-	[5125, 3844],
-	[5184, 3888],
-	[5184, 3710],
-	[3888, 5184],
-	[5184, 3888],
-	[3888, 3974],
-	[3888, 3843],
-	[3888, 5184],
-	[5184, 3888],
-	[3888, 5184],
-	[4903, 3677],
-	[5184, 3888],
-	[5184, 3888],
-	[3429, 2546],
-	[4961, 3800],
-	[3888, 5184],
-	[2772, 3698],
-	[3520, 4278],
-	[5184, 3456],
-	[5184, 3456],
-	[5184, 3456],
+	["1.jpg", 5184, 3456, "1_vnpnhf"],
+	["2.jpg", 5184, 3456, "2_gaxjez"],
+	["3.jpg", 4384, 3197, "3_asebdu"],
+	["4.jpg", 5184, 3456, "4_auboh4"],
+	["5.jpg", 5184, 3456, "5_lw9bhq"],
+	["6.jpg", 5184, 3456, "6_mwivsz"],
+	["7.jpg", 5184, 3456, "7_gu4xgl"],
+	["8.jpg", 3888, 5184, "8_ongbmt"],
+	["9.jpg", 5184, 3888, "9_wy3rcc"],
+	["10.jpg", 5184, 3888, "10_dbkilq"],
+	["11.jpg", 5184, 3888, "11_gaovai"],
+	["12.jpg", 5184, 3888, "12_txfrr3"],
+	["13.jpg", 5184, 3888, "13_vnosf7"],
+	["14.jpg", 3888, 5184, "14_wxnggz"],
+	["15.jpg", 5184, 3888, "15_ebnk6a"],
+	["16.jpg", 5011, 3758, "16_y4smm6"],
+	["17.jpg", 5125, 3844, "17_jxygsv"],
+	["18.jpg", 5184, 3888, "18_nmue2y"],
+	["19.jpg", 5184, 3710, "19_qyy4re"],
+	["20.jpg", 3888, 5184, "20_dgcjip"],
+	["21.jpg", 5184, 3888, "21_hcnksz"],
+	["22.jpg", 3888, 3974, "22_s7l89m"],
+	["23.jpg", 3888, 3843, "23_avb5au"],
+	["24.jpg", 3888, 5184, "24_pal1ru"],
+	["25.jpg", 5184, 3888, "25_ywmvg4"],
+	["26.jpg", 3888, 5184, "26_vqyhbg"],
+	["27.jpg", 4903, 3677, "27_cgamwb"],
+	["28.jpg", 5184, 3888, "28_q8wmqr"],
+	["29.jpg", 5184, 3888, "29_q9cn74"],
+	["30.jpg", 3429, 2546, "30_avnqin"],
+	["31.jpg", 4961, 3800, "31_r5ics0"],
+	["32.jpg", 3888, 5184, "32_yzhcp9"],
+	["33.jpg", 2772, 3698, "33_upfnu2"],
+	["34.jpg", 3520, 4278, "34_lphoqo"],
+	["35.jpg", 5184, 3456, "35_fov0c6"],
+	["36.jpg", 5184, 3456, "36_kt2kwl"],
+	["37.jpg", 5184, 3456, "37_dt11xh"],
 ];
 
 const protestsSpecs = [
@@ -124,11 +149,15 @@ const galleryPages = [
 		key: "the-natural-world",
 		label: "the natural world",
 		path: "./index.html",
-		items: createLocalGalleryItems(
-			"the-natural-world",
-			"The Natural World",
-			naturalWorldSpecs.map(([width, height], index) => [`${index + 1}.jpg`, width, height]),
-		),
+		items: naturalWorldSpecs.map(([file, width, height, publicId], index) => ({
+			id: `the-natural-world-${index + 1}`,
+			title: "",
+			width,
+			height,
+			location: "",
+			image: `./The Natural World/${file}`,
+			publicId,
+		})),
 	},
 	{
 		key: "protests",
@@ -179,7 +208,7 @@ const renderGallery = (page) => `
 		<div class="masonry-grid">
 			${page.items
 				.map((item) => {
-					const imageSrc = item.image ? encodeURI(item.image) : placeholderUrl(item);
+					const imageSrc = item.image ? resolveImageUrl(item) : placeholderUrl(item);
 					const hasCaption = item.title || item.location;
 					return `
 						<figure class="gallery-card">
@@ -190,7 +219,7 @@ const renderGallery = (page) => `
 								data-gallery-index="${page.items.indexOf(item)}"
 								aria-label="Open image ${page.items.indexOf(item) + 1} from ${page.label}"
 							>
-								<img src="${imageSrc}" alt="${item.title || page.label}" width="${item.width}" height="${item.height}" loading="lazy" />
+								<img src="${imageSrc}" data-local-src="${localImageUrl(item)}" alt="${item.title || page.label}" width="${item.width}" height="${item.height}" loading="lazy" />
 							</button>
 							${
 								hasCaption
@@ -223,7 +252,7 @@ const renderWorkshops = () => `
 const renderAbout = () => `
 	<section class="detail-page about-page">
 		<div class="about-image-wrap">
-			<img src="./about-contact-photo.JPG" alt="Claire Thomas portrait" width="3888" height="5184" />
+			<img src="${resolveImageUrl("./PHOTO-2025-12-19-16-40-24.jpg")}" alt="Claire Thomas portrait" width="3888" height="5184" />
 		</div>
 		<div class="about-copy">
 			<p>Photo credit placeholder.</p>
@@ -318,6 +347,15 @@ document.addEventListener("submit", (event) => {
 
 const lightbox = document.querySelector(".lightbox");
 const lightboxImage = document.querySelector(".lightbox-image");
+if (lightboxImage instanceof HTMLImageElement) {
+	lightboxImage.addEventListener("error", () => {
+		const items = getCurrentLightboxItems();
+		const item = items[lightboxState.index];
+		if (!item) return;
+		const fallbackSrc = localImageUrl(item);
+		if (lightboxImage.src !== fallbackSrc) lightboxImage.src = fallbackSrc;
+	});
+}
 const lightboxMeta = document.querySelector(".lightbox-meta");
 const lightboxDismiss = document.querySelector(".lightbox-dismiss");
 const lightboxPrev = document.querySelector(".lightbox-prev");
@@ -336,7 +374,7 @@ const renderLightboxImage = () => {
 	const item = items[lightboxState.index];
 	if (!item) return;
 
-	lightboxImage.src = item.image ? encodeURI(item.image) : placeholderUrl(item);
+	lightboxImage.src = item.image ? resolveImageUrl(item) : placeholderUrl(item);
 	lightboxImage.alt = item.title || lightboxState.page.label;
 	lightboxMeta.textContent = `${lightboxState.index + 1} / ${items.length}`;
 };
@@ -385,3 +423,15 @@ document.addEventListener("keydown", (event) => {
 	if (event.key === "ArrowLeft") stepLightbox(-1);
 	if (event.key === "ArrowRight") stepLightbox(1);
 });
+
+document.addEventListener(
+	"error",
+	(event) => {
+		const image = event.target;
+		if (!(image instanceof HTMLImageElement)) return;
+		const fallbackSrc = image.dataset.localSrc;
+		if (!fallbackSrc || image.src === fallbackSrc) return;
+		image.src = fallbackSrc;
+	},
+	true,
+);
