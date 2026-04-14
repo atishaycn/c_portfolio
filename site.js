@@ -60,6 +60,65 @@ const naturalWorldSpecs = [
 	[5184, 3456],
 ];
 
+const protestsSpecs = [
+	["1.JPG", 5134, 3423],
+	["2.JPG", 3636, 4706],
+	["3.JPG", 5184, 3888],
+	["4.JPG", 5054, 3888],
+	["5.JPG", 5184, 3888],
+	["6.JPG", 5131, 3634],
+	["7.JPG", 5184, 3888],
+	["8.JPG", 5184, 3888],
+	["9.JPG", 5184, 3888],
+	["10.JPG", 5011, 3758],
+	["11.JPG", 5184, 3888],
+	["12.JPG", 2986, 4071],
+	["13.JPG", 5184, 3888],
+	["14.JPG", 3709, 4948],
+	["15.JPG", 5184, 3888],
+	["16.JPG", 5184, 3888],
+	["17.JPG", 3427, 5184],
+	["18.JPG", 4755, 3601],
+	["19.JPG", 5184, 3888],
+	["20.JPG", 5119, 3888],
+	["21.JPG", 5093, 3791],
+	["22.JPG", 5184, 3888],
+	["23.JPG", 5056, 3757],
+	["24.JPG", 5184, 3888],
+	["25.JPG", 5133, 3888],
+	["26.JPG", 5184, 3888],
+	["27.JPG", 5184, 3888],
+	["28.JPG", 5131, 3888],
+	["29.JPG", 4963, 3765],
+	["30.JPG", 3774, 4894],
+	["31.JPG", 5125, 3844],
+	["32.JPG", 3888, 4899],
+	["33.JPG", 4870, 3888],
+	["34.JPG", 5116, 3811],
+];
+
+const shapesAndShadowsSpecs = [
+	["1.JPG", 3396, 4753],
+	["2.JPG", 5125, 3844],
+	["3.JPG", 4714, 3552],
+	["4.JPG", 3800, 5067],
+	["5.JPG", 3888, 5184],
+	["6.JPG", 5057, 3844],
+	["7.JPG", 3242, 1862],
+	["8.JPG", 5036, 3778],
+	["9.JPG", 5184, 3888],
+	["10.JPG", 3888, 4978],
+	["11.JPG", 3845, 4962],
+	["12.JPG", 5184, 3888],
+	["13.JPG", 5184, 3888],
+	["14.JPG", 3888, 5184],
+	["15.JPG", 3888, 5184],
+	["16.JPG", 3843, 4651],
+	["17.JPG", 3888, 5103],
+	["18.JPG", 4130, 3256],
+	["19.JPG", 3721, 4976],
+];
+
 const galleryPages = [
 	{
 		key: "the-natural-world",
@@ -71,6 +130,18 @@ const galleryPages = [
 			naturalWorldSpecs.map(([width, height], index) => [`${index + 1}.jpg`, width, height]),
 		),
 	},
+	{
+		key: "protests",
+		label: "protests",
+		path: "./protests.html",
+		items: createLocalGalleryItems("protests", "Protests", protestsSpecs),
+	},
+	{
+		key: "shapes-and-shadows",
+		label: "shapes & shadows",
+		path: "./shapes-and-shadows.html",
+		items: createLocalGalleryItems("shapes-and-shadows", "Shapes & Shadows", shapesAndShadowsSpecs),
+	},
 ];
 
 const portfolioLinks = [...galleryPages.map((page) => ({ label: page.label, path: page.path, key: page.key }))];
@@ -78,7 +149,6 @@ const portfolioLinks = [...galleryPages.map((page) => ({ label: page.label, path
 const secondaryLinks = [
 	{ label: "newsletter", path: "https://example.com/newsletter", external: true },
 	{ label: "prints", path: "https://example.com/prints", external: true },
-	{ label: "zines", path: "https://example.com/zines", external: true },
 	{ label: "about + contact", path: "./about-contact.html", key: "about-contact" },
 ];
 

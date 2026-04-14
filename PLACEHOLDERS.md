@@ -42,7 +42,6 @@ File: `site.js`
 File: `site.js`
 - Newsletter URL: `https://example.com/newsletter`
 - Prints URL: `https://example.com/prints`
-- Zines URL: `https://example.com/zines`
 
 ### Gallery content
 File: `site.js`
