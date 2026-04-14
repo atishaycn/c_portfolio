@@ -2,7 +2,7 @@
 
 Static portfolio site with placeholder content for safe editing and later content replacement.
 
-Uses local images by default, with optional Cloudinary delivery support for all portfolio images and the about portrait.
+Uses local images by default, with Cloudinary delivery currently enabled for `The Natural World` and local fallback for everything else.
 
 ## Files
 
@@ -33,17 +33,17 @@ Then open `http://localhost:8080`.
 
 ## Cloudinary setup
 
-The site is ready to switch from local files to Cloudinary URLs.
+Cloudinary is configured in `site.js` with:
+- cloud name: `dpmdkrggj`
+- transformations: `f_auto,q_auto`
 
-1. Upload your images to Cloudinary under a single base folder, for example:
-   - `claire-thomas-portfolio/The Natural World/1.jpg`
-   - `claire-thomas-portfolio/Protests/1.JPG`
-   - `claire-thomas-portfolio/Shapes & Shadows/1.JPG`
-   - `claire-thomas-portfolio/PHOTO-2025-12-19-16-40-24.jpg`
-2. Open `site.js` and update `cloudinaryConfig`:
-   - `enabled: true`
-   - `cloudName: "<your cloud name>"`
-   - optionally change `baseFolder`
-3. Refresh the site.
+Current behavior:
+- `The Natural World` uses explicit Cloudinary public IDs
+- all other images still use local files
+- gallery images and the lightbox fall back to local files if a Cloudinary asset fails to load
 
-Cloudinary URLs are generated automatically with `f_auto,q_auto` so optimized assets are delivered without changing the HTML files.
+To move more series to Cloudinary:
+1. Upload the images to Cloudinary
+2. Fetch or copy their public IDs
+3. Add those public IDs to the relevant items in `site.js`
+4. Refresh the site
