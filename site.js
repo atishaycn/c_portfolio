@@ -20,50 +20,56 @@ const createLocalGalleryItems = (prefix, folder, specs) =>
 		image: `./${folder}/${file}`,
 	}));
 
+const naturalWorldSpecs = [
+	[5184, 3456],
+	[5184, 3456],
+	[4384, 3197],
+	[5184, 3456],
+	[5184, 3456],
+	[5184, 3456],
+	[5184, 3456],
+	[3888, 5184],
+	[5184, 3888],
+	[5184, 3888],
+	[5184, 3888],
+	[5184, 3888],
+	[5184, 3888],
+	[3888, 5184],
+	[5184, 3888],
+	[5011, 3758],
+	[5125, 3844],
+	[5184, 3888],
+	[5184, 3710],
+	[3888, 5184],
+	[5184, 3888],
+	[3888, 3974],
+	[3888, 3843],
+	[3888, 5184],
+	[5184, 3888],
+	[3888, 5184],
+	[4903, 3677],
+	[5184, 3888],
+	[5184, 3888],
+	[3429, 2546],
+	[4961, 3800],
+	[3888, 5184],
+	[2772, 3698],
+	[3520, 4278],
+	[5184, 3456],
+	[5184, 3456],
+	[5184, 3456],
+];
+
 const galleryPages = [
 	{
 		key: "the-natural-world",
 		label: "the natural world",
 		path: "./index.html",
-		items: createLocalGalleryItems("the-natural-world", "The Natural World", [
-			["IMG_2404 copy.JPG", 5184, 3456],
-			["IMG_2410 copy.JPG", 5184, 3456],
-			["IMG_2871 copy.JPG", 4384, 3197],
-			["IMG_9417 copy.jpg", 5184, 3456],
-			["IMG_9547 copy.jpg", 5184, 3456],
-			["IMG_9707 copy.jpg", 5184, 3456],
-			["IMG_9944 copy.jpg", 5184, 3456],
-			["P1036451.JPG", 3888, 5184],
-			["P1038431 copy.JPG", 5184, 3888],
-			["P1043267 copy.JPG", 5184, 3888],
-			["P1043477 copy.JPG", 5184, 3888],
-			["P1053803 copy.JPG", 5184, 3888],
-			["P1054309_1 copy.JPG", 5184, 3888],
-			["P1054405 copy.JPG", 3888, 5184],
-			["P1054959.JPG", 5184, 3888],
-			["P1055059.JPG", 5011, 3758],
-			["P1055075.JPG", 5125, 3844],
-			["P1055152.JPG", 5184, 3888],
-			["P1055381.JPG", 5184, 3710],
-			["P1056673 copy.JPG", 3888, 5184],
-			["P1057399 copy.JPG", 5184, 3888],
-			["P1070555_1.JPG", 3888, 3974],
-			["P1071486.JPG", 3888, 3843],
-			["P1071764.JPG", 3888, 5184],
-			["P1071960.JPG", 5184, 3888],
-			["P1072814.JPG", 3888, 5184],
-			["P1073298.JPG", 4903, 3677],
-			["P1073702.JPG", 5184, 3888],
-			["P1083750.JPG", 5184, 3888],
-			["P1086210_2.JPG", 3429, 2546],
-			["P1086246.JPG", 4961, 3800],
-			["P1086442.JPG", 3888, 5184],
-			["P1086530_3.JPG", 2772, 3698],
-			["P1086547.JPG", 3520, 4278],
-			["jpgIMG_7933.jpg", 5184, 3456],
-			["jpgIMG_7959.jpg", 5184, 3456],
-			["jpgIMG_8054.jpg", 5184, 3456],
-		]),
+		items: createLocalGalleryItems(
+			"the-natural-world",
+			"The Natural World",
+			naturalWorldSpecs.map(([width, height], index) => [`${index + 1}.jpg`, width, height]),
+		),
 	},
 ];
 
@@ -107,7 +113,15 @@ const renderGallery = (page) => `
 					const hasCaption = item.title || item.location;
 					return `
 						<figure class="gallery-card">
-							<img src="${imageSrc}" alt="${item.title || page.label}" width="${item.width}" height="${item.height}" loading="lazy" />
+							<button
+								class="gallery-trigger"
+								type="button"
+								data-gallery-key="${page.key}"
+								data-gallery-index="${page.items.indexOf(item)}"
+								aria-label="Open image ${page.items.indexOf(item) + 1} from ${page.label}"
+							>
+								<img src="${imageSrc}" alt="${item.title || page.label}" width="${item.width}" height="${item.height}" loading="lazy" />
+							</button>
 							${
 								hasCaption
 									? `<figcaption>
@@ -216,9 +230,88 @@ app.innerHTML = `
 		</aside>
 		<main class="content-area">${renderMain()}</main>
 	</div>
+	<div class="lightbox" hidden aria-hidden="true">
+		<button class="lightbox-dismiss" type="button" aria-label="Close expanded image">Close</button>
+		<button class="lightbox-nav lightbox-prev" type="button" aria-label="Previous image">‹</button>
+		<div class="lightbox-stage">
+			<img class="lightbox-image" alt="" />
+			<div class="lightbox-meta"></div>
+		</div>
+		<button class="lightbox-nav lightbox-next" type="button" aria-label="Next image">›</button>
+	</div>
 `;
 
 document.addEventListener("submit", (event) => {
 	if (!(event.target instanceof HTMLFormElement)) return;
 	event.preventDefault();
+});
+
+const lightbox = document.querySelector(".lightbox");
+const lightboxImage = document.querySelector(".lightbox-image");
+const lightboxMeta = document.querySelector(".lightbox-meta");
+const lightboxDismiss = document.querySelector(".lightbox-dismiss");
+const lightboxPrev = document.querySelector(".lightbox-prev");
+const lightboxNext = document.querySelector(".lightbox-next");
+
+const lightboxState = {
+	page: null,
+	index: 0,
+};
+
+const getCurrentLightboxItems = () => lightboxState.page?.items ?? [];
+
+const renderLightboxImage = () => {
+	if (!lightbox || !lightboxImage || !lightboxMeta) return;
+	const items = getCurrentLightboxItems();
+	const item = items[lightboxState.index];
+	if (!item) return;
+
+	lightboxImage.src = item.image ? encodeURI(item.image) : placeholderUrl(item);
+	lightboxImage.alt = item.title || lightboxState.page.label;
+	lightboxMeta.textContent = `${lightboxState.index + 1} / ${items.length}`;
+};
+
+const setLightboxOpen = (isOpen) => {
+	if (!lightbox) return;
+	lightbox.hidden = !isOpen;
+	lightbox.setAttribute("aria-hidden", String(!isOpen));
+	document.body.classList.toggle("lightbox-open", isOpen);
+};
+
+const openLightbox = (pageKey, index) => {
+	const page = galleryPages.find((entry) => entry.key === pageKey);
+	if (!page) return;
+	lightboxState.page = page;
+	lightboxState.index = index;
+	renderLightboxImage();
+	setLightboxOpen(true);
+};
+
+const stepLightbox = (direction) => {
+	const items = getCurrentLightboxItems();
+	if (!items.length) return;
+	lightboxState.index = (lightboxState.index + direction + items.length) % items.length;
+	renderLightboxImage();
+};
+
+document.addEventListener("click", (event) => {
+	const trigger = event.target instanceof Element ? event.target.closest(".gallery-trigger") : null;
+	if (trigger instanceof HTMLButtonElement) {
+		openLightbox(trigger.dataset.galleryKey, Number(trigger.dataset.galleryIndex));
+		return;
+	}
+
+	if (event.target === lightbox || event.target === lightboxDismiss) {
+		setLightboxOpen(false);
+	}
+});
+
+lightboxPrev?.addEventListener("click", () => stepLightbox(-1));
+lightboxNext?.addEventListener("click", () => stepLightbox(1));
+
+document.addEventListener("keydown", (event) => {
+	if (!lightbox || lightbox.hidden) return;
+	if (event.key === "Escape") setLightboxOpen(false);
+	if (event.key === "ArrowLeft") stepLightbox(-1);
+	if (event.key === "ArrowRight") stepLightbox(1);
 });
