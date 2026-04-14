@@ -194,8 +194,8 @@ const renderAbout = () => `
 		</div>
 		<div class="about-copy">
 			<p>{photo courtesy of Marcelo Nava }</p>
-			<p>Claire Thomas is photographer based in San Francisco. This placeholder build mirrors the original site layout, pacing, and navigation, while using temporary imagery for deployment prep.</p>
-			<p>Available for editorial, live music, portrait, architectural, and branded content work.</p>
+			<p>Placeholder biography text.</p>
+			<p>Placeholder services and availability text.</p>
 			<p>For inquiries:<br /><a href="mailto:hello@leomascaro.com">hello@leomascaro.com</a></p>
 			<p>LinkedIn:<br /><a href="https://www.linkedin.com/in/leonardo-mascaro-56024994/" target="_blank" rel="noreferrer">leonardo-mascaro-56024994</a></p>
 		</div>
