@@ -67,10 +67,7 @@ const galleryPages = [
 	},
 ];
 
-const portfolioLinks = [
-	...galleryPages.map((page) => ({ label: page.label, path: page.path, key: page.key })),
-	{ label: "behind-the-scenes", path: "./bts.html", key: "bts" },
-];
+const portfolioLinks = [...galleryPages.map((page) => ({ label: page.label, path: page.path, key: page.key }))];
 
 const secondaryLinks = [
 	{ label: "workshops", path: "./workshops.html", key: "workshops" },
