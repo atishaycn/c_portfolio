@@ -1,6 +1,6 @@
 # cportfolio
 
-Static portfolio site clone inspired by `https://www.leonardomascaro.com/`.
+Static portfolio site with placeholder content for safe editing and later content replacement.
 
 Uses placeholder images only.
 
@@ -26,7 +26,6 @@ Open any html file in browser.
 Or serve folder:
 
 ```bash
-cd /Users/suns/Developer/cportfolio
 python3 -m http.server 8080
 ```
 

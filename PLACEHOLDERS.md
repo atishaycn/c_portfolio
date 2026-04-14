@@ -1,18 +1,32 @@
 # Placeholder values reference
 
-This document tracks site values that have been intentionally set to placeholders and should be replaced later.
+This document tracks all values intentionally set to placeholders so they can be replaced later.
 
-## Confirmed placeholders currently in use
+## Intentionally unchanged
+These were left as-is based on direct instruction.
 
-### Page titles
-- Inner page titles use: `placeholder — CLAIRE THOMAS`
-- Home page title remains: `Claire Thomas • Photographer`
-- Site name remains: `CLAIRE THOMAS`
+- Site name: `CLAIRE THOMAS`
+- Home page title: `Claire Thomas • Photographer`
+
+## Placeholder values currently in use
+
+### Inner page titles
+Files: all non-home HTML pages
+- `placeholder — CLAIRE THOMAS`
+
+### Tagline
+File: `site.js`
+- `Placeholder tagline`
+
+### Meta descriptions
+Files: all HTML pages
+- `Placeholder meta description.`
 
 ### About page copy
 File: `site.js`
 - Bio: `Placeholder biography text.`
 - Services: `Placeholder services and availability text.`
+- Photo credit: `Photo credit placeholder.`
 
 ### Contact
 File: `site.js`
@@ -24,32 +38,25 @@ File: `site.js`
 - LinkedIn URL: `https://www.linkedin.com/in/placeholder/`
 - LinkedIn label: `placeholder`
 
-## Values intentionally left unchanged for now
-
-### Tagline
-File: `site.js`
-- `Photographer based in San Francisco`
-
-### Meta description
-Files: all HTML pages
-- `Photographer based in San Francisco. Concerts, music, portraits, and architecture.`
-
-## Still pending review/replacement
-
 ### External links
 File: `site.js`
-- Newsletter: `https://multipleexposures.substack.com`
-- Prints: `https://leomascaro.darkroom.com`
-- Zines: `https://www.blurb.com/user/leomascaro`
+- Newsletter URL: `https://example.com/newsletter`
+- Prints URL: `https://example.com/prints`
+- Zines URL: `https://example.com/zines`
 
-### Photo credit
+### Gallery content
 File: `site.js`
-- `{photo courtesy of Marcelo Nava }`
+- Image titles render as: `Placeholder Image N`
+- Image locations render as: `Location Placeholder`
+- Former location-based nav label now uses: `placeholder series`
 
-### Gallery and caption locations
-File: `site.js`
-- Location fields currently include place names such as New York City, California, Brooklyn, Queens, Paris, Lisbon, Porto, Greece, and Portugal.
+## Repository-safe cleanup
 
-## Git ignore
+### README cleanup
+File: `README.md`
+- Removed source-site reference
+- Removed local absolute path from run instructions
+
+### Git ignore
 File: `.gitignore`
 - Ignored folder: `The Natural World/`

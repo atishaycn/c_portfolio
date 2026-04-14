@@ -1,13 +1,13 @@
 const siteTitle = "CLAIRE THOMAS";
-const tagline = "Photographer based in San Francisco";
+const tagline = "Placeholder tagline";
 
 const createGalleryItems = (prefix, specs) =>
-	specs.map(([title, width, height, location], index) => ({
+	specs.map(([width, height, hasLocation], index) => ({
 		id: `${prefix}-${index + 1}`,
-		title,
+		title: `Placeholder Image ${index + 1}`,
 		width,
 		height,
-		location,
+		location: hasLocation ? "Location Placeholder" : "",
 	}));
 
 const galleryPages = [
@@ -16,18 +16,18 @@ const galleryPages = [
 		label: "architectural details",
 		path: "./index.html",
 		items: createGalleryItems("architectural-details", [
-			["2 x 2", 1666, 2000, "Paris"],
-			["Abstract Details", 1000, 1500, "New York City"],
-			["Altered Perspectives", 2000, 1333, "New York City"],
-			["Untitled", 1333, 2000, "New York City"],
-			["Untitled", 1333, 2000, "New York City"],
-			["Untitled", 2000, 1333, "New York City"],
-			["Corners of New York", 1600, 2000, "New York City"],
-			["Lines and Light", 1500, 1000, "New York City"],
-			["Concrete Rhythm", 1333, 2000, "New York City"],
-			["Grid Study", 1200, 1500, "New York City"],
-			["Glass Echo", 1600, 1100, "New York City"],
-			["Sky Fragments", 1400, 1800, "New York City"],
+			[1666, 2000, true],
+			[1000, 1500, true],
+			[2000, 1333, true],
+			[1333, 2000, true],
+			[1333, 2000, true],
+			[2000, 1333, true],
+			[1600, 2000, true],
+			[1500, 1000, true],
+			[1333, 2000, true],
+			[1200, 1500, true],
+			[1600, 1100, true],
+			[1400, 1800, true],
 		]),
 	},
 	{
@@ -35,14 +35,14 @@ const galleryPages = [
 		label: "street abstractions",
 		path: "./street-abstractions.html",
 		items: createGalleryItems("street-abstractions", [
-			["Crosswalk Geometry", 1500, 2000, "New York City"],
-			["Window Reflection", 1800, 1200, "New York City"],
-			["Midtown Layers", 1333, 2000, "New York City"],
-			["Signal Blur", 2000, 1333, "New York City"],
-			["Shadow Merge", 1500, 1000, "New York City"],
-			["Street Grid", 1200, 1600, "New York City"],
-			["Passing Light", 1700, 1100, "New York City"],
-			["Color Split", 1400, 1900, "New York City"],
+			[1500, 2000, true],
+			[1800, 1200, true],
+			[1333, 2000, true],
+			[2000, 1333, true],
+			[1500, 1000, true],
+			[1200, 1600, true],
+			[1700, 1100, true],
+			[1400, 1900, true],
 		]),
 	},
 	{
@@ -50,14 +50,14 @@ const galleryPages = [
 		label: "multiple exposures",
 		path: "./multiple-exposures.html",
 		items: createGalleryItems("multiple-exposures", [
-			["Layered City", 1333, 2000, "New York City"],
-			["California Dream", 2000, 1333, "California"],
-			["Double Motion", 1500, 2000, "New York City"],
-			["Night Merge", 2000, 1333, "California"],
-			["Paris Echo", 1200, 1600, "Paris"],
-			["Transit Blend", 1700, 1100, "New York City"],
-			["Palm Overlay", 1400, 1900, "California"],
-			["Ghost Walk", 1600, 1100, "New York City"],
+			[1333, 2000, true],
+			[2000, 1333, true],
+			[1500, 2000, true],
+			[2000, 1333, true],
+			[1200, 1600, true],
+			[1700, 1100, true],
+			[1400, 1900, true],
+			[1600, 1100, true],
 		]),
 	},
 	{
@@ -65,29 +65,29 @@ const galleryPages = [
 		label: "live music",
 		path: "./music.html",
 		items: createGalleryItems("music", [
-			["Stage Smoke", 1600, 1100, "Brooklyn"],
-			["Backlight", 1333, 2000, "New York City"],
-			["Crowd Energy", 2000, 1333, "Queens"],
-			["Blue Notes", 1500, 2000, "New York City"],
-			["Encore", 1800, 1200, "Brooklyn"],
-			["Drum Burst", 1200, 1600, "New York City"],
-			["Live Set", 1600, 1100, "Brooklyn"],
-			["Soundcheck", 1400, 1900, "New York City"],
+			[1600, 1100, true],
+			[1333, 2000, true],
+			[2000, 1333, true],
+			[1500, 2000, true],
+			[1800, 1200, true],
+			[1200, 1600, true],
+			[1600, 1100, true],
+			[1400, 1900, true],
 		]),
 	},
 	{
 		key: "nyc",
-		label: "new york city",
+		label: "placeholder series",
 		path: "./nyc.html",
 		items: createGalleryItems("nyc", [
-			["Morning Haze", 1333, 2000, "New York City"],
-			["Downtown Lines", 2000, 1333, "New York City"],
-			["Rooftop Quiet", 1500, 2000, "New York City"],
-			["Subway Platform", 1800, 1200, "New York City"],
-			["Corner Light", 1200, 1600, "New York City"],
-			["Bridge Frame", 1600, 1100, "New York City"],
-			["After Rain", 1400, 1900, "New York City"],
-			["Night Block", 1600, 1100, "New York City"],
+			[1333, 2000, true],
+			[2000, 1333, true],
+			[1500, 2000, true],
+			[1800, 1200, true],
+			[1200, 1600, true],
+			[1600, 1100, true],
+			[1400, 1900, true],
+			[1600, 1100, true],
 		]),
 	},
 	{
@@ -95,14 +95,14 @@ const galleryPages = [
 		label: "out of town",
 		path: "./out-of-town.html",
 		items: createGalleryItems("out-of-town", [
-			["Pacific Air", 2000, 1333, "California"],
-			["Lisbon Windows", 1333, 2000, "Lisbon, Portugal"],
-			["Porto Alley", 1500, 2000, "Porto, Portugal"],
-			["White Steps", 1800, 1200, "Greece"],
-			["Coastline", 1600, 1100, "California"],
-			["Old Town", 1200, 1600, "Portugal"],
-			["Hilltop", 1400, 1900, "Lisbon, Portugal"],
-			["Blue Hour", 1600, 1100, "California"],
+			[2000, 1333, true],
+			[1333, 2000, true],
+			[1500, 2000, true],
+			[1800, 1200, true],
+			[1600, 1100, true],
+			[1200, 1600, true],
+			[1400, 1900, true],
+			[1600, 1100, true],
 		]),
 	},
 	{
@@ -110,12 +110,12 @@ const galleryPages = [
 		label: "self reflections",
 		path: "./self-reflections.html",
 		items: createGalleryItems("self-reflections", [
-			["Mirror Study", 1333, 2000, "New York City"],
-			["Ghost Profile", 2000, 1333, "New York City"],
-			["Window Self", 1500, 2000, "New York City"],
-			["Shadow Portrait", 1800, 1200, "New York City"],
-			["Fragment", 1200, 1600, "New York City"],
-			["Stillness", 1600, 1100, "New York City"],
+			[1333, 2000, true],
+			[2000, 1333, true],
+			[1500, 2000, true],
+			[1800, 1200, true],
+			[1200, 1600, true],
+			[1600, 1100, true],
 		]),
 	},
 ];
@@ -127,9 +127,9 @@ const portfolioLinks = [
 
 const secondaryLinks = [
 	{ label: "workshops", path: "./workshops.html", key: "workshops" },
-	{ label: "newsletter", path: "https://multipleexposures.substack.com", external: true },
-	{ label: "prints", path: "https://leomascaro.darkroom.com", external: true },
-	{ label: "zines", path: "https://www.blurb.com/user/leomascaro", external: true },
+	{ label: "newsletter", path: "https://example.com/newsletter", external: true },
+	{ label: "prints", path: "https://example.com/prints", external: true },
+	{ label: "zines", path: "https://example.com/zines", external: true },
 	{ label: "about + contact", path: "./about-contact.html", key: "about-contact" },
 ];
 
@@ -193,7 +193,7 @@ const renderAbout = () => `
 			<img src="https://picsum.photos/seed/about-contact/1000/1250" alt="Portrait placeholder" width="1000" height="1250" />
 		</div>
 		<div class="about-copy">
-			<p>{photo courtesy of Marcelo Nava }</p>
+			<p>Photo credit placeholder.</p>
 			<p>Placeholder biography text.</p>
 			<p>Placeholder services and availability text.</p>
 			<p>For inquiries:<br /><a href="mailto:hello@example.com">hello@example.com</a></p>
@@ -204,10 +204,10 @@ const renderAbout = () => `
 
 const renderBts = () => {
 	const items = createGalleryItems("bts", [
-		["Set Lighting", 1600, 1100, "New York City"],
-		["Crew Moment", 1333, 2000, "Brooklyn"],
-		["Monitor Glow", 2000, 1333, "Queens"],
-		["Studio Pause", 1500, 2000, "New York City"],
+		[1600, 1100, true],
+		[1333, 2000, true],
+		[2000, 1333, true],
+		[1500, 2000, true],
 	]);
 	return `
 		<section class="gallery-page">
