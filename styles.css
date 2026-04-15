@@ -100,27 +100,67 @@ input {
 }
 
 .folder-link > span,
+.sidebar-folder > summary,
 .nav-list a,
-.subnav-list a {
+.subnav-list a,
+.folder-label-link {
 	display: inline-block;
 	color: #7d7d7d;
 	transition: color 0.2s ease;
 }
 
+.preserve-case {
+	text-transform: none;
+}
+
+.sidebar-folder > summary {
+	cursor: pointer;
+	list-style: none;
+}
+
+.summary-with-link,
+.folder-label-link {
+	text-decoration: none;
+}
+
+.folder-label-link {
+	position: relative;
+	z-index: 1;
+}
+
+.sidebar-folder > summary::-webkit-details-marker {
+	display: none;
+}
+
+.sidebar-folder > summary::after {
+	content: "+";
+	margin-left: 8px;
+	font-size: 11px;
+}
+
+.sidebar-folder[open] > summary::after {
+	content: "−";
+}
+
 .nav-list a:hover,
 .subnav-list a:hover,
+.sidebar-folder > summary:hover,
+.folder-label-link:hover,
 .sidebar-footer a:hover {
 	color: #111;
 }
 
 .active-link > a,
 .active-folder > span,
+.active-folder .sidebar-folder > summary,
+.active-folder .folder-label-link,
 .site-header a,
 .sidebar-footer a {
 	color: #111;
 }
 
-.subnav-list .active-link > a {
+.subnav-list .active-link > a,
+.subnav-list .active-link > .sidebar-folder > summary .folder-label-link {
 	padding: 3px 8px;
 	border-radius: 999px;
 	background: #dff1df;
@@ -129,6 +169,10 @@ input {
 .subnav {
 	margin-top: 10px;
 	padding-left: 14px;
+}
+
+.sidebar-folder .subnav {
+	margin-top: 8px;
 }
 
 .subnav-list li {
@@ -155,6 +199,17 @@ input {
 .gallery-page {
 	width: 100%;
 	max-width: none;
+}
+
+.empty-gallery {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 50vh;
+	color: #7d7d7d;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
 }
 
 .detail-page {

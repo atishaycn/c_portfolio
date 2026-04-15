@@ -147,6 +147,184 @@ const shapesAndShadowsSpecs = [
 	["19.JPG", 3721, 4976],
 ];
 
+const californiaSpecs = [
+	["1.jpg", 5184, 3456],
+	["2.jpg", 5184, 3456],
+	["3.jpg", 3888, 5184],
+	["4.jpg", 5026, 3888],
+	["5.jpg", 5051, 3888],
+	["6.jpg", 5184, 3888],
+	["7.jpg", 5184, 3888],
+	["8.jpg", 3888, 4770],
+	["9.jpg", 5184, 3888],
+	["10.jpg", 5125, 3844],
+	["11.jpg", 5184, 3888],
+	["12.jpg", 4618, 3456],
+	["13.jpg", 4870, 3581],
+	["14.jpg", 5184, 3888],
+	["15.jpg", 5184, 3888],
+	["16.jpg", 5184, 3888],
+	["17.jpg", 3673, 5038],
+	["18.jpg", 3844, 5125],
+	["19.jpg", 5184, 3888],
+	["20.jpg", 5184, 3888],
+	["21.jpg", 5184, 3888],
+	["22.jpg", 5125, 3844],
+	["23.jpg", 5184, 3456],
+	["24.jpg", 3888, 5184],
+	["25.jpg", 3888, 5184],
+	["26.jpg", 3456, 5184],
+	["27.jpg", 5184, 3456],
+	["28.jpg", 5184, 3456],
+	["29.jpg", 5184, 3456],
+	["30.jpg", 5184, 3456],
+	["31.jpg", 5184, 3456],
+	["32.jpg", 5184, 3456],
+];
+const sanFranciscoSpecs = [
+	["1.jpg", 5031, 3456],
+	["2.jpg", 5184, 3056],
+	["3.jpg", 3844, 5125],
+	["4.jpg", 5184, 3888],
+	["5.jpg", 5184, 3888],
+	["6.jpg", 4956, 3717],
+	["7.jpg", 3888, 5184],
+	["8.jpg", 3888, 5184],
+	["9.jpg", 5184, 3888],
+	["10.jpg", 3844, 5125],
+	["11.jpg", 5184, 3888],
+	["12.jpg", 3830, 5184],
+	["13.jpg", 4515, 3456],
+	["14.jpg", 3888, 5184],
+	["15.jpg", 5105, 3834],
+	["16.jpg", 4995, 3585],
+	["17.jpg", 2297, 2513],
+	["18.jpg", 5184, 3888],
+	["19.jpg", 3322, 2498],
+	["20.jpg", 5107, 3888],
+	["21.jpg", 2822, 2058],
+	["22.jpg", 3715, 5038],
+	["23.jpg", 3758, 5011],
+	["24.jpg", 4925, 3304],
+	["25.jpg", 5184, 3888],
+	["26.jpg", 3604, 5132],
+	["27.jpg", 3888, 5184],
+	["28.jpg", 3888, 5184],
+	["29.jpg", 5184, 3888],
+	["30.jpg", 3675, 5011],
+	["31.jpg", 3607, 4570],
+	["32.jpg", 3888, 5184],
+	["33.jpg", 3615, 4699],
+	["34.jpg", 3720, 4848],
+	["35.jpg", 5184, 3456],
+	["36.jpg", 3888, 5184],
+	["37.jpg", 5125, 3844],
+	["38.jpg", 5184, 3888],
+	["39.jpg", 3822, 5184],
+	["40.jpg", 5078, 3888],
+	["41.jpg", 5184, 3888],
+	["42.jpg", 4852, 3639],
+	["43.jpg", 5011, 3758],
+	["44.jpg", 5184, 3888],
+	["45.jpg", 5184, 3888],
+	["46.jpg", 5184, 3456],
+	["47.jpg", 4482, 3298],
+	["48.jpg", 5184, 3456],
+	["49.jpg", 5184, 3456],
+	["50.jpg", 5184, 3456],
+	["51.jpg", 5184, 3456],
+	["52.jpg", 3785, 5119],
+	["53.jpg", 5184, 3888],
+	["54.jpg", 4785, 3373],
+	["55.jpg", 3321, 4117],
+	["56.jpg", 3642, 4492],
+	["57.jpg", 5038, 3888],
+	["58.jpg", 3774, 5071],
+	["59.jpg", 5062, 3747],
+	["60.jpg", 3477, 5072],
+	["61.jpg", 5011, 3758],
+	["62.jpg", 5184, 3888],
+	["63.jpg", 4916, 3567],
+	["64.jpg", 3888, 5184],
+	["65.jpg", 5126, 3456],
+	["66.jpg", 3888, 5184],
+	["67.jpg", 3598, 4749],
+	["68.jpg", 5184, 3888],
+	["69.jpg", 3888, 5184],
+	["70.jpg", 3800, 5029],
+	["71.jpg", 3681, 5057],
+	["72.jpg", 5184, 3888],
+	["73.jpg", 5184, 3888],
+	["74.jpg", 3888, 5184],
+	["75.jpg", 3888, 5184],
+	["76.jpg", 5184, 3456],
+	["77.jpg", 5184, 3424],
+	["78.jpg", 3888, 5184],
+	["79.jpg", 3596, 4784],
+	["80.jpg", 5011, 3758],
+	["81.jpg", 3888, 5184],
+	["82.jpg", 5184, 3888],
+	["83.jpg", 3888, 5184],
+	["84.jpg", 5184, 3888],
+	["85.jpg", 3888, 5184],
+	["86.jpg", 3888, 5184],
+	["87.jpg", 5117, 3411],
+	["88.jpg", 3888, 5184],
+	["89.jpg", 5011, 3758],
+	["90.jpg", 3888, 5184],
+	["91.jpg", 3844, 5125],
+	["92.jpg", 3888, 5184],
+	["93.jpg", 3888, 5184],
+	["94.jpg", 3888, 5184],
+	["95.jpg", 3888, 5184],
+	["96.jpg", 3844, 5125],
+	["97.jpg", 3888, 5184],
+	["98.jpg", 5184, 3456],
+	["99.jpg", 5184, 3888],
+	["100.jpg", 3888, 4965],
+	["101.jpg", 3888, 4319],
+	["102.jpg", 5184, 3888],
+	["103.jpg", 3888, 5184],
+	["104.jpg", 3888, 5184],
+	["105.jpg", 3888, 5184],
+	["106.jpg", 5184, 3888],
+	["107.jpg", 4754, 3676],
+	["108.jpg", 3888, 5184],
+	["109.jpg", 3603, 3121],
+	["110.jpg", 3743, 4799],
+	["111.jpg", 5125, 3844],
+	["112.jpg", 5184, 3888],
+	["113.jpg", 5067, 3800],
+	["114.jpg", 4895, 3572],
+	["115.jpg", 3888, 5085],
+	["116.jpg", 5127, 3821],
+	["117.jpg", 5184, 3888],
+	["118.jpg", 5184, 3888],
+	["119.jpg", 3844, 5125],
+	["120.jpg", 3456, 5184],
+	["121.jpg", 3888, 5184],
+	["122.jpg", 3888, 5184],
+	["123.jpg", 3888, 4998],
+	["124.jpg", 3888, 5184],
+	["125.jpg", 3888, 5184],
+	["126.jpg", 5011, 3758],
+	["127.jpg", 5184, 3888],
+	["128.jpg", 3888, 5184],
+	["129.jpg", 4341, 2883],
+	["130.jpg", 3888, 5005],
+	["131.jpg", 3456, 5184],
+	["132.jpg", 3830, 5107],
+	["133.jpg", 3888, 5184],
+	["134.jpg", 3888, 5184],
+	["135.jpg", 3888, 5116],
+	["136.jpg", 3802, 4970],
+	["137.jpg", 5184, 3825],
+	["138.jpg", 3888, 5184],
+	["139.jpg", 5184, 3888],
+	["140.jpg", 5011, 3758],
+	["141.jpg", 5125, 3844],
+];
+
 const galleryPages = [
 	{
 		key: "the-natural-world",
@@ -163,10 +341,16 @@ const galleryPages = [
 		})),
 	},
 	{
-		key: "protests",
-		label: "protests",
-		path: "./protests.html",
-		items: createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }),
+		key: "california",
+		label: "California",
+		path: "./california.html",
+		items: createLocalGalleryItems("california", "Place/California", californiaSpecs, { publicIdBase: "place/california" }),
+	},
+	{
+		key: "san-francisco",
+		label: "San Francisco",
+		path: "./san-francisco.html",
+		items: createLocalGalleryItems("san-francisco", "Place/California/San Francisco", sanFranciscoSpecs, { publicIdBase: "place/california/san-francisco" }),
 	},
 	{
 		key: "shapes-and-shadows",
@@ -176,9 +360,32 @@ const galleryPages = [
 			publicIdBase: "shapes-and-shadows",
 		}),
 	},
+	{
+		key: "protests",
+		label: "protests",
+		path: "./protests.html",
+		items: createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }),
+	},
 ];
 
-const portfolioLinks = [...galleryPages.map((page) => ({ label: page.label, path: page.path, key: page.key }))];
+const portfolioLinks = [
+	{ label: "the natural world", path: "./index.html", key: "the-natural-world" },
+	{
+		label: "place",
+		key: "place",
+		children: [
+			{
+				label: "California",
+				path: "./california.html",
+				key: "california",
+				preserveCase: true,
+				children: [{ label: "San Francisco", path: "./san-francisco.html", key: "san-francisco", preserveCase: true }],
+			},
+		],
+	},
+	{ label: "shapes & shadows", path: "./shapes-and-shadows.html", key: "shapes-and-shadows" },
+	{ label: "protests", path: "./protests.html", key: "protests" },
+];
 
 const secondaryLinks = [
 	{ label: "newsletter", path: "https://example.com/newsletter", external: true },
@@ -194,51 +401,73 @@ const placeholderUrl = (item) => {
 
 const currentPageKey = document.body.dataset.page || "the-natural-world";
 
+const linkHasActiveChild = (link) => link.children?.some((child) => child.key === currentPageKey || linkHasActiveChild(child));
+
 const renderSidebarNav = (links, nested = false) => `
 	<ul class="${nested ? "subnav-list" : "nav-list"}">
 		${links
-			.map(
-				(link) => `
+			.map((link) => {
+				if (link.children?.length) {
+					const isCurrentPage = link.key === currentPageKey;
+					const isOpen = isCurrentPage || linkHasActiveChild(link);
+					const hasDirectPage = Boolean(link.path);
+					return `
+						<li class="folder-link ${isOpen ? "active-folder" : ""} ${isCurrentPage ? "active-link" : ""}">
+							<details class="sidebar-folder" ${isOpen ? "open" : ""}>
+								<summary class="${link.preserveCase ? "preserve-case" : ""}">
+									${hasDirectPage ? `<a class="folder-label-link ${link.preserveCase ? "preserve-case" : ""}" href="${link.path}" ${link.external ? 'target="_blank" rel="noreferrer"' : ""}>${link.label}</a>` : link.label}
+								</summary>
+								<div class="subnav">${renderSidebarNav(link.children, true)}</div>
+							</details>
+						</li>
+					`;
+				}
+
+				return `
 					<li class="${link.key === currentPageKey ? "active-link" : ""}">
-						<a href="${link.path}" ${link.external ? 'target="_blank" rel="noreferrer"' : ""}>${link.label}</a>
+						<a class="${link.preserveCase ? "preserve-case" : ""}" href="${link.path}" ${link.external ? 'target="_blank" rel="noreferrer"' : ""}>${link.label}</a>
 					</li>
-				`,
-			)
+				`;
+			})
 			.join("")}
 	</ul>
 `;
 
 const renderGallery = (page) => `
 	<section class="gallery-page">
-		<div class="masonry-grid">
-			${page.items
-				.map((item) => {
-					const imageSrc = item.image ? resolveImageUrl(item) : placeholderUrl(item);
-					const hasCaption = item.title || item.location;
-					return `
-						<figure class="gallery-card">
-							<button
-								class="gallery-trigger"
-								type="button"
-								data-gallery-key="${page.key}"
-								data-gallery-index="${page.items.indexOf(item)}"
-								aria-label="Open image ${page.items.indexOf(item) + 1} from ${page.label}"
-							>
-								<img src="${imageSrc}" data-local-src="${localImageUrl(item)}" alt="${item.title || page.label}" width="${item.width}" height="${item.height}" loading="lazy" />
-							</button>
-							${
-								hasCaption
-									? `<figcaption>
-										${item.title ? `<span>${item.title}</span>` : ""}
-										${item.location ? `<small>${item.location}</small>` : ""}
-									</figcaption>`
-									: ""
-							}
-						</figure>
-					`;
-				})
-				.join("")}
-		</div>
+		${
+			page.items.length
+				? `<div class="masonry-grid">
+					${page.items
+						.map((item) => {
+							const imageSrc = item.image ? resolveImageUrl(item) : placeholderUrl(item);
+							const hasCaption = item.title || item.location;
+							return `
+								<figure class="gallery-card">
+									<button
+										class="gallery-trigger"
+										type="button"
+										data-gallery-key="${page.key}"
+										data-gallery-index="${page.items.indexOf(item)}"
+										aria-label="Open image ${page.items.indexOf(item) + 1} from ${page.label}"
+									>
+										<img src="${imageSrc}" data-local-src="${localImageUrl(item)}" alt="${item.title || page.label}" width="${item.width}" height="${item.height}" loading="lazy" />
+									</button>
+									${
+										hasCaption
+											? `<figcaption>
+												${item.title ? `<span>${item.title}</span>` : ""}
+												${item.location ? `<small>${item.location}</small>` : ""}
+											</figcaption>`
+											: ""
+									}
+								</figure>
+							`;
+						})
+						.join("")}
+				</div>`
+				: `<div class="empty-gallery"><p>No images added yet.</p></div>`
+		}
 	</section>
 `;
 
@@ -348,6 +577,12 @@ app.innerHTML = `
 document.addEventListener("submit", (event) => {
 	if (!(event.target instanceof HTMLFormElement)) return;
 	event.preventDefault();
+});
+
+document.addEventListener("click", (event) => {
+	const folderLink = event.target instanceof Element ? event.target.closest(".folder-label-link") : null;
+	if (!(folderLink instanceof HTMLAnchorElement)) return;
+	event.stopPropagation();
 });
 
 const lightbox = document.querySelector(".lightbox");

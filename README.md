@@ -2,7 +2,9 @@
 
 Static portfolio site with placeholder content for safe editing and later content replacement.
 
-Uses local images by default, with Cloudinary delivery currently enabled for `The Natural World`, `Protests`, `Shapes & Shadows`, and the about portrait, plus local fallback for everything else.
+Uses local images by default, with Cloudinary delivery currently enabled for `The Natural World`, `Protests`, `Shapes & Shadows`, the about portrait, and now preconfigured public IDs for `California` and `San Francisco`, plus local fallback for everything else.
+
+The portfolio sidebar now includes a collapsible `place` section with `California` and `San Francisco` sub-galleries. The UI is wired to `./Place/California/` and `./Place/California/San Francisco/`, and both galleries are populated with local images.
 
 ## Files
 
@@ -18,6 +20,8 @@ Uses local images by default, with Cloudinary delivery currently enabled for `Th
 - `about-contact.html`
 - `styles.css`
 - `site.js`
+- `california.html`
+- `san-francisco.html`
 
 ## Run locally
 
@@ -42,8 +46,21 @@ Current behavior:
 - `Protests` uses Cloudinary public IDs in the `protests/...` path
 - `Shapes & Shadows` uses Cloudinary public IDs in the `shapes-and-shadows/...` path
 - the about portrait uses Cloudinary public ID `about/portrait`
+- `California` uses Cloudinary public IDs in the `place/california/...` path with local fallback
+- `San Francisco` uses Cloudinary public IDs in the `place/california/san-francisco/...` path with local fallback
 - other images still use local files
 - gallery images and the lightbox fall back to local files if a Cloudinary asset fails to load
+
+To upload the `Place` galleries to Cloudinary with the paths already wired in `site.js`:
+
+```bash
+export CLOUDINARY_URL='cloudinary://<api_key>:<api_secret>@dpmdkrggj'
+./scripts/upload-place-to-cloudinary.sh
+```
+
+This uploads:
+- `Place/California/<n>.jpg` -> `place/california/<n>`
+- `Place/California/San Francisco/<n>.jpg` -> `place/california/san-francisco/<n>`
 
 To move more series to Cloudinary:
 1. Upload the images to Cloudinary
