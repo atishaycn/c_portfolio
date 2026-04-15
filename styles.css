@@ -166,6 +166,10 @@ input {
 	column-gap: 28px;
 }
 
+body[data-page="protests"] .masonry-grid {
+	column-width: 480px;
+}
+
 .gallery-card {
 	position: relative;
 	break-inside: avoid;
