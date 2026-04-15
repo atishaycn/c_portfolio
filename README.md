@@ -54,9 +54,16 @@ Current behavior:
 To upload the `Place` galleries to Cloudinary with the paths already wired in `site.js`:
 
 ```bash
-export CLOUDINARY_URL='cloudinary://<api_key>:<api_secret>@dpmdkrggj'
+cp .env.example .env
+# fill in your Cloudinary values, or set CLOUDINARY_URL directly
 ./scripts/upload-place-to-cloudinary.sh
 ```
+
+The upload script automatically loads `.env` if present. Supported variables:
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `CLOUDINARY_URL`
 
 This uploads:
 - `Place/California/<n>.jpg` -> `place/california/<n>`
