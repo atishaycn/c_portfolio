@@ -1,6 +1,22 @@
+# Local/source image assets are hosted in Cloudinary, not Git.
+*.jpg
+*.jpeg
+*.JPG
+*.JPEG
+*.png
+*.PNG
+*.webp
+*.WEBP
+*.gif
+*.GIF
+
 The Natural World/
 Place/
+Protests/
+Shapes & Shadows/
+
 .DS_Store
 .env
 .env.*
 !.env.example
+.vercel
