@@ -324,6 +324,83 @@ const sanFranciscoSpecs = [
 	["141.jpg", 5125, 3844],
 ];
 
+const indiaSpecs = [
+	["1.JPG", 3404, 4934],
+	["2.JPG", 5184, 3456],
+	["3.JPG", 5184, 3456],
+	["4.JPG", 5184, 3456],
+	["5.JPG", 3888, 5067],
+	["6.JPG", 3527, 2788],
+	["7.JPG", 3695, 5130],
+	["8.JPG", 3888, 5184],
+	["9.JPG", 5184, 3888],
+	["10.JPG", 4309, 3888],
+	["11.JPG", 3888, 5184],
+	["12.JPG", 3888, 5184],
+	["13.JPG", 3735, 5040],
+	["14.JPG", 3853, 5028],
+	["15.JPG", 5184, 3888],
+	["16.JPG", 5184, 3888],
+	["17.JPG", 5125, 3844],
+	["18.JPG", 5184, 3888],
+	["19.JPG", 5184, 3888],
+	["20.JPG", 5151, 3888],
+	["21.JPG", 5184, 3888],
+	["22.JPG", 5184, 3888],
+	["23.JPG", 4956, 3608],
+	["24.JPG", 3888, 5184],
+	["25.JPG", 3888, 5184],
+	["26.JPG", 3888, 5184],
+	["27.JPG", 3766, 4765],
+	["28.JPG", 3888, 5184],
+	["29.JPG", 5184, 3888],
+	["30.JPG", 5125, 3844],
+	["31.JPG", 3730, 5067],
+	["32.JPG", 5011, 3758],
+	["33.JPG", 5125, 3844],
+	["34.JPG", 3800, 4185],
+];
+
+const colombiaSpecs = [
+	["1.JPG", 5184, 3456],
+	["2.JPG", 5117, 3411],
+	["3.JPG", 5086, 3242],
+	["4.JPG", 5184, 3456],
+	["5.JPG", 5184, 3456],
+	["6.JPG", 3456, 5184],
+	["7.JPG", 4887, 3456],
+	["8.JPG", 3135, 4703],
+];
+
+const chicagoSpecs = [
+	["1.jpg", 1650, 1100],
+	["2.jpg", 1650, 1100],
+	["3.jpg", 1650, 1100],
+	["4.jpg", 1650, 1100],
+	["5.jpg", 733, 1100],
+	["6.JPG", 4928, 3406],
+	["7.JPG", 5058, 3372],
+	["8.jpg", 5184, 3456],
+	["9.jpg", 5184, 3456],
+];
+
+const stLouisSpecs = [
+	["1.jpg", 1630, 1100],
+	["2.jpg", 1650, 1100],
+	["3.jpg", 1650, 1100],
+	["4.jpg", 1650, 1100],
+	["5.jpg", 733, 1100],
+	["6.jpg", 1650, 1100],
+	["7.JPG", 5184, 3888],
+	["8.JPG", 5184, 3888],
+	["9.JPG", 5184, 3888],
+	["10.JPG", 5184, 3888],
+	["11.JPG", 3800, 5067],
+	["12.JPG", 5184, 3888],
+	["13.JPG", 5184, 3888],
+	["14.JPG", 3888, 5184],
+];
+
 const galleryPages = [
 	{
 		key: "the-natural-world",
@@ -350,6 +427,30 @@ const galleryPages = [
 		label: "San Francisco",
 		path: "./san-francisco.html",
 		items: createLocalGalleryItems("san-francisco", "Place/California/San Francisco", sanFranciscoSpecs, { publicIdBase: "place/california/san-francisco" }),
+	},
+	{
+		key: "india",
+		label: "India",
+		path: "./india.html",
+		items: createLocalGalleryItems("india", "Place/India", indiaSpecs, { publicIdBase: "place/india" }),
+	},
+	{
+		key: "chicago",
+		label: "Chicago",
+		path: "./chicago.html",
+		items: createLocalGalleryItems("chicago", "Place/Midwest/Chicago", chicagoSpecs, { publicIdBase: "place/midwest/chicago" }),
+	},
+	{
+		key: "st-louis",
+		label: "St. Louis",
+		path: "./st-louis.html",
+		items: createLocalGalleryItems("st-louis", "Place/Midwest/St. Louis", stLouisSpecs, { publicIdBase: "place/midwest/st-louis" }),
+	},
+	{
+		key: "colombia",
+		label: "Colombia",
+		path: "./colombia.html",
+		items: createLocalGalleryItems("colombia", "Place/Colombia", colombiaSpecs, { publicIdBase: "place/colombia" }),
 	},
 	{
 		key: "shapes-and-shadows",
@@ -380,6 +481,17 @@ const portfolioLinks = [
 				preserveCase: true,
 				children: [{ label: "San Francisco", path: "./san-francisco.html", key: "san-francisco", preserveCase: true }],
 			},
+			{ label: "India", path: "./india.html", key: "india", preserveCase: true },
+			{
+				label: "Midwest",
+				key: "midwest",
+				preserveCase: true,
+				children: [
+					{ label: "Chicago", path: "./chicago.html", key: "chicago", preserveCase: true },
+					{ label: "St. Louis", path: "./st-louis.html", key: "st-louis", preserveCase: true },
+				],
+			},
+			{ label: "Colombia", path: "./colombia.html", key: "colombia", preserveCase: true },
 		],
 	},
 	{ label: "shapes & shadows", path: "./shapes-and-shadows.html", key: "shapes-and-shadows" },
