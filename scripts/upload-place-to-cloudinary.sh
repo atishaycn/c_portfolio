@@ -91,9 +91,6 @@ SERIES_CATALOG=$(cat <<'EOF'
 california|California|place/california|Place/California
 san-francisco|San Francisco|place/california/san-francisco|Place/California/San Francisco
 india|India|place/india|Place/India
-chicago|Chicago|place/midwest/chicago|Place/Midwest/Chicago
-st-louis|St. Louis|place/midwest/st-louis|Place/Midwest/St. Louis
-colombia|Colombia|place/colombia|Place/Colombia
 EOF
 )
 
@@ -104,16 +101,13 @@ Usage:
 
 Examples:
   ./scripts/upload-place-to-cloudinary.sh                 # upload all configured place series
-  ./scripts/upload-place-to-cloudinary.sh india colombia # upload only selected new series
-  PARALLEL=4 ./scripts/upload-place-to-cloudinary.sh india chicago st-louis colombia
+  ./scripts/upload-place-to-cloudinary.sh india california # upload only selected series
+  PARALLEL=4 ./scripts/upload-place-to-cloudinary.sh california san-francisco india
 
 Series keys:
   california
   san-francisco
   india
-  chicago
-  st-louis
-  colombia
 EOF
 }
 

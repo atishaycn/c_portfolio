@@ -361,46 +361,6 @@ const indiaSpecs = [
 	["34.JPG", 3800, 4185],
 ];
 
-const colombiaSpecs = [
-	["1.JPG", 5184, 3456],
-	["2.JPG", 5117, 3411],
-	["3.JPG", 5086, 3242],
-	["4.JPG", 5184, 3456],
-	["5.JPG", 5184, 3456],
-	["6.JPG", 3456, 5184],
-	["7.JPG", 4887, 3456],
-	["8.JPG", 3135, 4703],
-];
-
-const chicagoSpecs = [
-	["1.jpg", 1650, 1100],
-	["2.jpg", 1650, 1100],
-	["3.jpg", 1650, 1100],
-	["4.jpg", 1650, 1100],
-	["5.jpg", 733, 1100],
-	["6.JPG", 4928, 3406],
-	["7.JPG", 5058, 3372],
-	["8.jpg", 5184, 3456],
-	["9.jpg", 5184, 3456],
-];
-
-const stLouisSpecs = [
-	["1.jpg", 1630, 1100],
-	["2.jpg", 1650, 1100],
-	["3.jpg", 1650, 1100],
-	["4.jpg", 1650, 1100],
-	["5.jpg", 733, 1100],
-	["6.jpg", 1650, 1100],
-	["7.JPG", 5184, 3888],
-	["8.JPG", 5184, 3888],
-	["9.JPG", 5184, 3888],
-	["10.JPG", 5184, 3888],
-	["11.JPG", 3800, 5067],
-	["12.JPG", 5184, 3888],
-	["13.JPG", 5184, 3888],
-	["14.JPG", 3888, 5184],
-];
-
 const galleryPages = [
 	{
 		key: "the-natural-world",
@@ -435,24 +395,6 @@ const galleryPages = [
 		items: createLocalGalleryItems("india", "Place/India", indiaSpecs, { publicIdBase: "place/india" }),
 	},
 	{
-		key: "chicago",
-		label: "Chicago",
-		path: "./chicago.html",
-		items: createLocalGalleryItems("chicago", "Place/Midwest/Chicago", chicagoSpecs, { publicIdBase: "place/midwest/chicago" }),
-	},
-	{
-		key: "st-louis",
-		label: "St. Louis",
-		path: "./st-louis.html",
-		items: createLocalGalleryItems("st-louis", "Place/Midwest/St. Louis", stLouisSpecs, { publicIdBase: "place/midwest/st-louis" }),
-	},
-	{
-		key: "colombia",
-		label: "Colombia",
-		path: "./colombia.html",
-		items: createLocalGalleryItems("colombia", "Place/Colombia", colombiaSpecs, { publicIdBase: "place/colombia" }),
-	},
-	{
 		key: "shapes-and-shadows",
 		label: "shapes & shadows",
 		path: "./shapes-and-shadows.html",
@@ -482,16 +424,6 @@ const portfolioLinks = [
 				children: [{ label: "San Francisco", path: "./san-francisco.html", key: "san-francisco", preserveCase: true }],
 			},
 			{ label: "India", path: "./india.html", key: "india", preserveCase: true },
-			{
-				label: "Midwest",
-				key: "midwest",
-				preserveCase: true,
-				children: [
-					{ label: "Chicago", path: "./chicago.html", key: "chicago", preserveCase: true },
-					{ label: "St. Louis", path: "./st-louis.html", key: "st-louis", preserveCase: true },
-				],
-			},
-			{ label: "Colombia", path: "./colombia.html", key: "colombia", preserveCase: true },
 		],
 	},
 	{ label: "shapes & shadows", path: "./shapes-and-shadows.html", key: "shapes-and-shadows" },
