@@ -431,7 +431,7 @@ const portfolioLinks = [
 ];
 
 const secondaryLinks = [
-	{ label: "newsletter", path: "https://example.com/newsletter", external: true },
+	{ label: "newsletter", path: "https://photosoftheweek.substack.com/", external: true },
 	{ label: "prints", path: "https://example.com/prints", external: true },
 	{ label: "about + contact", path: "./about-contact.html", key: "about-contact" },
 ];

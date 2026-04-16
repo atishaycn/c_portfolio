@@ -40,7 +40,7 @@ File: `site.js`
 
 ### External links
 File: `site.js`
-- Newsletter URL: `https://example.com/newsletter`
+- Newsletter URL: `https://photosoftheweek.substack.com/`
 - Prints URL: `https://example.com/prints`
 
 ### Gallery content
