@@ -561,7 +561,7 @@ const renderAbout = () => `
 		<div class="about-copy">
 			<p>San Francisco-based street photographer</p>
 			<p>I am available for freelance opportunities. Please get in touch at the email below!</p>
-			<p>For inquiries:<br /><a href="mailto:contact@clairethomas.art">contact@clairethomas.art</a></p>
+			<p>For inquiries:<br /><a href="mailto:contact@clairethomas.art?subject=Inquiry">contact@clairethomas.art</a></p>
 		</div>
 	</section>
 `;
@@ -623,7 +623,7 @@ app.innerHTML = `
 					${renderSidebarNav(secondaryLinks)}
 				</nav>
 				<footer class="sidebar-footer">
-					<a href="mailto:contact@clairethomas.art" aria-label="Email">Email</a>
+					<a href="mailto:contact@clairethomas.art?subject=Inquiry" aria-label="Email">Email</a>
 					<a href="https://clarityincatastrophe.substack.com/" aria-label="Writing" target="_blank" rel="noreferrer">Writing</a>
 				</footer>
 			</div>
