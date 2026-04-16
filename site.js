@@ -624,6 +624,7 @@ app.innerHTML = `
 				</nav>
 				<footer class="sidebar-footer">
 					<a href="mailto:cet.samoht@proton.me" aria-label="Email">Email</a>
+					<a href="https://clarityincatastrophe.substack.com/" aria-label="Writing" target="_blank" rel="noreferrer">Writing</a>
 				</footer>
 			</div>
 		</aside>
