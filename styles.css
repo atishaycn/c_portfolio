@@ -380,12 +380,41 @@ body[data-page="protests"] .masonry-grid {
 	max-height: calc(100vh - 56px);
 }
 
+.lightbox-image-frame {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 100%;
+	min-height: 240px;
+}
+
 .lightbox-image {
 	width: auto;
 	max-width: 100%;
 	max-height: calc(100vh - 120px);
 	object-fit: contain;
 	background: transparent;
+	transition: opacity 0.2s ease;
+}
+
+.lightbox-is-loading .lightbox-image {
+	opacity: 0.35;
+}
+
+.lightbox-loading {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	padding: 10px 14px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.14);
+	backdrop-filter: blur(6px);
+	color: #fff;
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	white-space: nowrap;
 }
 
 .lightbox-meta {
@@ -401,6 +430,10 @@ body[data-page="protests"] .masonry-grid {
 	background: rgba(255, 255, 255, 0.12);
 	color: #fff;
 	cursor: pointer;
+}
+
+.lightbox-nav[aria-busy="true"] {
+	background: rgba(255, 255, 255, 0.18);
 }
 
 .lightbox-dismiss {

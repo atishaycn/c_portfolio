@@ -638,7 +638,10 @@ app.innerHTML = `
 		<button class="lightbox-dismiss" type="button" aria-label="Close expanded image">Close</button>
 		<button class="lightbox-nav lightbox-prev" type="button" aria-label="Previous image">‹</button>
 		<div class="lightbox-stage">
-			<img class="lightbox-image" alt="" />
+			<div class="lightbox-image-frame">
+				<img class="lightbox-image" alt="" />
+				<div class="lightbox-loading" hidden aria-live="polite">Loading image…</div>
+			</div>
 			<div class="lightbox-meta"></div>
 		</div>
 		<button class="lightbox-nav lightbox-next" type="button" aria-label="Next image">›</button>
@@ -671,25 +674,105 @@ const lightboxMeta = document.querySelector(".lightbox-meta");
 const lightboxDismiss = document.querySelector(".lightbox-dismiss");
 const lightboxPrev = document.querySelector(".lightbox-prev");
 const lightboxNext = document.querySelector(".lightbox-next");
+const lightboxLoading = document.querySelector(".lightbox-loading");
 
 const lightboxState = {
 	page: null,
 	index: 0,
+	requestId: 0,
+	isLoading: false,
 };
 
-const getCurrentLightboxItems = () => lightboxState.page?.items ?? [];
+const lightboxImageCache = new Map();
 
-const renderLightboxImage = () => {
+const getCurrentLightboxItems = () => lightboxState.page?.items ?? [];
+const getLightboxItemSources = (item) => ({
+	src: item.image ? lightboxImageUrl(item) : placeholderUrl(item),
+	srcset: item.publicId ? imageSrcSet(item) : "",
+	sizes: item.publicId ? lightboxImageSizes : "",
+	fallbackSrc: localImageUrl(item),
+});
+const getLightboxCacheKey = ({ src, srcset, sizes }) => [src, srcset, sizes].join("|");
+
+const setLightboxLoading = (isLoading, message = "Loading image…") => {
+	lightboxState.isLoading = isLoading;
+	lightbox?.classList.toggle("lightbox-is-loading", isLoading);
+	if (lightboxLoading) {
+		lightboxLoading.hidden = !isLoading;
+		lightboxLoading.textContent = message;
+	}
+	lightboxPrev?.toggleAttribute("aria-busy", isLoading);
+	lightboxNext?.toggleAttribute("aria-busy", isLoading);
+};
+
+const preloadLightboxSource = ({ src, srcset, sizes, fallbackSrc }) => {
+	const cacheKey = getLightboxCacheKey({ src, srcset, sizes });
+	if (lightboxImageCache.has(cacheKey)) return lightboxImageCache.get(cacheKey);
+
+	const promise = new Promise((resolve) => {
+		const loader = new Image();
+		if (srcset) loader.srcset = srcset;
+		if (sizes) loader.sizes = sizes;
+		loader.decoding = "async";
+		loader.onload = () => resolve({ src, srcset, sizes });
+		loader.onerror = () => {
+			if (!fallbackSrc) {
+				resolve({ src, srcset, sizes });
+				return;
+			}
+			const fallbackLoader = new Image();
+			fallbackLoader.decoding = "async";
+			fallbackLoader.onload = () => resolve({ src: fallbackSrc, srcset: "", sizes: "" });
+			fallbackLoader.onerror = () => resolve({ src: fallbackSrc, srcset: "", sizes: "" });
+			fallbackLoader.src = fallbackSrc;
+		};
+		loader.src = src;
+	});
+
+	lightboxImageCache.set(cacheKey, promise);
+	return promise;
+};
+
+const preloadAdjacentLightboxImages = () => {
+	const items = getCurrentLightboxItems();
+	if (items.length < 2) return;
+	[-1, 1, 2].forEach((offset) => {
+		const item = items[(lightboxState.index + offset + items.length) % items.length];
+		if (!item) return;
+		preloadLightboxSource(getLightboxItemSources(item));
+	});
+};
+
+const updateLightboxMeta = (state = "") => {
+	if (!lightboxMeta) return;
+	const items = getCurrentLightboxItems();
+	if (!items.length) {
+		lightboxMeta.textContent = "";
+		return;
+	}
+	lightboxMeta.textContent = `${lightboxState.index + 1} / ${items.length}${state ? ` — ${state}` : ""}`;
+};
+
+const renderLightboxImage = async () => {
 	if (!lightbox || !lightboxImage || !lightboxMeta) return;
 	const items = getCurrentLightboxItems();
 	const item = items[lightboxState.index];
 	if (!item) return;
 
-	lightboxImage.src = item.image ? lightboxImageUrl(item) : placeholderUrl(item);
-	lightboxImage.srcset = item.publicId ? imageSrcSet(item) : "";
-	lightboxImage.sizes = item.publicId ? lightboxImageSizes : "";
+	const requestId = ++lightboxState.requestId;
 	lightboxImage.alt = item.title || lightboxState.page.label;
-	lightboxMeta.textContent = `${lightboxState.index + 1} / ${items.length}`;
+	updateLightboxMeta("loading");
+	setLightboxLoading(true);
+
+	const resolvedSource = await preloadLightboxSource(getLightboxItemSources(item));
+	if (requestId !== lightboxState.requestId) return;
+
+	lightboxImage.srcset = resolvedSource.srcset;
+	lightboxImage.sizes = resolvedSource.sizes;
+	lightboxImage.src = resolvedSource.src;
+	updateLightboxMeta();
+	setLightboxLoading(false);
+	preloadAdjacentLightboxImages();
 };
 
 const setLightboxOpen = (isOpen) => {
