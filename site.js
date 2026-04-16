@@ -564,7 +564,6 @@ const renderAbout = () => `
 			<p>Placeholder biography text.</p>
 			<p>Placeholder services and availability text.</p>
 			<p>For inquiries:<br /><a href="mailto:hello@example.com">hello@example.com</a></p>
-			<p>LinkedIn:<br /><a href="https://www.linkedin.com/in/placeholder/" target="_blank" rel="noreferrer">placeholder</a></p>
 		</div>
 	</section>
 `;
@@ -628,7 +627,6 @@ app.innerHTML = `
 				</nav>
 				<footer class="sidebar-footer">
 					<a href="mailto:hello@example.com" aria-label="Email">Email</a>
-					<a href="https://www.linkedin.com/in/placeholder/" target="_blank" rel="noreferrer" aria-label="LinkedIn">LinkedIn</a>
 				</footer>
 			</div>
 		</aside>

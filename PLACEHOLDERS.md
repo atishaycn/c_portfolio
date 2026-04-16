@@ -33,11 +33,6 @@ File: `site.js`
 - Email address: `hello@example.com`
 - Email link: `mailto:hello@example.com`
 
-### LinkedIn
-File: `site.js`
-- LinkedIn URL: `https://www.linkedin.com/in/placeholder/`
-- LinkedIn label: `placeholder`
-
 ### External links
 File: `site.js`
 - Newsletter URL: `https://photosoftheweek.substack.com/`
