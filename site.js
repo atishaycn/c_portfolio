@@ -1,5 +1,4 @@
 const siteTitle = "CLAIRE THOMAS";
-const tagline = "Placeholder tagline";
 
 const cloudinaryConfig = {
 	enabled: true,
@@ -563,7 +562,7 @@ const renderAbout = () => `
 			<p>Photo credit placeholder.</p>
 			<p>Placeholder biography text.</p>
 			<p>Placeholder services and availability text.</p>
-			<p>For inquiries:<br /><a href="mailto:hello@example.com">hello@example.com</a></p>
+			<p>For inquiries:<br /><a href="mailto:cet.samoht@proton.me">cet.samoht@proton.me</a></p>
 		</div>
 	</section>
 `;
@@ -614,7 +613,6 @@ app.innerHTML = `
 			<div class="sidebar-inner">
 				<header class="site-header">
 					<h1><a href="./index.html">${siteTitle}</a></h1>
-					<p>${tagline}</p>
 				</header>
 				<nav class="sidebar-nav" aria-label="Portfolio navigation">
 					<ul class="nav-list folder-list">
@@ -626,7 +624,7 @@ app.innerHTML = `
 					${renderSidebarNav(secondaryLinks)}
 				</nav>
 				<footer class="sidebar-footer">
-					<a href="mailto:hello@example.com" aria-label="Email">Email</a>
+					<a href="mailto:cet.samoht@proton.me" aria-label="Email">Email</a>
 				</footer>
 			</div>
 		</aside>

@@ -75,14 +75,8 @@ input {
 	text-transform: uppercase;
 }
 
-.site-header p {
-	margin: 12px 0 0;
-	font-size: 12px;
-	color: #777;
-}
-
 .sidebar-nav {
-	margin-top: 42px;
+	margin-top: 24px;
 	font-size: 12px;
 	text-transform: lowercase;
 }

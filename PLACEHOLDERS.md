@@ -10,28 +10,11 @@ These were left as-is based on direct instruction.
 
 ## Placeholder values currently in use
 
-### Inner page titles
-Files: all non-home HTML pages
-- `placeholder — CLAIRE THOMAS`
-
-### Tagline
-File: `site.js`
-- `Placeholder tagline`
-
-### Meta descriptions
-Files: all HTML pages
-- `Placeholder meta description.`
-
 ### About page copy
 File: `site.js`
 - Bio: `Placeholder biography text.`
 - Services: `Placeholder services and availability text.`
 - Photo credit: `Photo credit placeholder.`
-
-### Contact
-File: `site.js`
-- Email address: `hello@example.com`
-- Email link: `mailto:hello@example.com`
 
 ### External links
 File: `site.js`
