@@ -269,8 +269,14 @@ After pushing:
 
 - use the available signed-in Vercel setup to verify deployment
 - confirm that the deployment succeeds
-- check the deployed result for the new series
-- report the deployment status back clearly
+- check the deployed result for the new series on the primary Vercel deployment URL
+- check the deployed result for the new series on the verified custom domain: `https://www.clairethomas.art`
+- report both the Vercel deployment status and the custom-domain verification status back clearly
+
+Minimum custom-domain check:
+
+- `https://www.clairethomas.art`
+- each newly added gallery page URL on that domain
 
 If Vercel surfaces an issue, fix it and redeploy if possible.
 
@@ -289,7 +295,7 @@ While doing the work, provide updates at each step, such as:
 7. uploaded only the new series to Cloudinary (parallel if appropriate; prefer `PARALLEL=2` by default)
 8. validated locally
 9. committed and pushed
-10. verified Vercel deployment
+10. verified Vercel deployment and `https://www.clairethomas.art`
 
 Updates should be short but continuous so progress is visible.
 
@@ -327,4 +333,5 @@ For every new series:
 - Validate page load, nav behavior, image rendering, lightbox behavior, and Cloudinary/local fallback integrity.
 - Commit and push the completed changes.
 - Use the available signed-in Vercel setup to verify deployment and report the result.
+- Also verify the live custom domain `https://www.clairethomas.art`, including the newly added gallery page URLs.
 ```
