@@ -559,9 +559,8 @@ const renderAbout = () => `
 			<img src="${resolveImageUrl({ image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" }, { width: 1200 })}" srcset="${imageSrcSet({ image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" })}" sizes="(max-width: 1100px) 100vw, 520px" data-local-src="${localImageUrl("./fqs 2025-12-19 161703.086.jpg")}" alt="Claire Thomas portrait" width="3024" height="4536" loading="eager" fetchpriority="high" decoding="async" />
 		</div>
 		<div class="about-copy">
-			<p>Photo credit placeholder.</p>
-			<p>Placeholder biography text.</p>
-			<p>Placeholder services and availability text.</p>
+			<p>San Francisco-based street photographer</p>
+			<p>I am available for freelance opportunities. Please get in touch at the email below!</p>
 			<p>For inquiries:<br /><a href="mailto:cet.samoht@proton.me">cet.samoht@proton.me</a></p>
 		</div>
 	</section>

@@ -10,12 +10,6 @@ These were left as-is based on direct instruction.
 
 ## Placeholder values currently in use
 
-### About page copy
-File: `site.js`
-- Bio: `Placeholder biography text.`
-- Services: `Placeholder services and availability text.`
-- Photo credit: `Photo credit placeholder.`
-
 ### External links
 File: `site.js`
 - Newsletter URL: `https://photosoftheweek.substack.com/`
