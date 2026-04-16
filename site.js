@@ -5,18 +5,26 @@ const cloudinaryConfig = {
 	enabled: true,
 	cloudName: "dpmdkrggj",
 	transformation: "f_auto,q_auto",
+	galleryWidth: 1200,
+	lightboxWidth: 2400,
+	placeholderWidth: 80,
 };
 
-const buildCloudinaryUrl = (publicId) => {
+const buildCloudinaryUrl = (publicId, options = {}) => {
 	if (!cloudinaryConfig.enabled || !cloudinaryConfig.cloudName || !publicId) return "";
 	const encodedSegments = publicId.split("/").map(encodeURIComponent).join("/");
-	return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${cloudinaryConfig.transformation}/${encodedSegments}`;
+	const transforms = [cloudinaryConfig.transformation];
+	if (options.width) transforms.push(`w_${options.width},c_limit`);
+	if (options.height) transforms.push(`h_${options.height},c_limit`);
+	if (options.quality) transforms.push(`q_${options.quality}`);
+	if (options.effect) transforms.push(options.effect);
+	return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transforms.join(",")}/${encodedSegments}`;
 };
 
-const resolveImageUrl = (itemOrPath) => {
+const resolveImageUrl = (itemOrPath, options = {}) => {
 	if (!itemOrPath) return itemOrPath;
 	if (typeof itemOrPath === "string") return encodeURI(itemOrPath);
-	if (itemOrPath.publicId) return buildCloudinaryUrl(itemOrPath.publicId);
+	if (itemOrPath.publicId) return buildCloudinaryUrl(itemOrPath.publicId, options);
 	return encodeURI(itemOrPath.image);
 };
 
@@ -437,10 +445,27 @@ const secondaryLinks = [
 ];
 
 const placeholderUrl = (item) => {
-	const width = Math.round(item.width / 2);
-	const height = Math.round(item.height / 2);
+	if (item.publicId) {
+		return resolveImageUrl(item, {
+			width: cloudinaryConfig.placeholderWidth,
+			quality: 20,
+			effect: "e_blur:1200",
+		});
+	}
+	const width = Math.max(32, Math.round(item.width / 16));
+	const height = Math.max(32, Math.round(item.height / 16));
 	return `https://picsum.photos/seed/${item.id}/${width}/${height}`;
 };
+
+const galleryImageUrl = (item) => resolveImageUrl(item, { width: cloudinaryConfig.galleryWidth });
+const lightboxImageUrl = (item) => resolveImageUrl(item, { width: cloudinaryConfig.lightboxWidth });
+const responsiveWidths = [400, 800, 1200, 1600, 2400];
+const imageSrcSet = (item, widths = responsiveWidths) => {
+	if (!item?.publicId) return "";
+	return widths.map((width) => `${resolveImageUrl(item, { width })} ${width}w`).join(", ");
+};
+const galleryImageSizes = "(max-width: 820px) 100vw, (max-width: 1400px) 50vw, 33vw";
+const lightboxImageSizes = "100vw";
 
 const currentPageKey = document.body.dataset.page || "the-natural-world";
 
@@ -482,19 +507,22 @@ const renderGallery = (page) => `
 			page.items.length
 				? `<div class="masonry-grid">
 					${page.items
-						.map((item) => {
-							const imageSrc = item.image ? resolveImageUrl(item) : placeholderUrl(item);
+						.map((item, index) => {
+							const imageSrc = placeholderUrl(item);
+							const highResSrc = item.image ? galleryImageUrl(item) : placeholderUrl(item);
+							const highResSrcSet = item.publicId ? imageSrcSet(item) : "";
 							const hasCaption = item.title || item.location;
+							const eager = index < 4;
 							return `
 								<figure class="gallery-card">
 									<button
 										class="gallery-trigger"
 										type="button"
 										data-gallery-key="${page.key}"
-										data-gallery-index="${page.items.indexOf(item)}"
-										aria-label="Open image ${page.items.indexOf(item) + 1} from ${page.label}"
+										data-gallery-index="${index}"
+										aria-label="Open image ${index + 1} from ${page.label}"
 									>
-										<img src="${imageSrc}" data-local-src="${localImageUrl(item)}" alt="${item.title || page.label}" width="${item.width}" height="${item.height}" loading="lazy" />
+										<img class="progressive-image" src="${imageSrc}" data-high-src="${highResSrc}" data-high-srcset="${highResSrcSet}" data-sizes="${galleryImageSizes}" data-local-src="${localImageUrl(item)}" alt="${item.title || page.label}" width="${item.width}" height="${item.height}" loading="${eager ? "eager" : "lazy"}" fetchpriority="${eager ? "high" : "low"}" decoding="async" />
 									</button>
 									${
 										hasCaption
@@ -529,7 +557,7 @@ const renderWorkshops = () => `
 const renderAbout = () => `
 	<section class="detail-page about-page">
 		<div class="about-image-wrap">
-			<img src="${resolveImageUrl({ image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" })}" data-local-src="${localImageUrl("./fqs 2025-12-19 161703.086.jpg")}" alt="Claire Thomas portrait" width="3024" height="4536" />
+			<img src="${resolveImageUrl({ image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" }, { width: 1200 })}" srcset="${imageSrcSet({ image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" })}" sizes="(max-width: 1100px) 100vw, 520px" data-local-src="${localImageUrl("./fqs 2025-12-19 161703.086.jpg")}" alt="Claire Thomas portrait" width="3024" height="4536" loading="eager" fetchpriority="high" decoding="async" />
 		</div>
 		<div class="about-copy">
 			<p>Photo credit placeholder.</p>
@@ -657,7 +685,9 @@ const renderLightboxImage = () => {
 	const item = items[lightboxState.index];
 	if (!item) return;
 
-	lightboxImage.src = item.image ? resolveImageUrl(item) : placeholderUrl(item);
+	lightboxImage.src = item.image ? lightboxImageUrl(item) : placeholderUrl(item);
+	lightboxImage.srcset = item.publicId ? imageSrcSet(item) : "";
+	lightboxImage.sizes = item.publicId ? lightboxImageSizes : "";
 	lightboxImage.alt = item.title || lightboxState.page.label;
 	lightboxMeta.textContent = `${lightboxState.index + 1} / ${items.length}`;
 };
@@ -707,6 +737,52 @@ document.addEventListener("keydown", (event) => {
 	if (event.key === "ArrowRight") stepLightbox(1);
 });
 
+const progressiveImages = Array.from(document.querySelectorAll(".progressive-image"));
+
+const upgradeImage = (image) => {
+	if (!(image instanceof HTMLImageElement)) return;
+	const nextSrc = image.dataset.highSrc;
+	if (!nextSrc || image.dataset.upgraded === "true") return;
+	const loader = new Image();
+	loader.onload = () => {
+		if (image.dataset.highSrcset) image.srcset = image.dataset.highSrcset;
+		if (image.dataset.sizes) image.sizes = image.dataset.sizes;
+		image.src = nextSrc;
+		image.dataset.upgraded = "true";
+		image.classList.add("is-loaded");
+	};
+	loader.onerror = () => {
+		const fallbackSrc = image.dataset.localSrc;
+		if (fallbackSrc) {
+			image.srcset = "";
+			image.sizes = "";
+			image.src = fallbackSrc;
+			image.dataset.upgraded = "true";
+			image.classList.add("is-loaded");
+		}
+	};
+	loader.src = nextSrc;
+};
+
+progressiveImages.slice(0, 4).forEach(upgradeImage);
+
+if ("IntersectionObserver" in window) {
+	const progressiveObserver = new IntersectionObserver(
+		(entries, observer) => {
+			entries.forEach((entry) => {
+				if (!entry.isIntersecting) return;
+				upgradeImage(entry.target);
+				observer.unobserve(entry.target);
+			});
+		},
+		{ rootMargin: "400px 0px" },
+	);
+
+	progressiveImages.slice(4).forEach((image) => progressiveObserver.observe(image));
+} else {
+	progressiveImages.forEach(upgradeImage);
+}
+
 document.addEventListener(
 	"error",
 	(event) => {
@@ -714,7 +790,10 @@ document.addEventListener(
 		if (!(image instanceof HTMLImageElement)) return;
 		const fallbackSrc = image.dataset.localSrc;
 		if (!fallbackSrc || image.src === fallbackSrc) return;
+		image.srcset = "";
+		image.sizes = "";
 		image.src = fallbackSrc;
+		image.classList.add("is-loaded");
 	},
 	true,
 );

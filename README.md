@@ -50,6 +50,9 @@ Current behavior:
 - `San Francisco` uses Cloudinary public IDs in the `place/california/san-francisco/...` path with local fallback
 - other images still use local files
 - gallery images and the lightbox fall back to local files if a Cloudinary asset fails to load
+- Cloudinary-backed gallery cards now load a tiny blurred placeholder first, eagerly upgrade the first 4 images, and lazy-upgrade the rest as they approach the viewport
+- Cloudinary-backed gallery images are width-limited for the grid and lightbox so the browser no longer downloads original full-resolution files for thumbnail views
+- Cloudinary-backed gallery and about images now expose responsive `srcset`/`sizes` so mobile and desktop browsers can request the smallest useful variant
 
 To upload the `Place` galleries to Cloudinary with the paths already wired in `site.js`:
 

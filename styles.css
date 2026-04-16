@@ -244,7 +244,15 @@ body[data-page="protests"] .masonry-grid {
 
 .gallery-card img {
 	background: #ececec;
-	transition: transform 0.25s ease;
+	transition: transform 0.25s ease, filter 0.3s ease, opacity 0.3s ease;
+}
+
+.progressive-image {
+	filter: blur(10px);
+}
+
+.progressive-image.is-loaded {
+	filter: blur(0);
 }
 
 .gallery-card:hover img {
