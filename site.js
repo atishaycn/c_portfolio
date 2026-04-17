@@ -439,7 +439,7 @@ const portfolioLinks = [
 
 const secondaryLinks = [
 	{ label: "newsletter", path: "https://photosoftheweek.substack.com/", external: true },
-	{ label: "prints", path: "https://example.com/prints", external: true },
+	{ label: "prints", path: "./prints.html", key: "prints" },
 	{ label: "about + contact", path: "./about-contact.html", key: "about-contact" },
 ];
 
@@ -566,6 +566,16 @@ const renderAbout = () => `
 	</section>
 `;
 
+const renderPrints = () => `
+	<section class="detail-page prints-page">
+		<div class="prints-copy">
+			<p class="prints-eyebrow">Prints</p>
+			<h2>Coming soon.</h2>
+			<p>A dedicated print shop is in progress. For early inquiries about editions, sizes, or availability, email <a href="mailto:contact@clairethomas.art?subject=Print%20Inquiry">contact@clairethomas.art</a>.</p>
+		</div>
+	</section>
+`;
+
 const renderBts = () => {
 	const items = createGalleryItems("bts", [
 		[1600, 1100, true],
@@ -599,6 +609,7 @@ const renderMain = () => {
 	const galleryPage = galleryPages.find((page) => page.key === currentPageKey);
 	if (galleryPage) return renderGallery(galleryPage);
 	if (currentPageKey === "workshops") return renderWorkshops();
+	if (currentPageKey === "prints") return renderPrints();
 	if (currentPageKey === "about-contact") return renderAbout();
 	if (currentPageKey === "bts") return renderBts();
 	return renderGallery(galleryPages[0]);

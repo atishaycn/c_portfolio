@@ -210,6 +210,45 @@ input {
 	max-width: 1400px;
 }
 
+.prints-page {
+	display: flex;
+	align-items: center;
+	min-height: calc(100vh - 80px);
+}
+
+.prints-copy {
+	max-width: 540px;
+}
+
+.prints-eyebrow {
+	margin: 0 0 18px;
+	font-size: 11px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: #7d7d7d;
+}
+
+.prints-copy h2 {
+	margin: 0 0 16px;
+	font-size: clamp(2.25rem, 5vw, 4.5rem);
+	font-weight: 400;
+	line-height: 0.95;
+	letter-spacing: -0.04em;
+}
+
+.prints-copy p {
+	margin: 0;
+	max-width: 42ch;
+	font-size: 15px;
+	line-height: 1.7;
+	color: #3c3c3c;
+}
+
+.prints-copy a {
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+
 .masonry-grid {
 	column-width: 390px;
 	column-gap: 28px;
@@ -474,6 +513,11 @@ body[data-page="protests"] .masonry-grid {
 
 	.content-area {
 		padding: 24px 22px 30px;
+	}
+
+	.prints-page {
+		min-height: auto;
+		padding-top: 28px;
 	}
 
 	.masonry-grid {

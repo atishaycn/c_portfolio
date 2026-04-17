@@ -18,6 +18,7 @@ The portfolio sidebar now includes a collapsible `place` section with `Californi
 - `self-reflections.html`
 - `workshops.html`
 - `about-contact.html`
+- `prints.html`
 - `styles.css`
 - `site.js`
 - `california.html`
