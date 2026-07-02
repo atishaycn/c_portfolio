@@ -727,7 +727,7 @@ app.innerHTML = `
 			</div>
 			<div class="lightbox-meta-row">
 				<div class="lightbox-meta"></div>
-				<a class="lightbox-print-link" href="${printOrderUrl()}" target="_blank" rel="noreferrer">Order print</a>
+				${currentPageKey === "commissioned-work" ? "" : `<a class="lightbox-print-link" href="${printOrderUrl()}" target="_blank" rel="noreferrer">Order print</a>`}
 			</div>
 		</div>
 		<button class="lightbox-nav lightbox-next" type="button" aria-label="Next image">›</button>
