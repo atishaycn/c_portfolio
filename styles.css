@@ -249,6 +249,43 @@ input {
 	text-underline-offset: 0.2em;
 }
 
+.prints-actions {
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	margin-top: 28px;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+}
+
+.prints-actions .print-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 42px;
+	padding: 12px 18px;
+	border: 1px solid #111;
+	background: #111;
+	color: #fff;
+	text-decoration: none;
+}
+
+.prints-steps {
+	display: grid;
+	gap: 10px;
+	margin: 30px 0 0;
+	padding-left: 18px;
+	max-width: 46ch;
+	color: #4b4b4b;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.prints-steps span {
+	color: #111;
+}
+
 .masonry-grid {
 	column-width: 390px;
 	column-gap: 28px;
@@ -457,6 +494,28 @@ body[data-page="protests"] .masonry-grid {
 	text-transform: uppercase;
 }
 
+.lightbox-meta-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 16px;
+	min-height: 32px;
+}
+
+.lightbox-print-link {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 32px;
+	padding: 8px 12px;
+	border: 1px solid rgba(255, 255, 255, 0.34);
+	color: #fff;
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
 .lightbox-dismiss,
 .lightbox-nav {
 	border: 0;
@@ -520,6 +579,11 @@ body[data-page="protests"] .masonry-grid {
 		padding-top: 28px;
 	}
 
+	.prints-actions {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
 	.masonry-grid {
 		column-width: auto;
 		column-count: 1;
@@ -541,6 +605,11 @@ body[data-page="protests"] .masonry-grid {
 
 	.lightbox-image {
 		max-height: calc(100vh - 180px);
+	}
+
+	.lightbox-meta-row {
+		flex-direction: column;
+		gap: 10px;
 	}
 
 	.lightbox-nav {

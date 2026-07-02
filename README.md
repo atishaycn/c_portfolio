@@ -2,7 +2,7 @@
 
 Static portfolio site with placeholder content for safe editing and later content replacement.
 
-Uses local images by default, with Cloudinary delivery currently enabled for `The Natural World`, `Protests`, `Shapes & Shadows`, the about portrait, and now preconfigured public IDs for `California` and `San Francisco`, plus local fallback for everything else.
+Uses local images by default, with Cloudinary delivery enabled for the portfolio galleries, including `Commissioned Work`, with local fallback.
 
 The portfolio sidebar now includes a collapsible `place` section with `California` and `San Francisco` sub-galleries. The UI is wired to `./Place/California/` and `./Place/California/San Francisco/`, and both galleries are populated with local images.
 
@@ -23,6 +23,7 @@ The portfolio sidebar now includes a collapsible `place` section with `Californi
 - `site.js`
 - `california.html`
 - `san-francisco.html`
+- `commissioned-work.html`
 
 ## Run locally
 
@@ -49,6 +50,7 @@ Current behavior:
 - the about portrait uses Cloudinary public ID `about/portrait`
 - `California` uses Cloudinary public IDs in the `place/california/...` path with local fallback
 - `San Francisco` uses Cloudinary public IDs in the `place/california/san-francisco/...` path with local fallback
+- `Commissioned Work` uses Cloudinary public IDs in the `commissioned-work/...` path with local fallback
 - other images still use local files
 - gallery images and the lightbox fall back to local files if a Cloudinary asset fails to load
 - Cloudinary-backed gallery cards now load a tiny blurred placeholder first, eagerly upgrade the first 4 images, and lazy-upgrade the rest as they approach the viewport

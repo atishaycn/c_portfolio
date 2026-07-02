@@ -9,6 +9,15 @@ const cloudinaryConfig = {
 	placeholderWidth: 80,
 };
 
+const printShopConfig = {
+	// Replace this with the live Shopify collection URL or Etsy shop section URL.
+	shopUrl: "https://esf4bj-wk.myshopify.com/collections/prints",
+	email: "contact@clairethomas.art",
+	products: {
+		"the-natural-world-3": "https://esf4bj-wk.myshopify.com/products/test-live-the-natural-world-3-fine-art-print",
+	},
+};
+
 const buildCloudinaryUrl = (publicId, options = {}) => {
 	if (!cloudinaryConfig.enabled || !cloudinaryConfig.cloudName || !publicId) return "";
 	const encodedSegments = publicId.split("/").map(encodeURIComponent).join("/");
@@ -368,6 +377,32 @@ const indiaSpecs = [
 	["34.JPG", 3800, 4185],
 ];
 
+const commissionedWorkSpecs = [
+	["1.jpg", 5184, 3888],
+	["2.jpg", 5184, 3834],
+	["3.jpg", 4990, 3747],
+	["4.jpg", 5125, 3756],
+	["5.jpg", 5184, 3888],
+	["6.jpg", 3756, 3848],
+	["7.jpg", 4862, 3758],
+	["8.jpg", 3888, 5184],
+	["9.jpg", 3888, 5184],
+	["10.jpg", 5184, 3888],
+	["11.jpg", 3717, 4956],
+	["12.jpg", 733, 1100],
+	["13.jpg", 1650, 1100],
+	["14.jpg", 733, 1100],
+	["15.jpg", 960, 640],
+	["16.jpg", 733, 1100],
+	["17.jpg", 1650, 1100],
+	["18.jpg", 733, 1100],
+	["19.jpg", 733, 1100],
+	["20.jpg", 1650, 1100],
+	["21.jpg", 1650, 1100],
+	["22.jpg", 733, 1100],
+	["23.jpg", 1650, 1100],
+];
+
 const galleryPages = [
 	{
 		key: "the-natural-world",
@@ -415,6 +450,20 @@ const galleryPages = [
 		path: "./protests.html",
 		items: createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }),
 	},
+	{
+		key: "commissioned-work",
+		label: "commissioned work",
+		path: "./commissioned-work.html",
+		items: commissionedWorkSpecs.map(([file, width, height], index) => ({
+			id: `commissioned-work-${index + 1}`,
+			title: "",
+			width,
+			height,
+			location: "",
+			image: `./Commissioned Work/${file}`,
+			publicId: `commissioned-work/${index + 1}`,
+		})),
+	},
 ];
 
 const portfolioLinks = [
@@ -435,6 +484,7 @@ const portfolioLinks = [
 	},
 	{ label: "shapes & shadows", path: "./shapes-and-shadows.html", key: "shapes-and-shadows" },
 	{ label: "protests", path: "./protests.html", key: "protests" },
+	{ label: "commissioned work", path: "./commissioned-work.html", key: "commissioned-work" },
 ];
 
 const secondaryLinks = [
@@ -458,6 +508,23 @@ const placeholderUrl = (item) => {
 
 const galleryImageUrl = (item) => resolveImageUrl(item, { width: cloudinaryConfig.galleryWidth });
 const lightboxImageUrl = (item) => resolveImageUrl(item, { width: cloudinaryConfig.lightboxWidth });
+const printInquiryUrl = (item, page) => {
+	const printId = item && page ? `${page.key}-${lightboxState.index + 1}` : "";
+	const subject = encodeURIComponent(printId ? `Print inquiry: ${printId}` : "Print inquiry");
+	const body = encodeURIComponent(
+		printId
+			? `Hi Claire,\n\nI would like to order a print of ${printId}.\n\nPreferred size:\nShipping country:\n`
+			: "Hi Claire,\n\nI would like to order a print.\n\nPreferred photo:\nPreferred size:\nShipping country:\n",
+	);
+	return `mailto:${printShopConfig.email}?subject=${subject}&body=${body}`;
+};
+const printOrderUrl = (item, page) => {
+	const printId = item && page ? `${page.key}-${lightboxState.index + 1}` : "";
+	if (printId && printShopConfig.products[printId]) return printShopConfig.products[printId];
+	if (!printShopConfig.shopUrl) return printInquiryUrl(item, page);
+	const separator = printShopConfig.shopUrl.includes("?") ? "&" : "?";
+	return `${printShopConfig.shopUrl}${printId ? `${separator}print=${encodeURIComponent(printId)}` : ""}`;
+};
 const responsiveWidths = [400, 800, 1200, 1600, 2400];
 const imageSrcSet = (item, widths = responsiveWidths) => {
 	if (!item?.publicId) return "";
@@ -559,8 +626,8 @@ const renderAbout = () => `
 			<img src="${resolveImageUrl({ image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" }, { width: 1200 })}" srcset="${imageSrcSet({ image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" })}" sizes="(max-width: 1100px) 100vw, 520px" data-local-src="${localImageUrl("./fqs 2025-12-19 161703.086.jpg")}" alt="Claire Thomas portrait" width="3024" height="4536" loading="eager" fetchpriority="high" decoding="async" />
 		</div>
 		<div class="about-copy">
-			<p>San Francisco-based street photographer</p>
-			<p>I am available for freelance opportunities. Please get in touch at the email below!</p>
+			<p>I am a San Francisco based freelance photographer.</p>
+			<p>I am available for a wide range of photographic services. Please get in touch at the email below! I look forward to working with you.</p>
 			<p>For inquiries:<br /><a href="mailto:contact@clairethomas.art?subject=Inquiry">contact@clairethomas.art</a></p>
 		</div>
 	</section>
@@ -570,8 +637,17 @@ const renderPrints = () => `
 	<section class="detail-page prints-page">
 		<div class="prints-copy">
 			<p class="prints-eyebrow">Prints</p>
-			<h2>Coming soon.</h2>
-			<p>A dedicated print shop is in progress. For early inquiries about editions, sizes, or availability, email <a href="mailto:contact@clairethomas.art?subject=Print%20Inquiry">contact@clairethomas.art</a>.</p>
+			<h2>Order photography prints.</h2>
+			<p>Every gallery image can be requested as a print. Choose a photograph, use the order link, and checkout will be handled by the print shop once it is connected.</p>
+			<div class="prints-actions">
+				<a class="print-button" href="${printOrderUrl()}">Open print shop</a>
+				<a href="mailto:${printShopConfig.email}?subject=Print%20Inquiry">Ask about a print</a>
+			</div>
+			<ol class="prints-steps">
+				<li>Pick a photograph from any portfolio gallery.</li>
+				<li>Open it and select <span>Order print</span>.</li>
+				<li>Complete size, payment, printing, and delivery in the shop.</li>
+			</ol>
 		</div>
 	</section>
 `;
@@ -649,7 +725,10 @@ app.innerHTML = `
 				<img class="lightbox-image" alt="" />
 				<div class="lightbox-loading" hidden aria-live="polite">Loading image…</div>
 			</div>
-			<div class="lightbox-meta"></div>
+			<div class="lightbox-meta-row">
+				<div class="lightbox-meta"></div>
+				<a class="lightbox-print-link" href="${printOrderUrl()}" target="_blank" rel="noreferrer">Order print</a>
+			</div>
 		</div>
 		<button class="lightbox-nav lightbox-next" type="button" aria-label="Next image">›</button>
 	</div>
@@ -678,6 +757,7 @@ if (lightboxImage instanceof HTMLImageElement) {
 	});
 }
 const lightboxMeta = document.querySelector(".lightbox-meta");
+const lightboxPrintLink = document.querySelector(".lightbox-print-link");
 const lightboxDismiss = document.querySelector(".lightbox-dismiss");
 const lightboxPrev = document.querySelector(".lightbox-prev");
 const lightboxNext = document.querySelector(".lightbox-next");
@@ -755,9 +835,13 @@ const updateLightboxMeta = (state = "") => {
 	const items = getCurrentLightboxItems();
 	if (!items.length) {
 		lightboxMeta.textContent = "";
+		if (lightboxPrintLink instanceof HTMLAnchorElement) lightboxPrintLink.href = printOrderUrl();
 		return;
 	}
 	lightboxMeta.textContent = `${lightboxState.index + 1} / ${items.length}${state ? ` — ${state}` : ""}`;
+	if (lightboxPrintLink instanceof HTMLAnchorElement) {
+		lightboxPrintLink.href = printOrderUrl(items[lightboxState.index], lightboxState.page);
+	}
 };
 
 const renderLightboxImage = async () => {
