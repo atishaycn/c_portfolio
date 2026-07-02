@@ -468,6 +468,7 @@ const galleryPages = [
 
 const portfolioLinks = [
 	{ label: "the natural world", path: "./index.html", key: "the-natural-world" },
+	{ label: "commissioned work", path: "./commissioned-work.html", key: "commissioned-work" },
 	{
 		label: "place",
 		key: "place",
@@ -484,7 +485,6 @@ const portfolioLinks = [
 	},
 	{ label: "shapes & shadows", path: "./shapes-and-shadows.html", key: "shapes-and-shadows" },
 	{ label: "protests", path: "./protests.html", key: "protests" },
-	{ label: "commissioned work", path: "./commissioned-work.html", key: "commissioned-work" },
 ];
 
 const secondaryLinks = [
