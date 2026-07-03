@@ -446,7 +446,7 @@ const galleryPages = [
 	},
 	{
 		key: "protests",
-		label: "protests",
+		label: "reportage",
 		path: "./protests.html",
 		items: createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }),
 	},
@@ -484,7 +484,7 @@ const portfolioLinks = [
 		],
 	},
 	{ label: "shapes & shadows", path: "./shapes-and-shadows.html", key: "shapes-and-shadows" },
-	{ label: "protests", path: "./protests.html", key: "protests" },
+	{ label: "reportage", path: "./protests.html", key: "protests" },
 ];
 
 const secondaryLinks = [
