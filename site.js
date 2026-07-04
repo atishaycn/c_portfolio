@@ -249,7 +249,6 @@ const sanFranciscoSpecs = [
 	["49.jpg", 5184, 3456],
 	["50.jpg", 5184, 3456],
 	["51.jpg", 5184, 3456],
-	["52.jpg", 3785, 5119],
 	["53.jpg", 5184, 3888],
 	["54.jpg", 4785, 3373],
 	["55.jpg", 3321, 4117],
@@ -434,7 +433,18 @@ const galleryPages = [
 		key: "india",
 		label: "India",
 		path: "./india.html",
-		items: createLocalGalleryItems("india", "Place/India", indiaSpecs, { publicIdBase: "place/india" }),
+		items: [
+			...createLocalGalleryItems("india", "Place/India", indiaSpecs, { publicIdBase: "place/india" }),
+			{
+				id: "india-from-san-francisco-52",
+				title: "",
+				width: 3785,
+				height: 5119,
+				location: "",
+				image: "./Place/California/San Francisco/52.jpg",
+				publicId: "place/california/san-francisco/52",
+			},
+		],
 	},
 	{
 		key: "shapes-and-shadows",
