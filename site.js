@@ -406,6 +406,13 @@ const commissionedWorkSpecs = [
 	["23.jpg", 1650, 1100],
 ];
 
+const reportageCaptionForIndex = (index) => {
+	if (index >= 5 && index <= 10) return "No Kings Day protest in San Francisco’s Dolores Park on June 14, 2025";
+	if (index === 11) return "The second No Kings Day protest in downtown San Francisco on October 18, 2025";
+	if (index >= 12 && index <= 33) return "The third No Kings Day protest in downtown San Francisco on March 28, 2026";
+	return "";
+};
+
 const galleryPages = [
 	{
 		key: "the-natural-world",
@@ -452,11 +459,10 @@ const galleryPages = [
 		label: "reportage",
 		path: "./protests.html",
 		items: [
-			...createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }).map((item, index) =>
-				index >= 5 && index <= 10
-					? { ...item, title: "No Kings Day protest in San Francisco’s Dolores Park on June 14, 2025" }
-					: item,
-			),
+			...createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }).map((item, index) => ({
+				...item,
+				title: reportageCaptionForIndex(index),
+			})),
 			...createLocalGalleryItems("reportage-from-san-francisco", "Place/California/San Francisco", sanFranciscoReportageSpecs, {
 				publicIdBase: "place/california/san-francisco",
 			}),
