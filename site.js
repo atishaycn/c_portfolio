@@ -452,7 +452,11 @@ const galleryPages = [
 		label: "reportage",
 		path: "./protests.html",
 		items: [
-			...createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }),
+			...createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }).map((item, index) =>
+				index >= 5 && index <= 10
+					? { ...item, title: "No Kings Day protest in San Francisco’s Dolores Park on June 14, 2025" }
+					: item,
+			),
 			...createLocalGalleryItems("reportage-from-san-francisco", "Place/California/San Francisco", sanFranciscoReportageSpecs, {
 				publicIdBase: "place/california/san-francisco",
 			}),
