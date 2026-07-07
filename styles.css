@@ -494,6 +494,19 @@ body[data-page="protests"] .masonry-grid {
 	text-transform: uppercase;
 }
 
+.lightbox-meta-copy {
+	display: grid;
+	gap: 6px;
+	text-align: center;
+}
+
+.lightbox-caption {
+	max-width: 62ch;
+	color: #fff;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
 .lightbox-meta-row {
 	display: flex;
 	align-items: center;

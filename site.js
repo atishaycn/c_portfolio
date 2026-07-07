@@ -738,7 +738,10 @@ app.innerHTML = `
 				<div class="lightbox-loading" hidden aria-live="polite">Loading image…</div>
 			</div>
 			<div class="lightbox-meta-row">
-				<div class="lightbox-meta"></div>
+				<div class="lightbox-meta-copy">
+					<div class="lightbox-meta"></div>
+					<div class="lightbox-caption" hidden></div>
+				</div>
 				${currentPageKey === "commissioned-work" ? "" : `<a class="lightbox-print-link" href="${printOrderUrl()}" target="_blank" rel="noreferrer">Order print</a>`}
 			</div>
 		</div>
@@ -769,6 +772,7 @@ if (lightboxImage instanceof HTMLImageElement) {
 	});
 }
 const lightboxMeta = document.querySelector(".lightbox-meta");
+const lightboxCaption = document.querySelector(".lightbox-caption");
 const lightboxPrintLink = document.querySelector(".lightbox-print-link");
 const lightboxDismiss = document.querySelector(".lightbox-dismiss");
 const lightboxPrev = document.querySelector(".lightbox-prev");
@@ -847,12 +851,21 @@ const updateLightboxMeta = (state = "") => {
 	const items = getCurrentLightboxItems();
 	if (!items.length) {
 		lightboxMeta.textContent = "";
+		if (lightboxCaption instanceof HTMLElement) {
+			lightboxCaption.textContent = "";
+			lightboxCaption.hidden = true;
+		}
 		if (lightboxPrintLink instanceof HTMLAnchorElement) lightboxPrintLink.href = printOrderUrl();
 		return;
 	}
+	const item = items[lightboxState.index];
 	lightboxMeta.textContent = `${lightboxState.index + 1} / ${items.length}${state ? ` — ${state}` : ""}`;
+	if (lightboxCaption instanceof HTMLElement) {
+		lightboxCaption.textContent = item.title || "";
+		lightboxCaption.hidden = !item.title;
+	}
 	if (lightboxPrintLink instanceof HTMLAnchorElement) {
-		lightboxPrintLink.href = printOrderUrl(items[lightboxState.index], lightboxState.page);
+		lightboxPrintLink.href = printOrderUrl(item, lightboxState.page);
 	}
 };
 
