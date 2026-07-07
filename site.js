@@ -213,14 +213,6 @@ const sanFranciscoSpecs = [
 	["13.jpg", 4515, 3456],
 	["14.jpg", 3888, 5184],
 	["15.jpg", 5105, 3834],
-	["16.jpg", 4995, 3585],
-	["17.jpg", 2297, 2513],
-	["18.jpg", 5184, 3888],
-	["19.jpg", 3322, 2498],
-	["20.jpg", 5107, 3888],
-	["21.jpg", 2822, 2058],
-	["22.jpg", 3715, 5038],
-	["23.jpg", 3758, 5011],
 	["24.jpg", 4925, 3304],
 	["25.jpg", 5184, 3888],
 	["26.jpg", 3604, 5132],
@@ -235,8 +227,6 @@ const sanFranciscoSpecs = [
 	["35.jpg", 5184, 3456],
 	["36.jpg", 3888, 5184],
 	["37.jpg", 5125, 3844],
-	["38.jpg", 5184, 3888],
-	["39.jpg", 3822, 5184],
 	["40.jpg", 5078, 3888],
 	["41.jpg", 5184, 3888],
 	["42.jpg", 4852, 3639],
@@ -312,9 +302,6 @@ const sanFranciscoSpecs = [
 	["113.jpg", 5067, 3800],
 	["114.jpg", 4895, 3572],
 	["115.jpg", 3888, 5085],
-	["116.jpg", 5127, 3821],
-	["117.jpg", 5184, 3888],
-	["118.jpg", 5184, 3888],
 	["119.jpg", 3844, 5125],
 	["120.jpg", 3456, 5184],
 	["121.jpg", 3888, 5184],
@@ -338,6 +325,22 @@ const sanFranciscoSpecs = [
 	["139.jpg", 5184, 3888],
 	["140.jpg", 5011, 3758],
 	["141.jpg", 5125, 3844],
+];
+
+const sanFranciscoReportageSpecs = [
+	["16.jpg", 4995, 3585],
+	["17.jpg", 2297, 2513],
+	["18.jpg", 5184, 3888],
+	["19.jpg", 3322, 2498],
+	["20.jpg", 5107, 3888],
+	["21.jpg", 2822, 2058],
+	["22.jpg", 3715, 5038],
+	["23.jpg", 3758, 5011],
+	["38.jpg", 5184, 3888],
+	["39.jpg", 3822, 5184],
+	["116.jpg", 5127, 3821],
+	["117.jpg", 5184, 3888],
+	["118.jpg", 5184, 3888],
 ];
 
 const indiaSpecs = [
@@ -448,7 +451,12 @@ const galleryPages = [
 		key: "protests",
 		label: "reportage",
 		path: "./protests.html",
-		items: createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }),
+		items: [
+			...createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }),
+			...createLocalGalleryItems("reportage-from-san-francisco", "Place/California/San Francisco", sanFranciscoReportageSpecs, {
+				publicIdBase: "place/california/san-francisco",
+			}),
+		],
 	},
 	{
 		key: "commissioned-work",
