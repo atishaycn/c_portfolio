@@ -223,6 +223,11 @@ const apiRequest = async (path, options = {}) => {
 		const retryDelay = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
 			? retryAfterSeconds * 1000
 			: Math.min(30000, 1000 * 2 ** attempt);
+		if (response.status === 429) {
+			console.warn(
+				`Gelato rate limit: retrying in ${Math.ceil(retryDelay / 1000)}s (attempt ${attempt + 1}/${maxAttempts}).`,
+			);
+		}
 		await new Promise((resolvePromise) => setTimeout(resolvePromise, retryDelay));
 	}
 };
@@ -482,6 +487,15 @@ const run = async () => {
 	const storeId = process.env.GELATO_STORE_ID || DEFAULT_STORE_ID;
 	const state = readState();
 	const existingProducts = await listExistingProducts(storeId);
+	const existingStatusCounts = Object.fromEntries(
+		Object.entries(
+			existingProducts.reduce((counts, product) => {
+				counts[product.status] = (counts[product.status] ?? 0) + 1;
+				return counts;
+			}, {}),
+		).sort(([left], [right]) => left.localeCompare(right)),
+	);
+	console.log(`Gelato store products: ${existingProducts.length}. Statuses: ${JSON.stringify(existingStatusCounts)}`);
 	const staleProducts = findStaleProducts(state, existingProducts, manifest.photos);
 	writeStaleReport(staleProducts);
 	console.log(`Stale managed products: ${staleProducts.length}. Report: ${STALE_FILE}`);
