@@ -1,0 +1,562 @@
+#!/usr/bin/env node
+
+import assert from "node:assert/strict";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import vm from "node:vm";
+
+const ROOT = resolve(import.meta.dirname, "..");
+const SITE_FILE = resolve(ROOT, "site.js");
+const ENV_FILE = resolve(ROOT, ".env.gelato.local");
+const MANIFEST_FILE = resolve(ROOT, ".gelato-product-manifest.json");
+const STATE_FILE = resolve(ROOT, ".gelato-product-state.json");
+const STALE_FILE = resolve(ROOT, ".gelato-stale-products.json");
+const DEFAULT_STORE_ID = "6d03ca64-de8a-4764-bc46-8bd014a1b271";
+const CLOUD_NAME = "dpmdkrggj";
+const API_BASE = "https://ecommerce.gelatoapis.com/v1";
+
+const MEDIA = {
+	"fine-art": {
+		env: "GELATO_FINE_ART_TEMPLATE_ID",
+		label: "Fine Art Print",
+		productType: "Fine Art Print",
+		fitMethod: "meet",
+		description:
+			"<p>Fine art photography by Claire Thomas, printed on archival-quality 200 gsm enhanced matte paper.</p><p>Choose from three sizes selected to preserve the photograph's original composition. Printed on demand and shipped by Gelato.</p>",
+	},
+	framed: {
+		env: "GELATO_FRAMED_TEMPLATE_ID",
+		label: "Framed Fine Art Print",
+		productType: "Framed Fine Art Print",
+		fitMethod: "meet",
+		description:
+			"<p>Fine art photography by Claire Thomas on archival-quality 200 gsm enhanced matte paper, finished in a ready-to-hang frame with plexiglass.</p><p>Choose Black or Natural Wood and one of three composition-matched sizes. Printed, framed, and shipped on demand by Gelato.</p>",
+	},
+	canvas: {
+		env: "GELATO_CANVAS_TEMPLATE_ID",
+		label: "Canvas Print",
+		productType: "Canvas Print",
+		fitMethod: "slice",
+		description:
+			"<p>Fine art photography by Claire Thomas, printed on canvas and stretched over an FSC-certified wood frame.</p><p>Choose from three sizes matched to the photograph's aspect ratio. Printed and shipped on demand by Gelato.</p>",
+	},
+};
+
+const SIZE_GROUPS = {
+	"fine-art": {
+		square: ["10x10", "12x12", "16x16"],
+		classic: ["8x10", "12x16", "16x20"],
+		wide: ["8x12", "12x18", "16x24"],
+	},
+	framed: {
+		square: ["12x12", "16x16", "20x20"],
+		classic: ["8x10", "12x16", "16x20"],
+		wide: ["8x12", "12x18", "16x24"],
+	},
+	canvas: {
+		square: ["8x8", "12x12", "16x16"],
+		classic: ["8x10", "12x16", "16x20"],
+		wide: ["8x12", "12x18", "16x24"],
+	},
+};
+const ALL_SIZES = [...new Set(Object.values(SIZE_GROUPS).flatMap((groups) => Object.values(groups).flat()))];
+
+const SERIES_LABELS = {
+	"the-natural-world": "The Natural World",
+	california: "California",
+	"san-francisco": "San Francisco",
+	india: "India",
+	"shapes-and-shadows": "Shapes & Shadows",
+	protests: "Reportage",
+};
+
+const parseArgs = (argv) => {
+	const args = {
+		execute: false,
+		validateTemplates: false,
+		audit: false,
+		visible: false,
+		limit: Infinity,
+		concurrency: 3,
+		only: null,
+		media: Object.keys(MEDIA),
+	};
+
+	for (let index = 0; index < argv.length; index += 1) {
+		const arg = argv[index];
+		if (arg === "--execute") args.execute = true;
+		else if (arg === "--validate-templates") args.validateTemplates = true;
+		else if (arg === "--audit") args.audit = true;
+		else if (arg === "--visible") args.visible = true;
+		else if (arg === "--limit") args.limit = Number(argv[++index]);
+		else if (arg === "--concurrency") args.concurrency = Number(argv[++index]);
+		else if (arg === "--only") args.only = new Set(argv[++index].split(",").filter(Boolean));
+		else if (arg === "--media") args.media = argv[++index].split(",").filter(Boolean);
+		else if (arg === "--help") args.help = true;
+		else throw new Error(`Unknown argument: ${arg}`);
+	}
+
+	assert(Number.isFinite(args.limit) || args.limit === Infinity, "--limit must be a number");
+	assert(args.limit > 0, "--limit must be greater than zero");
+	assert(Number.isInteger(args.concurrency) && args.concurrency > 0, "--concurrency must be a positive integer");
+	assert(args.concurrency <= 10, "--concurrency must be 10 or less");
+	assert(!args.visible || args.execute, "--visible requires --execute");
+	for (const medium of args.media) assert(MEDIA[medium], `Unknown medium: ${medium}`);
+	return args;
+};
+
+const printHelp = () => {
+	console.log(`Usage:
+  node scripts/gelato-products.mjs
+  node scripts/gelato-products.mjs --validate-templates
+  node scripts/gelato-products.mjs --audit
+  node scripts/gelato-products.mjs --execute [--visible] [--limit N] [--concurrency N] [--only id,id] [--media fine-art,framed,canvas]
+
+The default command reads the current portfolio and writes a dry-run manifest.
+--audit reports managed products whose photograph is no longer in the portfolio.
+--execute creates hidden Shopify products by default and records progress after every item.
+--visible makes newly created products visible in Shopify.`);
+};
+
+const loadEnv = (file) => {
+	if (!existsSync(file)) return;
+	for (const rawLine of readFileSync(file, "utf8").split(/\r?\n/)) {
+		const line = rawLine.trim();
+		if (!line || line.startsWith("#")) continue;
+		const separator = line.indexOf("=");
+		if (separator < 1) continue;
+		const key = line.slice(0, separator).trim();
+		const value = line.slice(separator + 1).trim().replace(/^(['"])(.*)\1$/, "$2");
+		if (!(key in process.env)) process.env[key] = value;
+	}
+};
+
+const loadGalleryPages = () => {
+	const source = readFileSync(SITE_FILE, "utf8");
+	const marker = "\nconst portfolioLinks = [";
+	const markerIndex = source.indexOf(marker);
+	assert(markerIndex > 0, "Could not locate gallery data boundary in site.js");
+
+	const context = {};
+	const dataSource = `${source.slice(0, markerIndex)}
+globalThis.__gelatoGalleryPages = galleryPages;`;
+	vm.runInNewContext(dataSource, context, { filename: SITE_FILE });
+	return context.__gelatoGalleryPages;
+};
+
+const aspectGroupFor = (width, height) => {
+	const ratio = Math.max(width, height) / Math.min(width, height);
+	if (ratio <= 1.12) return "square";
+	if (ratio <= 1.42) return "classic";
+	return "wide";
+};
+
+const orientationFor = (width, height) => (width >= height ? "horizontal" : "vertical");
+
+const cloudinaryUrl = (publicId) => {
+	const encodedId = publicId.split("/").map(encodeURIComponent).join("/");
+	return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_jpg,q_95/${encodedId}.jpg`;
+};
+
+const referenceLabelFor = (printId, series) =>
+	printId
+		.replace(new RegExp(`^${series}-`), "")
+		.split("-")
+		.map((part) => (/^\d+$/.test(part) ? part : `${part.charAt(0).toUpperCase()}${part.slice(1)}`))
+		.join(" ");
+
+const buildManifest = () => {
+	const photos = loadGalleryPages()
+		.filter((page) => page.key !== "commissioned-work")
+		.flatMap((page) =>
+			page.items.map((item) => {
+				assert(item.publicId, `Missing Cloudinary public ID for ${item.id}`);
+				const printId = item.id;
+				const aspectGroup = aspectGroupFor(item.width, item.height);
+				return {
+					printId,
+					series: page.key,
+					seriesLabel: SERIES_LABELS[page.key] ?? page.label,
+					referenceLabel: referenceLabelFor(printId, page.key),
+					width: item.width,
+					height: item.height,
+					orientation: orientationFor(item.width, item.height),
+					aspectGroup,
+					sizesByMedium: Object.fromEntries(
+						Object.keys(MEDIA).map((medium) => [medium, SIZE_GROUPS[medium][aspectGroup]]),
+					),
+					publicId: item.publicId,
+					fileUrl: cloudinaryUrl(item.publicId),
+				};
+			}),
+		);
+
+	return {
+		generatedAt: new Date().toISOString(),
+		photoCount: photos.length,
+		productCount: photos.length * Object.keys(MEDIA).length,
+		photos,
+	};
+};
+
+const apiRequest = async (path, options = {}) => {
+	for (let attempt = 0; ; attempt += 1) {
+		const response = await fetch(`${API_BASE}${path}`, {
+			...options,
+			headers: {
+				"Content-Type": "application/json",
+				"X-API-KEY": process.env.GELATO_API_KEY,
+				...options.headers,
+			},
+		});
+		const text = await response.text();
+		const body = text ? JSON.parse(text) : null;
+		if (response.ok) return body;
+
+		const retryable = response.status === 429 || response.status >= 500;
+		const maxAttempts = response.status === 429 ? 240 : 7;
+		if (!retryable || attempt + 1 >= maxAttempts) {
+			throw new Error(`Gelato ${response.status}: ${JSON.stringify(body)}`);
+		}
+		const retryAfterSeconds = Number(response.headers.get("retry-after"));
+		const retryDelay = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+			? retryAfterSeconds * 1000
+			: Math.min(30000, 1000 * 2 ** attempt);
+		await new Promise((resolvePromise) => setTimeout(resolvePromise, retryDelay));
+	}
+};
+
+const normalizeVariant = (variant) => {
+	const uid = variant.productUid.toLowerCase();
+	const title = variant.title.toLowerCase();
+	const orientation = uid.includes("_hor_") || title.includes("horizontal") ? "horizontal" : "vertical";
+	const size =
+		ALL_SIZES.find((candidate) => {
+			const [width, height] = candidate.split("x");
+			return (
+				uid.includes(`${width}x${height}-inch`) ||
+				uid.includes(`${height}x${width}-inch`)
+			);
+		}) ??
+		ALL_SIZES.find((candidate) => {
+			const [width, height] = candidate.split("x");
+			return title.includes(`/ ${width}x${height}`) || title.includes(`/ ${height}x${width}`);
+		});
+	const isBlackFrame = uid.includes("black") || title.includes("black frame");
+	const isNaturalWoodFrame =
+		(uid.includes("natural-wood") || uid.includes("_wood_") || title.includes("wood frame")) &&
+		!uid.includes("dark-wood") &&
+		!title.includes("dark wood");
+	const frameColor = isBlackFrame ? "black" : isNaturalWoodFrame ? "natural-wood" : undefined;
+	return { ...variant, orientation, size, frameColor };
+};
+
+const loadTemplates = async (selectedMedia) => {
+	const templates = {};
+	for (const medium of selectedMedia) {
+		const templateId = process.env[MEDIA[medium].env];
+		assert(templateId, `${MEDIA[medium].env} is required`);
+		const template = await apiRequest(`/templates/${templateId}`);
+		templates[medium] = {
+			...template,
+			variants: template.variants.map(normalizeVariant),
+		};
+	}
+	return templates;
+};
+
+const selectTemplateVariants = (template, photo, medium) => {
+	const sizes = photo.sizesByMedium?.[medium] ?? SIZE_GROUPS[medium][photo.aspectGroup];
+	const wantedSizes = new Set(sizes);
+	const selected = template.variants.filter((variant) => {
+		if (variant.orientation !== photo.orientation || !wantedSizes.has(variant.size)) return false;
+		if (medium === "framed") return variant.frameColor === "black" || variant.frameColor === "natural-wood";
+		return true;
+	});
+	const expected = medium === "framed" ? sizes.length * 2 : sizes.length;
+	assert.equal(
+		selected.length,
+		expected,
+		`${medium} template has ${selected.length}/${expected} variants for ${photo.orientation} ${photo.aspectGroup}: ${sizes.join(", ")}`,
+	);
+	return selected;
+};
+
+const validateTemplates = (templates, photos, selectedMedia) => {
+	for (const medium of selectedMedia) {
+		const seen = new Set();
+		for (const photo of photos) {
+			const key = `${photo.orientation}:${photo.aspectGroup}`;
+			if (seen.has(key)) continue;
+			selectTemplateVariants(templates[medium], photo, medium);
+			seen.add(key);
+		}
+	}
+};
+
+const readState = () => {
+	if (!existsSync(STATE_FILE)) return { version: 1, products: {} };
+	return JSON.parse(readFileSync(STATE_FILE, "utf8"));
+};
+
+const writeState = (state) => {
+	writeFileSync(STATE_FILE, `${JSON.stringify(state, null, 2)}\n`);
+};
+
+const listExistingProducts = async (storeId) => {
+	const products = [];
+	for (let offset = 0; ; offset += 100) {
+		const page = await apiRequest(`/stores/${storeId}/products?offset=${offset}&limit=100&order=desc&orderBy=createdAt`);
+		products.push(...page.products);
+		if (page.products.length < 100) return products;
+	}
+};
+
+const productKey = (printId, medium) => `${printId}:${medium}`;
+
+const isExistingMatch = (product, photo, medium) => {
+	const title = product.title.toLowerCase();
+	const expectedTitle = `${photo.seriesLabel} ${photo.referenceLabel} - ${MEDIA[medium].label}`.toLowerCase();
+	const tags = Array.isArray(product.tags) ? product.tags : [];
+	return (
+		(tags.includes(photo.printId) && tags.includes(`format-${medium}`)) ||
+		title === expectedTitle
+	);
+};
+
+const createPayload = (template, photo, medium, visible = false) => {
+	const media = MEDIA[medium];
+	const variants = selectTemplateVariants(template, photo, medium).map((variant, position) => {
+		assert.equal(variant.imagePlaceholders.length, 1, `${variant.title} must contain exactly one image placeholder`);
+		return {
+			templateVariantId: variant.id,
+			position,
+			imagePlaceholders: [
+				{
+					name: variant.imagePlaceholders[0].name,
+					fileUrl: photo.fileUrl,
+					fitMethod: media.fitMethod,
+				},
+			],
+		};
+	});
+
+	return {
+		templateId: template.id,
+		title: `${photo.seriesLabel} ${photo.referenceLabel} - ${media.label}`,
+		description: `${media.description}<p>Artwork reference: ${photo.printId}</p>`,
+		isVisibleInTheOnlineStore: visible,
+		salesChannels: ["web"],
+		tags: [
+			photo.printId,
+			`series-${photo.series}`,
+			`format-${medium}`,
+			"claire-thomas",
+			"fine-art-photography",
+			"wall-art",
+		],
+		productType: media.productType,
+		vendor: "Claire Thomas",
+		variants,
+	};
+};
+
+const waitForProducts = async (storeId, queuedJobs, state, timeoutMs = 2 * 60 * 60 * 1000) => {
+	const pending = new Map(queuedJobs.map((job) => [state.products[job.key].id, job]));
+	const deadline = Date.now() + timeoutMs;
+	while (pending.size && Date.now() < deadline) {
+		const products = await listExistingProducts(storeId);
+		const productsById = new Map(products.map((product) => [product.id, product]));
+		const errors = [];
+
+		for (const [productId, job] of pending) {
+			const product = productsById.get(productId);
+			if (!product) continue;
+			state.products[job.key] = {
+				...state.products[job.key],
+				externalId: product.externalId,
+				status: product.status,
+				updatedAt: new Date().toISOString(),
+			};
+			if (product.status === "active") {
+				state.products[job.key].activeAt = new Date().toISOString();
+				pending.delete(productId);
+			} else if (product.status === "publishing_error") {
+				errors.push(`${product.title}: ${product.publishingErrorCode ?? "unknown error"}`);
+				pending.delete(productId);
+			}
+		}
+		writeState(state);
+		console.log(`Publishing: ${queuedJobs.length - pending.size}/${queuedJobs.length} complete.`);
+		if (errors.length) throw new Error(`Publishing failed:\n${errors.join("\n")}`);
+		if (pending.size) await new Promise((resolvePromise) => setTimeout(resolvePromise, 30000));
+	}
+	if (pending.size) throw new Error(`Timed out waiting for ${pending.size} Gelato products`);
+};
+
+const expectedProductKeys = (photos, selectedMedia = Object.keys(MEDIA)) =>
+	new Set(photos.flatMap((photo) => selectedMedia.map((medium) => productKey(photo.printId, medium))));
+
+const managedProductKey = (product) => {
+	const tags = Array.isArray(product.tags) ? product.tags : [];
+	const printId = tags.find((tag) => !tag.startsWith("series-") && !tag.startsWith("format-") && tag !== "claire-thomas" && tag !== "fine-art-photography" && tag !== "wall-art");
+	const formatTag = tags.find((tag) => tag.startsWith("format-"));
+	if (!tags.includes("claire-thomas") || !printId || !formatTag) return null;
+	const medium = formatTag.slice("format-".length);
+	return MEDIA[medium] ? productKey(printId, medium) : null;
+};
+
+const findStaleProducts = (state, existingProducts, photos) => {
+	const expected = expectedProductKeys(photos);
+	const staleByKey = new Map();
+
+	for (const [key, record] of Object.entries(state.products ?? {})) {
+		if (!expected.has(key)) staleByKey.set(key, { key, ...record, source: "state" });
+	}
+
+	for (const product of existingProducts) {
+		const key = managedProductKey(product);
+		if (!key || expected.has(key)) continue;
+		staleByKey.set(key, {
+			key,
+			id: product.id,
+			externalId: product.externalId,
+			status: product.status,
+			title: product.title,
+			source: staleByKey.has(key) ? "state+gelato" : "gelato",
+		});
+	}
+
+	return [...staleByKey.values()].sort((left, right) => left.key.localeCompare(right.key));
+};
+
+const writeStaleReport = (staleProducts) => {
+	writeFileSync(
+		STALE_FILE,
+		`${JSON.stringify({ generatedAt: new Date().toISOString(), count: staleProducts.length, products: staleProducts }, null, 2)}\n`,
+	);
+};
+
+const run = async () => {
+	const args = parseArgs(process.argv.slice(2));
+	if (args.help) {
+		printHelp();
+		return;
+	}
+
+	loadEnv(ENV_FILE);
+	const manifest = buildManifest();
+	writeFileSync(MANIFEST_FILE, `${JSON.stringify(manifest, null, 2)}\n`);
+
+	const orientationCounts = manifest.photos.reduce(
+		(counts, photo) => ({ ...counts, [photo.orientation]: counts[photo.orientation] + 1 }),
+		{ horizontal: 0, vertical: 0 },
+	);
+	const aspectCounts = manifest.photos.reduce(
+		(counts, photo) => ({ ...counts, [photo.aspectGroup]: counts[photo.aspectGroup] + 1 }),
+		{ square: 0, classic: 0, wide: 0 },
+	);
+
+	console.log(
+		JSON.stringify(
+			{
+				mode: args.execute ? "execute" : args.validateTemplates ? "validate-templates" : "dry-run",
+				photos: manifest.photoCount,
+				products: manifest.productCount,
+				orientationCounts,
+				aspectCounts,
+				manifest: MANIFEST_FILE,
+			},
+			null,
+			2,
+		),
+	);
+
+	if (!args.execute && !args.validateTemplates && !args.audit) return;
+	assert(process.env.GELATO_API_KEY, "GELATO_API_KEY is required");
+
+	const selectedPhotos = manifest.photos.filter((photo) => !args.only || args.only.has(photo.printId));
+	assert(selectedPhotos.length, "No photographs matched --only");
+
+	const storeId = process.env.GELATO_STORE_ID || DEFAULT_STORE_ID;
+	const state = readState();
+	const existingProducts = await listExistingProducts(storeId);
+	const staleProducts = findStaleProducts(state, existingProducts, manifest.photos);
+	writeStaleReport(staleProducts);
+	console.log(`Stale managed products: ${staleProducts.length}. Report: ${STALE_FILE}`);
+	if (args.audit && !args.execute && !args.validateTemplates) return;
+
+	const templates = await loadTemplates(args.media);
+	validateTemplates(templates, selectedPhotos, args.media);
+	console.log(`Validated ${args.media.length} templates for ${selectedPhotos.length} photographs.`);
+	if (!args.execute) return;
+
+	const jobs = [];
+	const previouslyQueuedJobs = [];
+	for (const photo of selectedPhotos) {
+		for (const medium of args.media) {
+			const key = productKey(photo.printId, medium);
+			const existing = existingProducts.find((product) => isExistingMatch(product, photo, medium));
+			if (existing) {
+				state.products[key] = {
+					id: existing.id,
+					externalId: existing.externalId,
+					status: existing.status,
+					recoveredAt: new Date().toISOString(),
+				};
+				if (existing.status !== "active") previouslyQueuedJobs.push({ key });
+				continue;
+			}
+			if (jobs.length < args.limit) jobs.push({ key, photo, medium });
+		}
+	}
+	writeState(state);
+
+	let nextJob = 0;
+	let queued = 0;
+	const worker = async () => {
+		while (nextJob < jobs.length) {
+			const job = jobs[nextJob++];
+			const payload = createPayload(templates[job.medium], job.photo, job.medium, args.visible);
+			const createdProduct = await apiRequest(`/stores/${storeId}/products:create-from-template`, {
+				method: "POST",
+				body: JSON.stringify(payload),
+			});
+			state.products[job.key] = {
+				id: createdProduct.id,
+				externalId: createdProduct.externalId,
+				status: createdProduct.status,
+				visible: args.visible,
+				createdAt: new Date().toISOString(),
+			};
+			writeState(state);
+			queued += 1;
+			if (queued === jobs.length || queued % 25 === 0) console.log(`Queued ${queued}/${jobs.length} products.`);
+		}
+	};
+
+	await Promise.all(Array.from({ length: Math.min(args.concurrency, jobs.length) }, () => worker()));
+	const productsToMonitor = [...previouslyQueuedJobs, ...jobs];
+	if (productsToMonitor.length) await waitForProducts(storeId, productsToMonitor, state);
+};
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+	run().catch((error) => {
+		console.error(error.message);
+		process.exitCode = 1;
+	});
+}
+
+export {
+	aspectGroupFor,
+	buildManifest,
+	cloudinaryUrl,
+	expectedProductKeys,
+	findStaleProducts,
+	managedProductKey,
+	normalizeVariant,
+	orientationFor,
+	referenceLabelFor,
+	selectTemplateVariants,
+};

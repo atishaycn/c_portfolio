@@ -19,4 +19,7 @@ Shapes & Shadows/
 .env
 .env.*
 !.env.example
+.gelato-product-manifest.json
+.gelato-product-state.json
+.gelato-stale-products.json
 .vercel

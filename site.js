@@ -10,12 +10,8 @@ const cloudinaryConfig = {
 };
 
 const printShopConfig = {
-	// Replace this with the live Shopify collection URL or Etsy shop section URL.
-	shopUrl: "https://esf4bj-wk.myshopify.com/collections/prints",
+	shopUrl: "https://shop.clairethomas.art/collections/all",
 	email: "contact@clairethomas.art",
-	products: {
-		"the-natural-world-3": "https://esf4bj-wk.myshopify.com/products/test-live-the-natural-world-3-fine-art-print",
-	},
 };
 
 const buildCloudinaryUrl = (publicId, options = {}) => {
@@ -52,8 +48,8 @@ const createGalleryItems = (prefix, specs) =>
 	}));
 
 const createLocalGalleryItems = (prefix, folder, specs, options = {}) =>
-	specs.map(([file, width, height], index) => ({
-		id: `${prefix}-${index + 1}`,
+	specs.map(([file, width, height]) => ({
+		id: `${prefix}-${pathBasename(file)}`,
 		title: "",
 		width,
 		height,
@@ -392,8 +388,8 @@ const galleryPages = [
 		key: "the-natural-world",
 		label: "the natural world",
 		path: "./index.html",
-		items: naturalWorldSpecs.map(([file, width, height, publicId], index) => ({
-			id: `the-natural-world-${index + 1}`,
+		items: naturalWorldSpecs.map(([file, width, height, publicId]) => ({
+			id: `the-natural-world-${pathBasename(file)}`,
 			title: "",
 			width,
 			height,
@@ -437,7 +433,7 @@ const galleryPages = [
 				...item,
 				title: reportageCaptionForIndex(index),
 			})),
-			...createLocalGalleryItems("reportage-from-san-francisco", "Place/California/San Francisco", sanFranciscoReportageSpecs, {
+			...createLocalGalleryItems("protests-san-francisco", "Place/California/San Francisco", sanFranciscoReportageSpecs, {
 				publicIdBase: "place/california/san-francisco",
 			}),
 		],
@@ -501,7 +497,7 @@ const placeholderUrl = (item) => {
 const galleryImageUrl = (item) => resolveImageUrl(item, { width: cloudinaryConfig.galleryWidth });
 const lightboxImageUrl = (item) => resolveImageUrl(item, { width: cloudinaryConfig.lightboxWidth });
 const printInquiryUrl = (item, page) => {
-	const printId = item && page ? `${page.key}-${lightboxState.index + 1}` : "";
+	const printId = item && page ? item.id : "";
 	const subject = encodeURIComponent(printId ? `Print inquiry: ${printId}` : "Print inquiry");
 	const body = encodeURIComponent(
 		printId
@@ -511,11 +507,10 @@ const printInquiryUrl = (item, page) => {
 	return `mailto:${printShopConfig.email}?subject=${subject}&body=${body}`;
 };
 const printOrderUrl = (item, page) => {
-	const printId = item && page ? `${page.key}-${lightboxState.index + 1}` : "";
-	if (printId && printShopConfig.products[printId]) return printShopConfig.products[printId];
+	const printId = item && page ? item.id : "";
 	if (!printShopConfig.shopUrl) return printInquiryUrl(item, page);
-	const separator = printShopConfig.shopUrl.includes("?") ? "&" : "?";
-	return `${printShopConfig.shopUrl}${printId ? `${separator}print=${encodeURIComponent(printId)}` : ""}`;
+	if (printId) return `https://shop.clairethomas.art/search?q=${encodeURIComponent(printId)}&type=product`;
+	return printShopConfig.shopUrl;
 };
 const responsiveWidths = [400, 800, 1200, 1600, 2400];
 const imageSrcSet = (item, widths = responsiveWidths) => {
@@ -630,7 +625,7 @@ const renderPrints = () => `
 		<div class="prints-copy">
 			<p class="prints-eyebrow">Prints</p>
 			<h2>Order photography prints.</h2>
-			<p>Every gallery image can be requested as a print. Choose a photograph, use the order link, and checkout will be handled by the print shop once it is connected.</p>
+			<p>Choose a photograph, use the order link, and complete payment and delivery through the print shop.</p>
 			<div class="prints-actions">
 				<a class="print-button" href="${printOrderUrl()}">Open print shop</a>
 				<a href="mailto:${printShopConfig.email}?subject=Print%20Inquiry">Ask about a print</a>
