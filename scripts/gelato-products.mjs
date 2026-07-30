@@ -215,7 +215,7 @@ const apiRequest = async (path, options = {}) => {
 		if (response.ok) return body;
 
 		const retryable = response.status === 429 || response.status >= 500;
-		const maxAttempts = response.status === 429 ? 240 : 7;
+		const maxAttempts = response.status === 429 ? 432 : 7;
 		if (!retryable || attempt + 1 >= maxAttempts) {
 			throw new Error(`Gelato ${response.status}: ${JSON.stringify(body)}`);
 		}
@@ -367,7 +367,7 @@ const createPayload = (template, photo, medium, visible = false) => {
 	};
 };
 
-const waitForProducts = async (storeId, queuedJobs, state, timeoutMs = 2 * 60 * 60 * 1000) => {
+const waitForProducts = async (storeId, queuedJobs, state, timeoutMs = 24 * 60 * 60 * 1000) => {
 	const pending = new Map(queuedJobs.map((job) => [state.products[job.key].id, job]));
 	const deadline = Date.now() + timeoutMs;
 	while (pending.size && Date.now() < deadline) {
@@ -395,7 +395,7 @@ const waitForProducts = async (storeId, queuedJobs, state, timeoutMs = 2 * 60 * 
 		writeState(state);
 		console.log(`Publishing: ${queuedJobs.length - pending.size}/${queuedJobs.length} complete.`);
 		if (errors.length) throw new Error(`Publishing failed:\n${errors.join("\n")}`);
-		if (pending.size) await new Promise((resolvePromise) => setTimeout(resolvePromise, 30000));
+		if (pending.size) await new Promise((resolvePromise) => setTimeout(resolvePromise, 5 * 60 * 1000));
 	}
 	if (pending.size) throw new Error(`Timed out waiting for ${pending.size} Gelato products`);
 };
