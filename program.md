@@ -33,4 +33,5 @@ Keep content image directories and generated deployment metadata out of scope un
 - Keep the visual language minimal and consistent with the existing site unless explicitly asked to redesign it.
 - Print sales use an external handoff to `shop.clairethomas.art`. Every gallery/lightbox link opens Shopify search with a stable print ID, producing a three-format chooser.
 - The print catalog derives from the current non-commissioned gallery data. Each photograph is prepared for Fine Art Print, Framed Fine Art Print, and Canvas Print, with three aspect-ratio-matched sizes. Filename-based print IDs remain stable when galleries are added, deleted, or reordered. Run `node scripts/gelato-products.mjs` for a dry run, `--validate-templates` before creation, and `--audit` after removals.
+- Create or resume the public catalog with `node scripts/gelato-products.mjs --execute --visible --concurrency 1`. The ignored state file prevents duplicate creation, and API throttling is retried with exponential backoff.
 - After material workflow or structure changes, refresh this file so future sessions inherit the current repo shape.
