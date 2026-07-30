@@ -222,7 +222,7 @@ const apiRequest = async (path, options = {}) => {
 		const retryAfterSeconds = Number(response.headers.get("retry-after"));
 		const retryDelay = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
 			? retryAfterSeconds * 1000
-			: Math.min(30000, 1000 * 2 ** attempt);
+			: Math.min(5 * 60 * 1000, 1000 * 2 ** attempt);
 		if (response.status === 429) {
 			console.warn(
 				`Gelato rate limit: retrying in ${Math.ceil(retryDelay / 1000)}s (attempt ${attempt + 1}/${maxAttempts}).`,
