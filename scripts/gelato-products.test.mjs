@@ -11,6 +11,7 @@ import {
 	normalizeVariant,
 	orientationFor,
 	referenceLabelFor,
+	selectExistingProduct,
 	selectTemplateVariants,
 } from "./gelato-products.mjs";
 
@@ -154,4 +155,24 @@ test("reports managed products removed from the portfolio", () => {
 			source: "state+gelato",
 		},
 	]);
+});
+
+test("prefers an active product and preserves recorded products across incomplete listings", () => {
+	const photo = { printId: "photo-1", seriesLabel: "Photo", referenceLabel: "1" };
+	const products = [
+		{
+			id: "recorded-created",
+			status: "created",
+			title: "Photo 1 - Fine Art Print",
+			tags: ["photo-1", "format-fine-art"],
+		},
+		{
+			id: "active-copy",
+			status: "active",
+			title: "Photo 1 - Fine Art Print",
+			tags: ["photo-1", "format-fine-art"],
+		},
+	];
+	assert.equal(selectExistingProduct(products, photo, "fine-art", "recorded-created")?.id, "active-copy");
+	assert.equal(selectExistingProduct([], photo, "fine-art", "recorded-created"), undefined);
 });

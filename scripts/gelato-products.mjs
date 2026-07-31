@@ -330,6 +330,16 @@ const isExistingMatch = (product, photo, medium) => {
 	);
 };
 
+const selectExistingProduct = (products, photo, medium, recordedId) => {
+	const matches = products.filter((product) => isExistingMatch(product, photo, medium));
+	return (
+		matches.find((product) => product.id === recordedId && product.status === "active") ??
+		matches.find((product) => product.status === "active") ??
+		matches.find((product) => product.id === recordedId) ??
+		matches[0]
+	);
+};
+
 const createPayload = (template, photo, medium, visible = false) => {
 	const media = MEDIA[medium];
 	const variants = selectTemplateVariants(template, photo, medium).map((variant, position) => {
@@ -511,15 +521,21 @@ const run = async () => {
 	for (const photo of selectedPhotos) {
 		for (const medium of args.media) {
 			const key = productKey(photo.printId, medium);
-			const existing = existingProducts.find((product) => isExistingMatch(product, photo, medium));
+			const recorded = state.products[key];
+			const existing = selectExistingProduct(existingProducts, photo, medium, recorded?.id);
 			if (existing) {
 				state.products[key] = {
+					...recorded,
 					id: existing.id,
 					externalId: existing.externalId,
 					status: existing.status,
 					recoveredAt: new Date().toISOString(),
 				};
 				if (existing.status !== "active") previouslyQueuedJobs.push({ key });
+				continue;
+			}
+			if (recorded?.id) {
+				if (recorded.status !== "active") previouslyQueuedJobs.push({ key });
 				continue;
 			}
 			if (jobs.length < args.limit) jobs.push({ key, photo, medium });
@@ -572,5 +588,6 @@ export {
 	normalizeVariant,
 	orientationFor,
 	referenceLabelFor,
+	selectExistingProduct,
 	selectTemplateVariants,
 };
