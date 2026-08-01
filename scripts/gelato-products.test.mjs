@@ -157,7 +157,7 @@ test("reports managed products removed from the portfolio", () => {
 	]);
 });
 
-test("prefers an active product and preserves recorded products across incomplete listings", () => {
+test("prefers an active product and treats a missing recorded product as recoverable", () => {
 	const photo = { printId: "photo-1", seriesLabel: "Photo", referenceLabel: "1" };
 	const products = [
 		{

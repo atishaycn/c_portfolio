@@ -534,10 +534,6 @@ const run = async () => {
 				if (existing.status !== "active") previouslyQueuedJobs.push({ key });
 				continue;
 			}
-			if (recorded?.id) {
-				if (recorded.status !== "active") previouslyQueuedJobs.push({ key });
-				continue;
-			}
 			if (jobs.length < args.limit) jobs.push({ key, photo, medium });
 		}
 	}
