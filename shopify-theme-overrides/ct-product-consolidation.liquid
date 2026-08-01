@@ -1,0 +1,153 @@
+{% comment %}
+  Customer-facing consolidation for Gelato's three Shopify products per photo.
+  Include this file before </body> in layout/theme.liquid.
+{% endcomment %}
+
+<style>
+  .ct-print-type {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .ct-print-type__label {
+    font: inherit;
+  }
+
+  .ct-print-type__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .ct-print-type__option {
+    border: 1px solid currentColor;
+    color: inherit;
+    padding: 0.7rem 1rem;
+    text-decoration: none;
+  }
+
+  .ct-print-type__option[aria-current='true'] {
+    background: rgb(var(--color-foreground));
+    color: rgb(var(--color-background));
+  }
+
+  .product-grid__item[hidden],
+  .resource-list__item[hidden],
+  .menu-drawer__featured-content-list-item[hidden],
+  product-card[hidden],
+  product-component[hidden] {
+    display: none !important;
+  }
+</style>
+
+<script>
+  (() => {
+    const formats = [
+      { suffix: '-framed-fine-art-print', label: 'Framed fine art print' },
+      { suffix: '-canvas-print', label: 'Canvas print' },
+      { suffix: '-fine-art-print', label: 'Fine art print' },
+    ];
+
+    const productHandle = (href) => {
+      try {
+        const pathname = new URL(href, window.location.origin).pathname;
+        return pathname.split('/products/')[1]?.replace(/\/$/, '') || '';
+      } catch {
+        return '';
+      }
+    };
+
+    const formatForHandle = (handle) => formats.find((format) => handle.endsWith(format.suffix));
+
+    const cleanTitle = (title) =>
+      title.replace(/\s+-\s+(?:Framed Fine Art|Fine Art|Canvas) Print\s*$/, '').trim();
+
+    const consolidateProductCards = () => {
+      document.querySelectorAll('product-card, product-component.resource-card__wrapper').forEach((card) => {
+        const link = card.querySelector('a[href*="/products/"]');
+        const handle = productHandle(link?.href || '');
+        const format = formatForHandle(handle);
+        if (!format) return;
+
+        const item =
+          card.closest(
+            '.product-grid__item, .resource-list__item, .menu-drawer__featured-content-list-item',
+          ) || card;
+        const isCanonical = format.suffix === '-fine-art-print';
+        if (!isCanonical && !item.hidden) item.hidden = true;
+
+        if (isCanonical) {
+          card.querySelectorAll('h1, h2, h3, a').forEach((element) => {
+            const current = element.textContent?.trim() || '';
+            const cleaned = cleanTitle(current);
+            if (current && cleaned !== current && element.children.length === 0) element.textContent = cleaned;
+          });
+        }
+      });
+    };
+
+    const addPrintTypeChooser = () => {
+      const handle = productHandle(window.location.pathname);
+      const currentFormat = formatForHandle(handle);
+      if (!currentFormat) return;
+
+      const baseHandle = handle.slice(0, -currentFormat.suffix.length);
+      const variantPicker = document.querySelector('main variant-picker');
+      if (!variantPicker) return;
+
+      const existing = document.querySelector('[data-ct-print-type]');
+      if (existing?.dataset.baseHandle === baseHandle) return;
+      existing?.remove();
+
+      const heading = document.querySelector('main h1');
+      const fullTitle = heading?.textContent?.trim() || '';
+      const photoTitle = cleanTitle(fullTitle);
+      if (heading && photoTitle) heading.textContent = photoTitle;
+      document.querySelectorAll('main p').forEach((paragraph) => {
+        if (paragraph.textContent?.trim() === fullTitle) paragraph.textContent = photoTitle;
+      });
+
+      const chooser = document.createElement('div');
+      chooser.className = 'ct-print-type';
+      chooser.dataset.ctPrintType = '';
+      chooser.dataset.baseHandle = baseHandle;
+      chooser.innerHTML = `
+        <div class="ct-print-type__label">Print type</div>
+        <div class="ct-print-type__options">
+          ${formats
+            .slice()
+            .reverse()
+            .map(
+              (format) =>
+                `<a class="ct-print-type__option" href="/products/${baseHandle}${format.suffix}"${
+                  format.suffix === currentFormat.suffix ? ' aria-current="true"' : ''
+                }>${format.label}</a>`,
+            )
+            .join('')}
+        </div>
+      `;
+      variantPicker.before(chooser);
+    };
+
+    let scheduled = false;
+    const enhanceStorefront = () => {
+      consolidateProductCards();
+      addPrintTypeChooser();
+    };
+    const scheduleEnhancement = () => {
+      if (scheduled) return;
+      scheduled = true;
+      window.requestAnimationFrame(() => {
+        scheduled = false;
+        enhanceStorefront();
+      });
+    };
+
+    enhanceStorefront();
+    document.addEventListener('DOMContentLoaded', enhanceStorefront, { once: true });
+    new MutationObserver(scheduleEnhancement).observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+  })();
+</script>

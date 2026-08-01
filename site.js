@@ -12,6 +12,19 @@ const cloudinaryConfig = {
 const printShopConfig = {
 	shopUrl: "https://shop.clairethomas.art/collections/all",
 	email: "contact@clairethomas.art",
+	productUrls: {
+		"the-natural-world-3":
+			"https://shop.clairethomas.art/products/the-natural-world-3-fine-art-print?variant=53830433439928&_pos=1&_sid=52b689322&_ss=r",
+	},
+};
+
+const shopifySeriesHandles = {
+	"the-natural-world": "the-natural-world",
+	california: "california",
+	"san-francisco": "san-francisco",
+	india: "india",
+	"shapes-and-shadows": "shapes-shadows",
+	protests: "reportage",
 };
 
 const buildCloudinaryUrl = (publicId, options = {}) => {
@@ -509,7 +522,14 @@ const printInquiryUrl = (item, page) => {
 const printOrderUrl = (item, page) => {
 	const printId = item && page ? item.id : "";
 	if (!printShopConfig.shopUrl) return printInquiryUrl(item, page);
-	if (printId) return `https://shop.clairethomas.art/search?q=${encodeURIComponent(printId)}&type=product`;
+	if (printId) {
+		if (printShopConfig.productUrls[printId]) return printShopConfig.productUrls[printId];
+		const seriesHandle = shopifySeriesHandles[page.key];
+		const referenceHandle = printId.replace(new RegExp(`^${page.key}-`), "");
+		if (seriesHandle && referenceHandle) {
+			return `https://shop.clairethomas.art/products/${seriesHandle}-${referenceHandle}-fine-art-print`;
+		}
+	}
 	return printShopConfig.shopUrl;
 };
 const responsiveWidths = [400, 800, 1200, 1600, 2400];

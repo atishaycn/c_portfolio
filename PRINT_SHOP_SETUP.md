@@ -25,7 +25,7 @@ Size groups:
 | Classic | 8x10, 12x16, 16x20 in | 8x10, 12x16, 16x20 in | 8x10, 12x16, 16x20 in |
 | Wide | 8x12, 12x18, 16x24 in | 8x12, 12x18, 16x24 in | 8x12, 12x18, 16x24 in |
 
-Current generated inventory: 270 photographs and 810 products. The script recalculates these counts from `site.js` on every run.
+Current generated fulfillment inventory: 270 photographs and 810 Gelato-connected products. The storefront presents one card per photograph. The script recalculates the fulfillment counts from `site.js` on every run.
 
 Create one Gelato master template for each product type. Each template must include both orientations and all nine sizes. The framed template must include Black and Natural Wood variants.
 
@@ -65,9 +65,11 @@ Deletion is intentionally two-step: `--audit` writes `.gelato-stale-products.jso
 
 1. Buyers open any non-commissioned gallery photo.
 2. The lightbox shows `Order print`.
-3. The link uses a stable print ID, such as `the-natural-world-1`.
-4. Shopify tags connect the photograph to its Fine Art, Framed, and Canvas listings.
-5. Shopify search presents the photograph's Fine Art, Framed, and Canvas listings as the chooser.
+3. The link opens the photograph's canonical Fine Art product page directly.
+4. The Horizon theme presents Fine Art, Framed, and Canvas as print-type choices on that page.
+5. Each choice opens its Gelato-connected Shopify product while keeping the same product-detail experience.
+
+The live theme code is tracked in `shopify-theme-overrides/ct-product-consolidation.liquid`. Include it before `</body>` in `layout/theme.liquid`.
 
 ## Product Naming
 
@@ -88,6 +90,6 @@ protests-2
 2. Create three hidden test products for `the-natural-world-3`.
 3. Inspect composition, mockups, variants, prices, and shipping.
 4. Create the remaining public catalog.
-5. Verify the three-format chooser from each gallery.
+5. Verify direct product links and all three print-type choices from each gallery.
 6. Archive obsolete test listings.
 7. Place one real test order and verify Gelato fulfillment and tracking.
