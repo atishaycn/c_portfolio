@@ -12,6 +12,7 @@ const ENV_FILE = resolve(ROOT, ".env.gelato.local");
 const MANIFEST_FILE = resolve(ROOT, ".gelato-product-manifest.json");
 const STATE_FILE = resolve(ROOT, ".gelato-product-state.json");
 const STALE_FILE = resolve(ROOT, ".gelato-stale-products.json");
+const CATALOG_AUDIT_FILE = resolve(ROOT, ".gelato-catalog-audit.json");
 const DEFAULT_STORE_ID = "6d03ca64-de8a-4764-bc46-8bd014a1b271";
 const CLOUD_NAME = "dpmdkrggj";
 const API_BASE = "https://ecommerce.gelatoapis.com/v1";
@@ -76,7 +77,10 @@ const parseArgs = (argv) => {
 		execute: false,
 		validateTemplates: false,
 		audit: false,
+		strictAudit: false,
 		visible: false,
+		repairCreated: false,
+		repairBatchPhotos: 8,
 		limit: Infinity,
 		concurrency: 3,
 		only: null,
@@ -88,7 +92,13 @@ const parseArgs = (argv) => {
 		if (arg === "--execute") args.execute = true;
 		else if (arg === "--validate-templates") args.validateTemplates = true;
 		else if (arg === "--audit") args.audit = true;
+		else if (arg === "--strict-audit") {
+			args.audit = true;
+			args.strictAudit = true;
+		}
 		else if (arg === "--visible") args.visible = true;
+		else if (arg === "--repair-created") args.repairCreated = true;
+		else if (arg === "--repair-batch-photos") args.repairBatchPhotos = Number(argv[++index]);
 		else if (arg === "--limit") args.limit = Number(argv[++index]);
 		else if (arg === "--concurrency") args.concurrency = Number(argv[++index]);
 		else if (arg === "--only") args.only = new Set(argv[++index].split(",").filter(Boolean));
@@ -101,7 +111,12 @@ const parseArgs = (argv) => {
 	assert(args.limit > 0, "--limit must be greater than zero");
 	assert(Number.isInteger(args.concurrency) && args.concurrency > 0, "--concurrency must be a positive integer");
 	assert(args.concurrency <= 10, "--concurrency must be 10 or less");
+	assert(
+		Number.isInteger(args.repairBatchPhotos) && args.repairBatchPhotos > 0,
+		"--repair-batch-photos must be a positive integer",
+	);
 	assert(!args.visible || args.execute, "--visible requires --execute");
+	assert(!args.repairCreated || (args.execute && args.visible), "--repair-created requires --execute --visible");
 	for (const medium of args.media) assert(MEDIA[medium], `Unknown medium: ${medium}`);
 	return args;
 };
@@ -111,7 +126,9 @@ const printHelp = () => {
   node scripts/gelato-products.mjs
   node scripts/gelato-products.mjs --validate-templates
   node scripts/gelato-products.mjs --audit
+  node scripts/gelato-products.mjs --strict-audit
   node scripts/gelato-products.mjs --execute [--visible] [--limit N] [--concurrency N] [--only id,id] [--media fine-art,framed,canvas]
+  node scripts/gelato-products.mjs --execute --visible --repair-created [--repair-batch-photos N]
 
 The default command reads the current portfolio and writes a dry-run manifest.
 --audit reports managed products whose photograph is no longer in the portfolio.
@@ -217,7 +234,9 @@ const apiRequest = async (path, options = {}) => {
 		const retryable = response.status === 429 || response.status >= 500;
 		const maxAttempts = response.status === 429 ? 432 : 7;
 		if (!retryable || attempt + 1 >= maxAttempts) {
-			throw new Error(`Gelato ${response.status}: ${JSON.stringify(body)}`);
+			const error = new Error(`Gelato ${response.status}: ${JSON.stringify(body)}`);
+			error.status = response.status;
+			throw error;
 		}
 		const retryAfterSeconds = Number(response.headers.get("retry-after"));
 		const retryDelay = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
@@ -309,16 +328,38 @@ const writeState = (state) => {
 	writeFileSync(STATE_FILE, `${JSON.stringify(state, null, 2)}\n`);
 };
 
-const listExistingProducts = async (storeId) => {
-	const products = [];
-	for (let offset = 0; ; offset += 100) {
-		const page = await apiRequest(`/stores/${storeId}/products?offset=${offset}&limit=100&order=desc&orderBy=createdAt`);
-		products.push(...page.products);
-		if (page.products.length < 100) return products;
+const mergeProductsById = (...productLists) =>
+	[...new Map(productLists.flat().map((product) => [product.id, product])).values()];
+
+const listExistingProducts = async (storeId, knownIds = [], sweepCount = 3) => {
+	let products = [];
+	for (let sweep = 0; sweep < sweepCount; sweep += 1) {
+		for (let offset = 0; ; offset += 100) {
+			const page = await apiRequest(`/stores/${storeId}/products?offset=${offset}&limit=100&order=desc&orderBy=createdAt`);
+			products = mergeProductsById(products, page.products);
+			if (page.products.length < 100) break;
+		}
 	}
+	for (const id of new Set(knownIds.filter(Boolean))) {
+		if (products.some((product) => product.id === id)) continue;
+		try {
+			const product = await apiRequest(`/stores/${storeId}/products/${id}`);
+			if (product?.id) products = mergeProductsById(products, [product]);
+		} catch (error) {
+			if (error.status !== 404) throw error;
+		}
+	}
+	return products;
 };
 
 const productKey = (printId, medium) => `${printId}:${medium}`;
+const splitProductKey = (key) => {
+	const separator = key.lastIndexOf(":");
+	return {
+		printId: key.slice(0, separator),
+		medium: key.slice(separator + 1),
+	};
+};
 
 const isExistingMatch = (product, photo, medium) => {
 	const title = product.title.toLowerCase();
@@ -377,17 +418,27 @@ const createPayload = (template, photo, medium, visible = false) => {
 	};
 };
 
-const waitForProducts = async (storeId, queuedJobs, state, timeoutMs = 24 * 60 * 60 * 1000) => {
+const waitForProducts = async (
+	storeId,
+	queuedJobs,
+	state,
+	timeoutMs = 45 * 60 * 1000,
+	pollIntervalMs = 30 * 1000,
+) => {
 	const pending = new Map(queuedJobs.map((job) => [state.products[job.key].id, job]));
+	const completedProducts = [];
 	const deadline = Date.now() + timeoutMs;
 	while (pending.size && Date.now() < deadline) {
-		const products = await listExistingProducts(storeId);
-		const productsById = new Map(products.map((product) => [product.id, product]));
 		const errors = [];
 
 		for (const [productId, job] of pending) {
-			const product = productsById.get(productId);
-			if (!product) continue;
+			let product;
+			try {
+				product = await apiRequest(`/stores/${storeId}/products/${productId}`);
+			} catch (error) {
+				if (error.status === 404) continue;
+				throw error;
+			}
 			state.products[job.key] = {
 				...state.products[job.key],
 				externalId: product.externalId,
@@ -396,6 +447,7 @@ const waitForProducts = async (storeId, queuedJobs, state, timeoutMs = 24 * 60 *
 			};
 			if (product.status === "active") {
 				state.products[job.key].activeAt = new Date().toISOString();
+				completedProducts.push(product);
 				pending.delete(productId);
 			} else if (product.status === "publishing_error") {
 				errors.push(`${product.title}: ${product.publishingErrorCode ?? "unknown error"}`);
@@ -405,9 +457,10 @@ const waitForProducts = async (storeId, queuedJobs, state, timeoutMs = 24 * 60 *
 		writeState(state);
 		console.log(`Publishing: ${queuedJobs.length - pending.size}/${queuedJobs.length} complete.`);
 		if (errors.length) throw new Error(`Publishing failed:\n${errors.join("\n")}`);
-		if (pending.size) await new Promise((resolvePromise) => setTimeout(resolvePromise, 5 * 60 * 1000));
+		if (pending.size) await new Promise((resolvePromise) => setTimeout(resolvePromise, pollIntervalMs));
 	}
 	if (pending.size) throw new Error(`Timed out waiting for ${pending.size} Gelato products`);
+	return completedProducts;
 };
 
 const expectedProductKeys = (photos, selectedMedia = Object.keys(MEDIA)) =>
@@ -420,6 +473,207 @@ const managedProductKey = (product) => {
 	if (!tags.includes("claire-thomas") || !printId || !formatTag) return null;
 	const medium = formatTag.slice("format-".length);
 	return MEDIA[medium] ? productKey(printId, medium) : null;
+};
+
+const buildCatalogAudit = (photos, existingProducts, selectedMedia = Object.keys(MEDIA)) => {
+	const expected = expectedProductKeys(photos, selectedMedia);
+	const groups = new Map([...expected].map((key) => [key, []]));
+	const unmanagedProducts = [];
+	const staleProducts = [];
+
+	for (const product of existingProducts) {
+		const key = managedProductKey(product);
+		if (!key) {
+			unmanagedProducts.push(product);
+		} else if (!expected.has(key)) {
+			staleProducts.push(product);
+		} else {
+			groups.get(key).push(product);
+		}
+	}
+
+	const missingActiveKeys = [];
+	const duplicateActiveKeys = [];
+	const nonActiveProducts = [];
+	for (const [key, products] of groups) {
+		const active = products.filter((product) => product.status === "active");
+		if (!active.length) missingActiveKeys.push(key);
+		if (active.length > 1) duplicateActiveKeys.push({ key, productIds: active.map((product) => product.id) });
+		nonActiveProducts.push(...products.filter((product) => product.status !== "active"));
+	}
+
+	return {
+		expectedKeys: expected.size,
+		uniqueRemoteProducts: new Set(existingProducts.map((product) => product.id)).size,
+		activeExpectedProducts: [...groups.values()].flat().filter((product) => product.status === "active").length,
+		missingActiveKeys,
+		duplicateActiveKeys,
+		nonActiveProducts,
+		staleProducts,
+		unmanagedProducts,
+		clean:
+			missingActiveKeys.length === 0 &&
+			duplicateActiveKeys.length === 0 &&
+			nonActiveProducts.length === 0 &&
+			staleProducts.length === 0 &&
+			unmanagedProducts.length === 0,
+	};
+};
+
+const buildCreatedRepairPlan = (photos, selectedMedia, existingProducts) => {
+	const expected = expectedProductKeys(photos, selectedMedia);
+	const activeKeys = new Set(
+		existingProducts
+			.filter((product) => product.status === "active")
+			.map(managedProductKey)
+			.filter((key) => key && expected.has(key)),
+	);
+	const createdProducts = existingProducts
+		.map((product) => ({ product, key: managedProductKey(product) }))
+		.filter(
+			({ product, key }) =>
+				["created", "publishing", "publishing_queued"].includes(product.status) &&
+				key &&
+				expected.has(key),
+		);
+	const unresolvedKeys = [...expected].filter((key) => !activeKeys.has(key));
+	const targetedPhotoIds = new Set([
+		...createdProducts.map(({ key }) => splitProductKey(key).printId),
+		...unresolvedKeys.map((key) => splitProductKey(key).printId),
+	]);
+
+	return {
+		activeKeys,
+		createdProducts,
+		unresolvedKeys,
+		photoIds: photos.map((photo) => photo.printId).filter((printId) => targetedPhotoIds.has(printId)),
+	};
+};
+
+const repairCreatedProducts = async ({
+	storeId,
+	state,
+	photos,
+	selectedMedia,
+	templates,
+	existingProducts,
+	batchPhotoCount,
+}) => {
+	let products = existingProducts;
+	let deletedCount = 0;
+	let createdCount = 0;
+	let batchNumber = 0;
+	let queuedCleanupCount = 0;
+
+	const expected = expectedProductKeys(photos, selectedMedia);
+	const now = Date.now();
+	const strandedQueuedProducts = products
+		.map((product) => ({ product, key: managedProductKey(product) }))
+		.filter(
+			({ product, key }) =>
+				["publishing", "publishing_queued"].includes(product.status) &&
+				key &&
+				expected.has(key) &&
+				(
+					state.products[key]?.repairBatch ||
+					Number.isFinite(Date.parse(product.createdAt)) &&
+						now - Date.parse(product.createdAt) >= 30 * 60 * 1000
+				),
+		);
+	if (strandedQueuedProducts.length) {
+		console.log(`Clearing ${strandedQueuedProducts.length} stranded queued products before repair.`);
+		for (const { product, key } of strandedQueuedProducts) {
+			await apiRequest(`/stores/${storeId}/products/${product.id}`, { method: "DELETE" });
+			queuedCleanupCount += 1;
+			if (state.products[key]?.id === product.id) {
+				state.products[key] = {
+					...state.products[key],
+					id: null,
+					externalId: null,
+					status: "deleted_for_repair",
+					deletedForRepairAt: new Date().toISOString(),
+				};
+			}
+			writeState(state);
+		}
+		const queuedIds = new Set(strandedQueuedProducts.map(({ product }) => product.id));
+		products = products.filter((product) => !queuedIds.has(product.id));
+	}
+
+	for (;;) {
+		const plan = buildCreatedRepairPlan(photos, selectedMedia, products);
+		if (!plan.createdProducts.length && !plan.unresolvedKeys.length) break;
+		assert(plan.photoIds.length, "Repair plan has unresolved products but no photographs");
+
+		const batchPhotoIds = plan.photoIds.slice(0, batchPhotoCount);
+		const batchPhotoIdSet = new Set(batchPhotoIds);
+		const productsToDelete = plan.createdProducts.filter(({ key }) =>
+			batchPhotoIdSet.has(splitProductKey(key).printId),
+		);
+		batchNumber += 1;
+		console.log(
+			`Repair batch ${batchNumber}: ${batchPhotoIds.length} photos, ${productsToDelete.length} failed drafts.`,
+		);
+
+		for (const { product, key } of productsToDelete) {
+			await apiRequest(`/stores/${storeId}/products/${product.id}`, { method: "DELETE" });
+			deletedCount += 1;
+			if (state.products[key]?.id === product.id) {
+				state.products[key] = {
+					...state.products[key],
+					id: null,
+					externalId: null,
+					status: "deleted_for_repair",
+					deletedForRepairAt: new Date().toISOString(),
+				};
+			}
+			writeState(state);
+		}
+		const deletedIds = new Set(productsToDelete.map(({ product }) => product.id));
+		products = products.filter((product) => !deletedIds.has(product.id));
+
+		const activeKeys = new Set(
+			products
+				.filter((product) => product.status === "active")
+				.map(managedProductKey)
+				.filter(Boolean),
+		);
+		const jobs = [];
+		for (const photo of photos) {
+			if (!batchPhotoIdSet.has(photo.printId)) continue;
+			for (const medium of selectedMedia) {
+				const key = productKey(photo.printId, medium);
+				if (activeKeys.has(key)) continue;
+				const payload = createPayload(templates[medium], photo, medium, true);
+				const createdProduct = await apiRequest(`/stores/${storeId}/products:create-from-template`, {
+					method: "POST",
+					body: JSON.stringify(payload),
+				});
+				state.products[key] = {
+					id: createdProduct.id,
+					externalId: createdProduct.externalId,
+					status: createdProduct.status,
+					visible: true,
+					createdAt: new Date().toISOString(),
+					repairBatch: batchNumber,
+				};
+				writeState(state);
+				jobs.push({ key });
+				createdCount += 1;
+			}
+		}
+
+		if (jobs.length) {
+			const completedProducts = await waitForProducts(storeId, jobs, state);
+			products = mergeProductsById(products, completedProducts);
+		}
+		const refreshedPlan = buildCreatedRepairPlan(photos, selectedMedia, products);
+		console.log(
+			`Repair progress: deleted ${deletedCount}, regenerated ${createdCount}, unresolved ${refreshedPlan.unresolvedKeys.length}, failed drafts ${refreshedPlan.createdProducts.length}.`,
+		);
+	}
+
+	return { products, deletedCount, createdCount, batches: batchNumber, queuedCleanupCount };
 };
 
 const findStaleProducts = (state, existingProducts, photos) => {
@@ -496,7 +750,10 @@ const run = async () => {
 
 	const storeId = process.env.GELATO_STORE_ID || DEFAULT_STORE_ID;
 	const state = readState();
-	const existingProducts = await listExistingProducts(storeId);
+	const existingProducts = await listExistingProducts(
+		storeId,
+		Object.values(state.products ?? {}).map((record) => record?.id),
+	);
 	const existingStatusCounts = Object.fromEntries(
 		Object.entries(
 			existingProducts.reduce((counts, product) => {
@@ -509,12 +766,60 @@ const run = async () => {
 	const staleProducts = findStaleProducts(state, existingProducts, manifest.photos);
 	writeStaleReport(staleProducts);
 	console.log(`Stale managed products: ${staleProducts.length}. Report: ${STALE_FILE}`);
+	if (args.audit) {
+		const catalogAudit = buildCatalogAudit(manifest.photos, existingProducts);
+		writeFileSync(
+			CATALOG_AUDIT_FILE,
+			`${JSON.stringify(
+				{
+					generatedAt: new Date().toISOString(),
+					...catalogAudit,
+				},
+				null,
+				2,
+			)}\n`,
+		);
+		console.log(
+			JSON.stringify(
+				{
+					clean: catalogAudit.clean,
+					expectedKeys: catalogAudit.expectedKeys,
+					uniqueRemoteProducts: catalogAudit.uniqueRemoteProducts,
+					activeExpectedProducts: catalogAudit.activeExpectedProducts,
+					missingActiveKeys: catalogAudit.missingActiveKeys.length,
+					duplicateActiveKeys: catalogAudit.duplicateActiveKeys.length,
+					nonActiveProducts: catalogAudit.nonActiveProducts.length,
+					staleProducts: catalogAudit.staleProducts.length,
+					unmanagedProducts: catalogAudit.unmanagedProducts.length,
+					report: CATALOG_AUDIT_FILE,
+				},
+				null,
+				2,
+			),
+		);
+		if (args.strictAudit) assert(catalogAudit.clean, "Gelato catalog strict audit failed");
+	}
 	if (args.audit && !args.execute && !args.validateTemplates) return;
 
 	const templates = await loadTemplates(args.media);
 	validateTemplates(templates, selectedPhotos, args.media);
 	console.log(`Validated ${args.media.length} templates for ${selectedPhotos.length} photographs.`);
 	if (!args.execute) return;
+	if (args.repairCreated) {
+		const result = await repairCreatedProducts({
+			storeId,
+			state,
+			photos: selectedPhotos,
+			selectedMedia: args.media,
+			templates,
+			existingProducts,
+			batchPhotoCount: args.repairBatchPhotos,
+		});
+		console.log(
+			`Repair complete: ${result.deletedCount} failed drafts deleted, ${result.queuedCleanupCount} stranded queued products cleared, ${result.createdCount} products regenerated in ${result.batches} batches.`,
+		);
+		return;
+	}
 
 	const jobs = [];
 	const previouslyQueuedJobs = [];
@@ -577,10 +882,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
 export {
 	aspectGroupFor,
 	buildManifest,
+	buildCreatedRepairPlan,
+	buildCatalogAudit,
 	cloudinaryUrl,
 	expectedProductKeys,
 	findStaleProducts,
 	managedProductKey,
+	mergeProductsById,
 	normalizeVariant,
 	orientationFor,
 	referenceLabelFor,

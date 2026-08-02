@@ -1,6 +1,7 @@
 {% comment %}
   Customer-facing consolidation for Gelato's three Shopify products per photo.
   Include this file before </body> in layout/theme.liquid.
+  Revision: 2026-08-02 contact validation and search-result fallback.
 {% endcomment %}
 
 <style>
@@ -33,6 +34,7 @@
 
   .product-grid__item[hidden],
   .resource-list__item[hidden],
+  .predictive-search-results__card[hidden],
   .menu-drawer__featured-content-list-item[hidden],
   product-card[hidden],
   product-component[hidden] {
@@ -62,7 +64,16 @@
     const cleanTitle = (title) =>
       title.replace(/\s+-\s+(?:Framed Fine Art|Fine Art|Canvas) Print\s*$/, '').trim();
 
+    const cleanCardTitle = (card) => {
+      card.querySelectorAll('h1, h2, h3, a').forEach((element) => {
+        const current = element.textContent?.trim() || '';
+        const cleaned = cleanTitle(current);
+        if (current && cleaned !== current && element.children.length === 0) element.textContent = cleaned;
+      });
+    };
+
     const consolidateProductCards = () => {
+      const groupsByScope = new Map();
       document.querySelectorAll('product-card, product-component.resource-card__wrapper').forEach((card) => {
         const link = card.querySelector('a[href*="/products/"]');
         const handle = productHandle(link?.href || '');
@@ -71,19 +82,35 @@
 
         const item =
           card.closest(
-            '.product-grid__item, .resource-list__item, .menu-drawer__featured-content-list-item',
+            '.product-grid__item, .resource-list__item, .predictive-search-results__card, .menu-drawer__featured-content-list-item',
           ) || card;
-        const isCanonical = format.suffix === '-fine-art-print';
-        if (!isCanonical && !item.hidden) item.hidden = true;
-
-        if (isCanonical) {
-          card.querySelectorAll('h1, h2, h3, a').forEach((element) => {
-            const current = element.textContent?.trim() || '';
-            const cleaned = cleanTitle(current);
-            if (current && cleaned !== current && element.children.length === 0) element.textContent = cleaned;
-          });
-        }
+        const scope = item.parentElement || card.parentElement || document.body;
+        const baseHandle = handle.slice(0, -format.suffix.length);
+        if (!groupsByScope.has(scope)) groupsByScope.set(scope, new Map());
+        const groups = groupsByScope.get(scope);
+        if (!groups.has(baseHandle)) groups.set(baseHandle, []);
+        groups.get(baseHandle).push({ card, item, format });
       });
+
+      groupsByScope.forEach((groups) => {
+        groups.forEach((entries) => {
+          const chosen =
+            entries.find(({ format }) => format.suffix === '-fine-art-print') || entries[0];
+          entries.forEach((entry) => {
+            entry.item.hidden = entry !== chosen;
+          });
+          cleanCardTitle(chosen.card);
+        });
+      });
+    };
+
+    const enforceContactRequirements = () => {
+      document
+        .querySelectorAll('main input[type="email"][name="contact[email]"]')
+        .forEach((input) => {
+          input.required = true;
+          input.setAttribute('aria-required', 'true');
+        });
     };
 
     const addPrintTypeChooser = () => {
@@ -133,6 +160,7 @@
     const enhanceStorefront = () => {
       consolidateProductCards();
       addPrintTypeChooser();
+      enforceContactRequirements();
     };
     const scheduleEnhancement = () => {
       if (scheduled) return;

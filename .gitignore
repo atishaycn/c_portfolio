@@ -22,6 +22,7 @@ Shapes & Shadows/
 .gelato-product-manifest.json
 .gelato-product-state.json
 .gelato-stale-products.json
+.gelato-catalog-audit.json
 .gelato-catalog-resume.log
 .gelato-catalog-resume.pid
 .vercel

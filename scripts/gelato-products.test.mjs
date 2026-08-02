@@ -4,16 +4,58 @@ import test from "node:test";
 import {
 	aspectGroupFor,
 	buildManifest,
+	buildCatalogAudit,
+	buildCreatedRepairPlan,
 	cloudinaryUrl,
 	expectedProductKeys,
 	findStaleProducts,
 	managedProductKey,
+	mergeProductsById,
 	normalizeVariant,
 	orientationFor,
 	referenceLabelFor,
 	selectExistingProduct,
 	selectTemplateVariants,
 } from "./gelato-products.mjs";
+
+test("deduplicates overlapping Gelato product pages by exact ID", () => {
+	assert.deepEqual(
+		mergeProductsById(
+			[{ id: "one", status: "created" }, { id: "two", status: "created" }],
+			[{ id: "two", status: "active" }, { id: "three", status: "active" }],
+		),
+		[
+			{ id: "one", status: "created" },
+			{ id: "two", status: "active" },
+			{ id: "three", status: "active" },
+		],
+	);
+});
+
+test("requires exactly one active managed product for every catalog key", () => {
+	const photos = [{ printId: "photo-1" }];
+	const cleanProducts = ["fine-art", "framed", "canvas"].map((medium) => ({
+		id: medium,
+		status: "active",
+		tags: ["photo-1", `format-${medium}`, "claire-thomas"],
+	}));
+	assert.equal(buildCatalogAudit(photos, cleanProducts).clean, true);
+
+	const broken = buildCatalogAudit(photos, [
+		...cleanProducts,
+		{ ...cleanProducts[0], id: "fine-art-copy" },
+		{
+			id: "draft",
+			status: "created",
+			tags: ["photo-1", "format-canvas", "claire-thomas"],
+		},
+		{ id: "unmanaged", status: "created", tags: [] },
+	]);
+	assert.equal(broken.clean, false);
+	assert.equal(broken.duplicateActiveKeys.length, 1);
+	assert.equal(broken.nonActiveProducts.length, 1);
+	assert.equal(broken.unmanagedProducts.length, 1);
+});
 
 test("builds a dynamic non-commissioned catalog", () => {
 	const manifest = buildManifest();
@@ -155,6 +197,39 @@ test("reports managed products removed from the portfolio", () => {
 			source: "state+gelato",
 		},
 	]);
+});
+
+test("plans deletion of created drafts and regeneration of unresolved products", () => {
+	const photos = [{ printId: "photo-1" }, { printId: "photo-2" }];
+	const products = [
+		{
+			id: "active-fine-art",
+			status: "active",
+			tags: ["photo-1", "format-fine-art", "claire-thomas"],
+		},
+		{
+			id: "duplicate-created-fine-art",
+			status: "created",
+			tags: ["photo-1", "format-fine-art", "claire-thomas"],
+		},
+		{
+			id: "created-canvas",
+			status: "created",
+			tags: ["photo-1", "format-canvas", "claire-thomas"],
+		},
+		{
+			id: "queued-photo-2",
+			status: "publishing_queued",
+			tags: ["photo-2", "format-fine-art", "claire-thomas"],
+		},
+	];
+	const plan = buildCreatedRepairPlan(photos, ["fine-art", "canvas"], products);
+	assert.deepEqual(plan.photoIds, ["photo-1", "photo-2"]);
+	assert.deepEqual(
+		plan.createdProducts.map(({ product }) => product.id),
+		["duplicate-created-fine-art", "created-canvas", "queued-photo-2"],
+	);
+	assert.deepEqual(plan.unresolvedKeys.sort(), ["photo-1:canvas", "photo-2:canvas", "photo-2:fine-art"]);
 });
 
 test("prefers an active product and treats a missing recorded product as recoverable", () => {
