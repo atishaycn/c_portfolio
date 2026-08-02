@@ -422,7 +422,7 @@ const waitForProducts = async (
 	storeId,
 	queuedJobs,
 	state,
-	timeoutMs = 45 * 60 * 1000,
+	timeoutMs = 3 * 60 * 60 * 1000,
 	pollIntervalMs = 30 * 1000,
 ) => {
 	const pending = new Map(queuedJobs.map((job) => [state.products[job.key].id, job]));
