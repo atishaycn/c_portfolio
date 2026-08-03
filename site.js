@@ -1,5 +1,13 @@
 const siteTitle = "CLAIRE THOMAS";
 
+const escapeHtml = (value) =>
+	String(value ?? "")
+		.replaceAll("&", "&amp;")
+		.replaceAll("<", "&lt;")
+		.replaceAll(">", "&gt;")
+		.replaceAll('"', "&quot;")
+		.replaceAll("'", "&#039;");
+
 const cloudinaryConfig = {
 	enabled: true,
 	cloudName: "dpmdkrggj",
@@ -48,7 +56,7 @@ const resolveImageUrl = (itemOrPath, options = {}) => {
 const localImageUrl = (itemOrPath) => {
 	if (!itemOrPath) return itemOrPath;
 	if (typeof itemOrPath === "string") return encodeURI(itemOrPath);
-	return encodeURI(itemOrPath.image);
+	return itemOrPath.image ? encodeURI(itemOrPath.image) : "";
 };
 
 const createGalleryItems = (prefix, specs) =>
@@ -396,7 +404,7 @@ const reportageCaptionForIndex = (index) => {
 	return "";
 };
 
-const galleryPages = [
+let galleryPages = [
 	{
 		key: "the-natural-world",
 		label: "the natural world",
@@ -467,7 +475,7 @@ const galleryPages = [
 	},
 ];
 
-const portfolioLinks = [
+let portfolioLinks = [
 	{ label: "the natural world", path: "./index.html", key: "the-natural-world" },
 	{ label: "commissioned work", path: "./commissioned-work.html", key: "commissioned-work" },
 	{
@@ -493,6 +501,60 @@ const secondaryLinks = [
 	{ label: "prints", path: "./prints.html", key: "prints" },
 	{ label: "about + contact", path: "./about-contact.html", key: "about-contact" },
 ];
+
+const applyCmsContent = (content) => {
+	if (!content || !Array.isArray(content.albums) || !content.albums.length) return;
+	const albums = content.albums
+		.map((album) => ({
+			...album,
+			items: [...(album.items || [])]
+				.sort((left, right) => left.order - right.order)
+				.map((item) => ({
+					...item,
+					title: item.title || "",
+					location: item.location || "",
+				})),
+		}))
+		.sort((left, right) => left.order - right.order);
+	galleryPages = albums;
+
+	const nodes = new Map();
+	for (const group of content.groups || []) {
+		nodes.set(group.id, {
+			label: group.label,
+			key: group.id,
+			order: group.order,
+			parentId: group.parentId || null,
+			children: [],
+		});
+	}
+	for (const album of albums) {
+		nodes.set(album.id, {
+			label: album.label,
+			key: album.key,
+			path: album.path,
+			order: album.order,
+			parentId: album.parentId || null,
+			preserveCase: album.preserveCase,
+			children: [],
+		});
+	}
+	for (const node of nodes.values()) {
+		if (node.parentId && nodes.has(node.parentId)) {
+			nodes.get(node.parentId).children.push(node);
+		}
+	}
+	const sortNodes = (entries) => {
+		entries.sort((left, right) => left.order - right.order || left.label.localeCompare(right.label));
+		entries.forEach((entry) => sortNodes(entry.children));
+		return entries;
+	};
+	portfolioLinks = sortNodes(
+		[...nodes.values()].filter((node) => !node.parentId),
+	);
+};
+
+applyCmsContent(window.__PORTFOLIO_CONTENT__);
 
 const placeholderUrl = (item) => {
 	if (item.publicId) {
@@ -556,7 +618,7 @@ const renderSidebarNav = (links, nested = false) => `
 						<li class="folder-link ${isOpen ? "active-folder" : ""} ${isCurrentPage ? "active-link" : ""}">
 							<details class="sidebar-folder" ${isOpen ? "open" : ""}>
 								<summary class="${link.preserveCase ? "preserve-case" : ""}">
-									${hasDirectPage ? `<a class="folder-label-link ${link.preserveCase ? "preserve-case" : ""}" href="${link.path}" ${link.external ? 'target="_blank" rel="noreferrer"' : ""}>${link.label}</a>` : link.label}
+									${hasDirectPage ? `<a class="folder-label-link ${link.preserveCase ? "preserve-case" : ""}" href="${link.path}" ${link.external ? 'target="_blank" rel="noreferrer"' : ""}>${escapeHtml(link.label)}</a>` : escapeHtml(link.label)}
 								</summary>
 								<div class="subnav">${renderSidebarNav(link.children, true)}</div>
 							</details>
@@ -566,7 +628,7 @@ const renderSidebarNav = (links, nested = false) => `
 
 				return `
 					<li class="${link.key === currentPageKey ? "active-link" : ""}">
-						<a class="${link.preserveCase ? "preserve-case" : ""}" href="${link.path}" ${link.external ? 'target="_blank" rel="noreferrer"' : ""}>${link.label}</a>
+						<a class="${link.preserveCase ? "preserve-case" : ""}" href="${link.path}" ${link.external ? 'target="_blank" rel="noreferrer"' : ""}>${escapeHtml(link.label)}</a>
 					</li>
 				`;
 			})
@@ -582,7 +644,7 @@ const renderGallery = (page) => `
 					${page.items
 						.map((item, index) => {
 							const imageSrc = placeholderUrl(item);
-							const highResSrc = item.image ? galleryImageUrl(item) : placeholderUrl(item);
+							const highResSrc = item.publicId || item.image ? galleryImageUrl(item) : placeholderUrl(item);
 							const highResSrcSet = item.publicId ? imageSrcSet(item) : "";
 							const hasCaption = item.title || item.location;
 							const eager = index < 4;
@@ -593,15 +655,15 @@ const renderGallery = (page) => `
 										type="button"
 										data-gallery-key="${page.key}"
 										data-gallery-index="${index}"
-										aria-label="Open image ${index + 1} from ${page.label}"
+										aria-label="Open image ${index + 1} from ${escapeHtml(page.label)}"
 									>
-										<img class="progressive-image" src="${imageSrc}" data-high-src="${highResSrc}" data-high-srcset="${highResSrcSet}" data-sizes="${galleryImageSizes}" data-local-src="${localImageUrl(item)}" alt="${item.title || page.label}" width="${item.width}" height="${item.height}" loading="${eager ? "eager" : "lazy"}" fetchpriority="${eager ? "high" : "low"}" decoding="async" />
+										<img class="progressive-image" src="${imageSrc}" data-high-src="${highResSrc}" data-high-srcset="${highResSrcSet}" data-sizes="${galleryImageSizes}" data-local-src="${localImageUrl(item)}" alt="${escapeHtml(item.title || page.label)}" width="${item.width}" height="${item.height}" loading="${eager ? "eager" : "lazy"}" fetchpriority="${eager ? "high" : "low"}" decoding="async" />
 									</button>
 									${
 										hasCaption
 											? `<figcaption>
-												${item.title ? `<span>${item.title}</span>` : ""}
-												${item.location ? `<small>${item.location}</small>` : ""}
+												${item.title ? `<span>${escapeHtml(item.title)}</span>` : ""}
+												${item.location ? `<small>${escapeHtml(item.location)}</small>` : ""}
 											</figcaption>`
 											: ""
 									}
@@ -737,7 +799,7 @@ app.innerHTML = `
 					<div class="lightbox-meta"></div>
 					<div class="lightbox-caption" hidden></div>
 				</div>
-				${currentPageKey === "commissioned-work" ? "" : `<a class="lightbox-print-link" href="${printOrderUrl()}" target="_blank" rel="noreferrer">Order print</a>`}
+				<a class="lightbox-print-link" href="${printOrderUrl()}" target="_blank" rel="noreferrer" hidden>Order print</a>
 			</div>
 		</div>
 		<button class="lightbox-nav lightbox-next" type="button" aria-label="Next image">›</button>
@@ -785,7 +847,7 @@ const lightboxImageCache = new Map();
 
 const getCurrentLightboxItems = () => lightboxState.page?.items ?? [];
 const getLightboxItemSources = (item) => ({
-	src: item.image ? lightboxImageUrl(item) : placeholderUrl(item),
+	src: item.publicId || item.image ? lightboxImageUrl(item) : placeholderUrl(item),
 	srcset: item.publicId ? imageSrcSet(item) : "",
 	sizes: item.publicId ? lightboxImageSizes : "",
 	fallbackSrc: localImageUrl(item),
@@ -860,7 +922,12 @@ const updateLightboxMeta = (state = "") => {
 		lightboxCaption.hidden = !item.title;
 	}
 	if (lightboxPrintLink instanceof HTMLAnchorElement) {
-		lightboxPrintLink.href = printOrderUrl(item, lightboxState.page);
+		const printEnabled =
+			lightboxState.page?.key !== "commissioned-work" &&
+			lightboxState.page?.printEnabled !== false &&
+			item.printEnabled !== false;
+		lightboxPrintLink.hidden = !printEnabled;
+		lightboxPrintLink.href = printEnabled ? printOrderUrl(item, lightboxState.page) : printOrderUrl();
 	}
 };
 

@@ -151,8 +151,9 @@ const loadEnv = (file) => {
 
 const loadGalleryPages = () => {
 	const source = readFileSync(SITE_FILE, "utf8");
-	const marker = "\nconst portfolioLinks = [";
-	const markerIndex = source.indexOf(marker);
+	const markerIndex = ["\nconst portfolioLinks = [", "\nlet portfolioLinks = ["]
+		.map((marker) => source.indexOf(marker))
+		.find((index) => index > 0);
 	assert(markerIndex > 0, "Could not locate gallery data boundary in site.js");
 
 	const context = {};

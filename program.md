@@ -2,11 +2,18 @@
 
 ## Purpose
 
-Static photography portfolio for Claire Thomas. The site is a multi-page HTML/CSS/JS portfolio with a shared client-side renderer in `site.js`, a shared stylesheet in `styles.css`, and one lightweight HTML entrypoint per section.
+Photography portfolio for Claire Thomas with a small authenticated content manager. Public pages remain lightweight HTML/CSS/JS; Vercel Functions provide authentication, Cloudinary-backed content, and signed uploads.
 
 ## Important Files And Boundaries
 
 - `site.js`: shared navigation, gallery data, detail-page rendering, and lightbox behavior.
+- `cms-loader.js`: loads `/api/content`, then renders through `site.js`; bundled gallery data remains the public fallback.
+- `admin.html`, `admin.css`, `admin.js`: website-only portfolio editor at `/admin.html`.
+- `api/`: Vercel Functions for public content, admin sessions, content saves, and signed Cloudinary uploads.
+- `content/portfolio.json`: exact bundled fallback and initial CMS seed (7 albums, 293 photos).
+- `scripts/create-admin-credentials.mjs`: creates the ignored local credential handoff and environment file.
+- `scripts/configure-vercel-admin-env.mjs`: applies the admin and Cloudinary secrets to Vercel without printing them.
+- `scripts/seed-portfolio-content.mjs`: idempotently seeds the Cloudinary raw JSON content asset.
 - `styles.css`: shared site layout and page-specific styling.
 - `*.html`: individual entrypoints that set `body[data-page]` and load the shared assets.
 - `prints.html`: print-shop landing page. The actual checkout/fulfillment URL is configured in `printShopConfig.shopUrl` in `site.js`.
@@ -22,14 +29,20 @@ Keep content image directories and generated deployment metadata out of scope un
 
 ## Run And Verify
 
-- Local static check: `python3 -m http.server 8080`
-- Open the relevant page directly in a browser, or hit `http://localhost:8080/<page>.html`
+- Install dependencies: none required.
+- Full checks: `npm run check`
+- Local application: load `.env` and `.env.local`, then run `vercel dev --listen 8080 --yes`.
+- Admin: `http://localhost:8080/admin.html`
 - For navigation changes, verify the sidebar link state and destination page.
 - For layout changes, verify both desktop and narrow/mobile widths.
 
 ## Current Operating Brief
 
 - Prefer small, attributable edits in `site.js`, `styles.css`, and the relevant HTML entrypoint.
+- Portfolio content edits should use `/admin.html`: add/delete/rename/reorder albums; upload/delete/restore/reorder photos; edit captions.
+- CMS deletion is recoverable: photos move to Trash and Cloudinary originals are preserved.
+- New admin uploads default to `printEnabled: false`. The CMS never calls Shopify or Gelato; print-product synchronization is a separate future workflow.
+- Admin saves use an authenticated Cloudinary resource version for concurrency checks. Public reads remain CDN-cacheable and fall back to `content/portfolio.json` if the CMS asset is unavailable.
 - New sections should usually be added as a new `*.html` file plus a small `render...` branch in `site.js`.
 - Commissioned Work uses Cloudinary IDs `commissioned-work/1` through `commissioned-work/23`; upload it with `scripts/upload-commissioned-work-to-cloudinary.sh`.
 - Keep the visual language minimal and consistent with the existing site unless explicitly asked to redesign it.

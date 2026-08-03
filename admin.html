@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="robots" content="noindex, nofollow" />
+		<title>Portfolio Admin • Claire Thomas</title>
+		<link rel="icon" href="data:," />
+		<link rel="stylesheet" href="./admin.css" />
+	</head>
+	<body>
+		<main id="admin-app" class="admin-app">
+			<section id="login-view" class="login-view" hidden>
+				<form id="login-form" class="login-card">
+					<p class="eyebrow">Claire Thomas</p>
+					<h1>Portfolio admin</h1>
+					<label>
+						<span>Email</span>
+						<input id="login-email" name="email" type="email" autocomplete="username" required />
+					</label>
+					<label>
+						<span>Password</span>
+						<input id="login-password" name="password" type="password" autocomplete="current-password" required />
+					</label>
+					<button type="submit">Sign in</button>
+					<p id="login-error" class="form-error" role="alert" hidden></p>
+				</form>
+			</section>
+
+			<section id="dashboard-view" class="dashboard" hidden>
+				<header class="admin-header">
+					<div>
+						<p class="eyebrow">Claire Thomas</p>
+						<h1>Portfolio admin</h1>
+					</div>
+					<div class="header-actions">
+						<span id="save-status" class="save-status" aria-live="polite">Saved</span>
+						<button id="save-button" class="primary-button" type="button" data-testid="save">Save changes</button>
+						<a href="./index.html" target="_blank" rel="noreferrer">View website</a>
+						<button id="logout-button" class="quiet-button" type="button">Sign out</button>
+					</div>
+				</header>
+
+				<div id="system-message" class="system-message" role="status" hidden></div>
+				<p class="integration-note">
+					Portfolio editing only. Shopify and Gelato are not changed; newly uploaded photos do not show “Order print.”
+				</p>
+
+				<div class="admin-layout">
+					<aside class="album-panel">
+						<div class="panel-heading">
+							<div>
+								<p class="eyebrow">Structure</p>
+								<h2>Albums</h2>
+							</div>
+							<span id="album-count"></span>
+						</div>
+						<nav id="album-list" class="album-list" aria-label="Albums"></nav>
+						<form id="add-album-form" class="add-album-form">
+							<label for="new-album-name">New album</label>
+							<div>
+								<input id="new-album-name" type="text" maxlength="100" placeholder="Album name" required />
+								<button type="submit">Add</button>
+							</div>
+						</form>
+						<button id="trash-button" class="trash-button" type="button">
+							Trash <span id="trash-count">0</span>
+						</button>
+					</aside>
+
+					<section id="album-editor" class="album-editor" aria-live="polite">
+						<div class="empty-editor">Choose an album.</div>
+					</section>
+				</div>
+			</section>
+		</main>
+		<script src="./admin.js"></script>
+	</body>
+</html>

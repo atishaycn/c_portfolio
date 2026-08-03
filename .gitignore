@@ -19,6 +19,7 @@ Shapes & Shadows/
 .env
 .env.*
 !.env.example
+.admin-credentials.local.json
 .gelato-product-manifest.json
 .gelato-product-state.json
 .gelato-stale-products.json

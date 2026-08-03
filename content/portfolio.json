@@ -1,0 +1,3030 @@
+{
+  "version": 1,
+  "revision": 0,
+  "updatedAt": "2026-08-03T21:58:11.480Z",
+  "groups": [
+    {
+      "id": "place",
+      "label": "place",
+      "order": 2,
+      "parentId": null
+    }
+  ],
+  "albums": [
+    {
+      "id": "the-natural-world",
+      "key": "the-natural-world",
+      "label": "the natural world",
+      "path": "./index.html",
+      "order": 0,
+      "parentId": null,
+      "preserveCase": false,
+      "printEnabled": true,
+      "items": [
+        {
+          "id": "the-natural-world-1",
+          "publicId": "1_vnpnhf",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 0,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-2",
+          "publicId": "2_gaxjez",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 1,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-3",
+          "publicId": "3_asebdu",
+          "title": "",
+          "location": "",
+          "width": 4384,
+          "height": 3197,
+          "order": 2,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-4",
+          "publicId": "4_auboh4",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 3,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-5",
+          "publicId": "5_lw9bhq",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 4,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-6",
+          "publicId": "6_mwivsz",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 5,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-7",
+          "publicId": "7_gu4xgl",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 6,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-8",
+          "publicId": "8_ongbmt",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 7,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-9",
+          "publicId": "9_wy3rcc",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 8,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-10",
+          "publicId": "10_dbkilq",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 9,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-11",
+          "publicId": "11_gaovai",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 10,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-12",
+          "publicId": "12_txfrr3",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 11,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-13",
+          "publicId": "13_vnosf7",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 12,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-14",
+          "publicId": "14_wxnggz",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 13,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-15",
+          "publicId": "15_ebnk6a",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 14,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-16",
+          "publicId": "16_y4smm6",
+          "title": "",
+          "location": "",
+          "width": 5011,
+          "height": 3758,
+          "order": 15,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-17",
+          "publicId": "17_jxygsv",
+          "title": "",
+          "location": "",
+          "width": 5125,
+          "height": 3844,
+          "order": 16,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-18",
+          "publicId": "18_nmue2y",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 17,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-19",
+          "publicId": "19_qyy4re",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3710,
+          "order": 18,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-20",
+          "publicId": "20_dgcjip",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 19,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-21",
+          "publicId": "21_hcnksz",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 20,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-22",
+          "publicId": "22_s7l89m",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 3974,
+          "order": 21,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-23",
+          "publicId": "23_avb5au",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 3843,
+          "order": 22,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-24",
+          "publicId": "24_pal1ru",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 23,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-25",
+          "publicId": "25_ywmvg4",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 24,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-26",
+          "publicId": "26_vqyhbg",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 25,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-27",
+          "publicId": "27_cgamwb",
+          "title": "",
+          "location": "",
+          "width": 4903,
+          "height": 3677,
+          "order": 26,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-28",
+          "publicId": "28_q8wmqr",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 27,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-29",
+          "publicId": "29_q9cn74",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 28,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-30",
+          "publicId": "30_avnqin",
+          "title": "",
+          "location": "",
+          "width": 3429,
+          "height": 2546,
+          "order": 29,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-31",
+          "publicId": "31_r5ics0",
+          "title": "",
+          "location": "",
+          "width": 4961,
+          "height": 3800,
+          "order": 30,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-32",
+          "publicId": "32_yzhcp9",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 31,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-33",
+          "publicId": "33_upfnu2",
+          "title": "",
+          "location": "",
+          "width": 2772,
+          "height": 3698,
+          "order": 32,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-34",
+          "publicId": "34_lphoqo",
+          "title": "",
+          "location": "",
+          "width": 3520,
+          "height": 4278,
+          "order": 33,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-35",
+          "publicId": "35_fov0c6",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 34,
+          "printEnabled": true
+        },
+        {
+          "id": "the-natural-world-37",
+          "publicId": "37_dt11xh",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 35,
+          "printEnabled": true
+        }
+      ]
+    },
+    {
+      "id": "california",
+      "key": "california",
+      "label": "California",
+      "path": "./california.html",
+      "order": 0,
+      "parentId": "place",
+      "preserveCase": true,
+      "printEnabled": true,
+      "items": [
+        {
+          "id": "california-1",
+          "publicId": "place/california/1",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 0,
+          "printEnabled": true
+        },
+        {
+          "id": "california-3",
+          "publicId": "place/california/3",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 1,
+          "printEnabled": true
+        },
+        {
+          "id": "california-4",
+          "publicId": "place/california/4",
+          "title": "",
+          "location": "",
+          "width": 5026,
+          "height": 3888,
+          "order": 2,
+          "printEnabled": true
+        },
+        {
+          "id": "california-5",
+          "publicId": "place/california/5",
+          "title": "",
+          "location": "",
+          "width": 5051,
+          "height": 3888,
+          "order": 3,
+          "printEnabled": true
+        },
+        {
+          "id": "california-6",
+          "publicId": "place/california/6",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 4,
+          "printEnabled": true
+        },
+        {
+          "id": "california-7",
+          "publicId": "place/california/7",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 5,
+          "printEnabled": true
+        },
+        {
+          "id": "california-8",
+          "publicId": "place/california/8",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 4770,
+          "order": 6,
+          "printEnabled": true
+        },
+        {
+          "id": "california-11",
+          "publicId": "place/california/11",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 7,
+          "printEnabled": true
+        },
+        {
+          "id": "california-12",
+          "publicId": "place/california/12",
+          "title": "",
+          "location": "",
+          "width": 4618,
+          "height": 3456,
+          "order": 8,
+          "printEnabled": true
+        },
+        {
+          "id": "california-15",
+          "publicId": "place/california/15",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 9,
+          "printEnabled": true
+        },
+        {
+          "id": "california-16",
+          "publicId": "place/california/16",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 10,
+          "printEnabled": true
+        },
+        {
+          "id": "california-17",
+          "publicId": "place/california/17",
+          "title": "",
+          "location": "",
+          "width": 3673,
+          "height": 5038,
+          "order": 11,
+          "printEnabled": true
+        },
+        {
+          "id": "california-18",
+          "publicId": "place/california/18",
+          "title": "",
+          "location": "",
+          "width": 3844,
+          "height": 5125,
+          "order": 12,
+          "printEnabled": true
+        },
+        {
+          "id": "california-19",
+          "publicId": "place/california/19",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 13,
+          "printEnabled": true
+        },
+        {
+          "id": "california-20",
+          "publicId": "place/california/20",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 14,
+          "printEnabled": true
+        },
+        {
+          "id": "california-22",
+          "publicId": "place/california/22",
+          "title": "",
+          "location": "",
+          "width": 5125,
+          "height": 3844,
+          "order": 15,
+          "printEnabled": true
+        },
+        {
+          "id": "california-23",
+          "publicId": "place/california/23",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 16,
+          "printEnabled": true
+        },
+        {
+          "id": "california-24",
+          "publicId": "place/california/24",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 17,
+          "printEnabled": true
+        },
+        {
+          "id": "california-25",
+          "publicId": "place/california/25",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 18,
+          "printEnabled": true
+        },
+        {
+          "id": "california-26",
+          "publicId": "place/california/26",
+          "title": "",
+          "location": "",
+          "width": 3456,
+          "height": 5184,
+          "order": 19,
+          "printEnabled": true
+        },
+        {
+          "id": "california-27",
+          "publicId": "place/california/27",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 20,
+          "printEnabled": true
+        },
+        {
+          "id": "california-28",
+          "publicId": "place/california/28",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 21,
+          "printEnabled": true
+        },
+        {
+          "id": "california-29",
+          "publicId": "place/california/29",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 22,
+          "printEnabled": true
+        },
+        {
+          "id": "california-30",
+          "publicId": "place/california/30",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 23,
+          "printEnabled": true
+        },
+        {
+          "id": "california-31",
+          "publicId": "place/california/31",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 24,
+          "printEnabled": true
+        },
+        {
+          "id": "california-32",
+          "publicId": "place/california/32",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 25,
+          "printEnabled": true
+        }
+      ]
+    },
+    {
+      "id": "san-francisco",
+      "key": "san-francisco",
+      "label": "San Francisco",
+      "path": "./san-francisco.html",
+      "order": 0,
+      "parentId": "california",
+      "preserveCase": true,
+      "printEnabled": true,
+      "items": [
+        {
+          "id": "san-francisco-1",
+          "publicId": "place/california/san-francisco/1",
+          "title": "",
+          "location": "",
+          "width": 5031,
+          "height": 3456,
+          "order": 0,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-2",
+          "publicId": "place/california/san-francisco/2",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3056,
+          "order": 1,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-3",
+          "publicId": "place/california/san-francisco/3",
+          "title": "",
+          "location": "",
+          "width": 3844,
+          "height": 5125,
+          "order": 2,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-4",
+          "publicId": "place/california/san-francisco/4",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 3,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-5",
+          "publicId": "place/california/san-francisco/5",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 4,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-6",
+          "publicId": "place/california/san-francisco/6",
+          "title": "",
+          "location": "",
+          "width": 4956,
+          "height": 3717,
+          "order": 5,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-7",
+          "publicId": "place/california/san-francisco/7",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 6,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-8",
+          "publicId": "place/california/san-francisco/8",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 7,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-9",
+          "publicId": "place/california/san-francisco/9",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 8,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-10",
+          "publicId": "place/california/san-francisco/10",
+          "title": "",
+          "location": "",
+          "width": 3844,
+          "height": 5125,
+          "order": 9,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-11",
+          "publicId": "place/california/san-francisco/11",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 10,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-12",
+          "publicId": "place/california/san-francisco/12",
+          "title": "",
+          "location": "",
+          "width": 3830,
+          "height": 5184,
+          "order": 11,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-13",
+          "publicId": "place/california/san-francisco/13",
+          "title": "",
+          "location": "",
+          "width": 4515,
+          "height": 3456,
+          "order": 12,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-14",
+          "publicId": "place/california/san-francisco/14",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 13,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-15",
+          "publicId": "place/california/san-francisco/15",
+          "title": "",
+          "location": "",
+          "width": 5105,
+          "height": 3834,
+          "order": 14,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-24",
+          "publicId": "place/california/san-francisco/24",
+          "title": "",
+          "location": "",
+          "width": 4925,
+          "height": 3304,
+          "order": 15,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-25",
+          "publicId": "place/california/san-francisco/25",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 16,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-26",
+          "publicId": "place/california/san-francisco/26",
+          "title": "",
+          "location": "",
+          "width": 3604,
+          "height": 5132,
+          "order": 17,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-27",
+          "publicId": "place/california/san-francisco/27",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 18,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-28",
+          "publicId": "place/california/san-francisco/28",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 19,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-29",
+          "publicId": "place/california/san-francisco/29",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 20,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-32",
+          "publicId": "place/california/san-francisco/32",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 21,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-42",
+          "publicId": "place/california/san-francisco/42",
+          "title": "",
+          "location": "",
+          "width": 4852,
+          "height": 3639,
+          "order": 22,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-43",
+          "publicId": "place/california/san-francisco/43",
+          "title": "",
+          "location": "",
+          "width": 5011,
+          "height": 3758,
+          "order": 23,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-44",
+          "publicId": "place/california/san-francisco/44",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 24,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-46",
+          "publicId": "place/california/san-francisco/46",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 25,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-47",
+          "publicId": "place/california/san-francisco/47",
+          "title": "",
+          "location": "",
+          "width": 4482,
+          "height": 3298,
+          "order": 26,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-49",
+          "publicId": "place/california/san-francisco/49",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 27,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-51",
+          "publicId": "place/california/san-francisco/51",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 28,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-52",
+          "publicId": "place/california/san-francisco/52",
+          "title": "",
+          "location": "",
+          "width": 3785,
+          "height": 5119,
+          "order": 29,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-54",
+          "publicId": "place/california/san-francisco/54",
+          "title": "",
+          "location": "",
+          "width": 4785,
+          "height": 3373,
+          "order": 30,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-55",
+          "publicId": "place/california/san-francisco/55",
+          "title": "",
+          "location": "",
+          "width": 3321,
+          "height": 4117,
+          "order": 31,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-56",
+          "publicId": "place/california/san-francisco/56",
+          "title": "",
+          "location": "",
+          "width": 3642,
+          "height": 4492,
+          "order": 32,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-57",
+          "publicId": "place/california/san-francisco/57",
+          "title": "",
+          "location": "",
+          "width": 5038,
+          "height": 3888,
+          "order": 33,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-58",
+          "publicId": "place/california/san-francisco/58",
+          "title": "",
+          "location": "",
+          "width": 3774,
+          "height": 5071,
+          "order": 34,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-59",
+          "publicId": "place/california/san-francisco/59",
+          "title": "",
+          "location": "",
+          "width": 5062,
+          "height": 3747,
+          "order": 35,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-60",
+          "publicId": "place/california/san-francisco/60",
+          "title": "",
+          "location": "",
+          "width": 3477,
+          "height": 5072,
+          "order": 36,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-61",
+          "publicId": "place/california/san-francisco/61",
+          "title": "",
+          "location": "",
+          "width": 5011,
+          "height": 3758,
+          "order": 37,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-62",
+          "publicId": "place/california/san-francisco/62",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 38,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-63",
+          "publicId": "place/california/san-francisco/63",
+          "title": "",
+          "location": "",
+          "width": 4916,
+          "height": 3567,
+          "order": 39,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-64",
+          "publicId": "place/california/san-francisco/64",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 40,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-65",
+          "publicId": "place/california/san-francisco/65",
+          "title": "",
+          "location": "",
+          "width": 5126,
+          "height": 3456,
+          "order": 41,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-66",
+          "publicId": "place/california/san-francisco/66",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 42,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-67",
+          "publicId": "place/california/san-francisco/67",
+          "title": "",
+          "location": "",
+          "width": 3598,
+          "height": 4749,
+          "order": 43,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-68",
+          "publicId": "place/california/san-francisco/68",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 44,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-69",
+          "publicId": "place/california/san-francisco/69",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 45,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-70",
+          "publicId": "place/california/san-francisco/70",
+          "title": "",
+          "location": "",
+          "width": 3800,
+          "height": 5029,
+          "order": 46,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-71",
+          "publicId": "place/california/san-francisco/71",
+          "title": "",
+          "location": "",
+          "width": 3681,
+          "height": 5057,
+          "order": 47,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-72",
+          "publicId": "place/california/san-francisco/72",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 48,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-73",
+          "publicId": "place/california/san-francisco/73",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 49,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-74",
+          "publicId": "place/california/san-francisco/74",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 50,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-75",
+          "publicId": "place/california/san-francisco/75",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 51,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-76",
+          "publicId": "place/california/san-francisco/76",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 52,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-77",
+          "publicId": "place/california/san-francisco/77",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3424,
+          "order": 53,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-78",
+          "publicId": "place/california/san-francisco/78",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 54,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-79",
+          "publicId": "place/california/san-francisco/79",
+          "title": "",
+          "location": "",
+          "width": 3596,
+          "height": 4784,
+          "order": 55,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-80",
+          "publicId": "place/california/san-francisco/80",
+          "title": "",
+          "location": "",
+          "width": 5011,
+          "height": 3758,
+          "order": 56,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-81",
+          "publicId": "place/california/san-francisco/81",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 57,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-82",
+          "publicId": "place/california/san-francisco/82",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 58,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-83",
+          "publicId": "place/california/san-francisco/83",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 59,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-84",
+          "publicId": "place/california/san-francisco/84",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 60,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-85",
+          "publicId": "place/california/san-francisco/85",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 61,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-86",
+          "publicId": "place/california/san-francisco/86",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 62,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-87",
+          "publicId": "place/california/san-francisco/87",
+          "title": "",
+          "location": "",
+          "width": 5117,
+          "height": 3411,
+          "order": 63,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-88",
+          "publicId": "place/california/san-francisco/88",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 64,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-89",
+          "publicId": "place/california/san-francisco/89",
+          "title": "",
+          "location": "",
+          "width": 5011,
+          "height": 3758,
+          "order": 65,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-90",
+          "publicId": "place/california/san-francisco/90",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 66,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-91",
+          "publicId": "place/california/san-francisco/91",
+          "title": "",
+          "location": "",
+          "width": 3844,
+          "height": 5125,
+          "order": 67,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-92",
+          "publicId": "place/california/san-francisco/92",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 68,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-93",
+          "publicId": "place/california/san-francisco/93",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 69,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-94",
+          "publicId": "place/california/san-francisco/94",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 70,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-95",
+          "publicId": "place/california/san-francisco/95",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 71,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-98",
+          "publicId": "place/california/san-francisco/98",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 72,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-99",
+          "publicId": "place/california/san-francisco/99",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 73,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-100",
+          "publicId": "place/california/san-francisco/100",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 4965,
+          "order": 74,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-101",
+          "publicId": "place/california/san-francisco/101",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 4319,
+          "order": 75,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-102",
+          "publicId": "place/california/san-francisco/102",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 76,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-103",
+          "publicId": "place/california/san-francisco/103",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 77,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-104",
+          "publicId": "place/california/san-francisco/104",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 78,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-105",
+          "publicId": "place/california/san-francisco/105",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 79,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-106",
+          "publicId": "place/california/san-francisco/106",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 80,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-107",
+          "publicId": "place/california/san-francisco/107",
+          "title": "",
+          "location": "",
+          "width": 4754,
+          "height": 3676,
+          "order": 81,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-108",
+          "publicId": "place/california/san-francisco/108",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 82,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-109",
+          "publicId": "place/california/san-francisco/109",
+          "title": "",
+          "location": "",
+          "width": 3603,
+          "height": 3121,
+          "order": 83,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-110",
+          "publicId": "place/california/san-francisco/110",
+          "title": "",
+          "location": "",
+          "width": 3743,
+          "height": 4799,
+          "order": 84,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-111",
+          "publicId": "place/california/san-francisco/111",
+          "title": "",
+          "location": "",
+          "width": 5125,
+          "height": 3844,
+          "order": 85,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-112",
+          "publicId": "place/california/san-francisco/112",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 86,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-113",
+          "publicId": "place/california/san-francisco/113",
+          "title": "",
+          "location": "",
+          "width": 5067,
+          "height": 3800,
+          "order": 87,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-114",
+          "publicId": "place/california/san-francisco/114",
+          "title": "",
+          "location": "",
+          "width": 4895,
+          "height": 3572,
+          "order": 88,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-115",
+          "publicId": "place/california/san-francisco/115",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5085,
+          "order": 89,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-119",
+          "publicId": "place/california/san-francisco/119",
+          "title": "",
+          "location": "",
+          "width": 3844,
+          "height": 5125,
+          "order": 90,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-120",
+          "publicId": "place/california/san-francisco/120",
+          "title": "",
+          "location": "",
+          "width": 3456,
+          "height": 5184,
+          "order": 91,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-121",
+          "publicId": "place/california/san-francisco/121",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 92,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-122",
+          "publicId": "place/california/san-francisco/122",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 93,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-123",
+          "publicId": "place/california/san-francisco/123",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 4998,
+          "order": 94,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-124",
+          "publicId": "place/california/san-francisco/124",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 95,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-125",
+          "publicId": "place/california/san-francisco/125",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 96,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-126",
+          "publicId": "place/california/san-francisco/126",
+          "title": "",
+          "location": "",
+          "width": 5011,
+          "height": 3758,
+          "order": 97,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-127",
+          "publicId": "place/california/san-francisco/127",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 98,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-128",
+          "publicId": "place/california/san-francisco/128",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 99,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-129",
+          "publicId": "place/california/san-francisco/129",
+          "title": "",
+          "location": "",
+          "width": 4341,
+          "height": 2883,
+          "order": 100,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-130",
+          "publicId": "place/california/san-francisco/130",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5005,
+          "order": 101,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-131",
+          "publicId": "place/california/san-francisco/131",
+          "title": "",
+          "location": "",
+          "width": 3456,
+          "height": 5184,
+          "order": 102,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-132",
+          "publicId": "place/california/san-francisco/132",
+          "title": "",
+          "location": "",
+          "width": 3830,
+          "height": 5107,
+          "order": 103,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-133",
+          "publicId": "place/california/san-francisco/133",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 104,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-134",
+          "publicId": "place/california/san-francisco/134",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 105,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-135",
+          "publicId": "place/california/san-francisco/135",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5116,
+          "order": 106,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-136",
+          "publicId": "place/california/san-francisco/136",
+          "title": "",
+          "location": "",
+          "width": 3802,
+          "height": 4970,
+          "order": 107,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-137",
+          "publicId": "place/california/san-francisco/137",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3825,
+          "order": 108,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-138",
+          "publicId": "place/california/san-francisco/138",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 109,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-139",
+          "publicId": "place/california/san-francisco/139",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 110,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-140",
+          "publicId": "place/california/san-francisco/140",
+          "title": "",
+          "location": "",
+          "width": 5011,
+          "height": 3758,
+          "order": 111,
+          "printEnabled": true
+        },
+        {
+          "id": "san-francisco-141",
+          "publicId": "place/california/san-francisco/141",
+          "title": "",
+          "location": "",
+          "width": 5125,
+          "height": 3844,
+          "order": 112,
+          "printEnabled": true
+        }
+      ]
+    },
+    {
+      "id": "india",
+      "key": "india",
+      "label": "India",
+      "path": "./india.html",
+      "order": 1,
+      "parentId": "place",
+      "preserveCase": true,
+      "printEnabled": true,
+      "items": [
+        {
+          "id": "india-1",
+          "publicId": "place/india/1",
+          "title": "",
+          "location": "",
+          "width": 3404,
+          "height": 4934,
+          "order": 0,
+          "printEnabled": true
+        },
+        {
+          "id": "india-2",
+          "publicId": "place/india/2",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 1,
+          "printEnabled": true
+        },
+        {
+          "id": "india-3",
+          "publicId": "place/india/3",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 2,
+          "printEnabled": true
+        },
+        {
+          "id": "india-4",
+          "publicId": "place/india/4",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3456,
+          "order": 3,
+          "printEnabled": true
+        },
+        {
+          "id": "india-5",
+          "publicId": "place/india/5",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5067,
+          "order": 4,
+          "printEnabled": true
+        },
+        {
+          "id": "india-6",
+          "publicId": "place/india/6",
+          "title": "",
+          "location": "",
+          "width": 3527,
+          "height": 2788,
+          "order": 5,
+          "printEnabled": true
+        },
+        {
+          "id": "india-7",
+          "publicId": "place/india/7",
+          "title": "",
+          "location": "",
+          "width": 3695,
+          "height": 5130,
+          "order": 6,
+          "printEnabled": true
+        },
+        {
+          "id": "india-8",
+          "publicId": "place/india/8",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 7,
+          "printEnabled": true
+        },
+        {
+          "id": "india-9",
+          "publicId": "place/india/9",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 8,
+          "printEnabled": true
+        },
+        {
+          "id": "india-10",
+          "publicId": "place/india/10",
+          "title": "",
+          "location": "",
+          "width": 4309,
+          "height": 3888,
+          "order": 9,
+          "printEnabled": true
+        },
+        {
+          "id": "india-11",
+          "publicId": "place/india/11",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 10,
+          "printEnabled": true
+        },
+        {
+          "id": "india-12",
+          "publicId": "place/india/12",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 11,
+          "printEnabled": true
+        },
+        {
+          "id": "india-14",
+          "publicId": "place/india/14",
+          "title": "",
+          "location": "",
+          "width": 3853,
+          "height": 5028,
+          "order": 12,
+          "printEnabled": true
+        },
+        {
+          "id": "india-15",
+          "publicId": "place/india/15",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 13,
+          "printEnabled": true
+        },
+        {
+          "id": "india-16",
+          "publicId": "place/india/16",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 14,
+          "printEnabled": true
+        },
+        {
+          "id": "india-17",
+          "publicId": "place/india/17",
+          "title": "",
+          "location": "",
+          "width": 5125,
+          "height": 3844,
+          "order": 15,
+          "printEnabled": true
+        },
+        {
+          "id": "india-19",
+          "publicId": "place/india/19",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 16,
+          "printEnabled": true
+        },
+        {
+          "id": "india-20",
+          "publicId": "place/india/20",
+          "title": "",
+          "location": "",
+          "width": 5151,
+          "height": 3888,
+          "order": 17,
+          "printEnabled": true
+        },
+        {
+          "id": "india-21",
+          "publicId": "place/india/21",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 18,
+          "printEnabled": true
+        },
+        {
+          "id": "india-23",
+          "publicId": "place/india/23",
+          "title": "",
+          "location": "",
+          "width": 4956,
+          "height": 3608,
+          "order": 19,
+          "printEnabled": true
+        },
+        {
+          "id": "india-24",
+          "publicId": "place/india/24",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 20,
+          "printEnabled": true
+        },
+        {
+          "id": "india-25",
+          "publicId": "place/india/25",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 21,
+          "printEnabled": true
+        },
+        {
+          "id": "india-26",
+          "publicId": "place/india/26",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 22,
+          "printEnabled": true
+        },
+        {
+          "id": "india-27",
+          "publicId": "place/india/27",
+          "title": "",
+          "location": "",
+          "width": 3766,
+          "height": 4765,
+          "order": 23,
+          "printEnabled": true
+        },
+        {
+          "id": "india-29",
+          "publicId": "place/india/29",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 24,
+          "printEnabled": true
+        },
+        {
+          "id": "india-30",
+          "publicId": "place/india/30",
+          "title": "",
+          "location": "",
+          "width": 5125,
+          "height": 3844,
+          "order": 25,
+          "printEnabled": true
+        },
+        {
+          "id": "india-31",
+          "publicId": "place/india/31",
+          "title": "",
+          "location": "",
+          "width": 3730,
+          "height": 5067,
+          "order": 26,
+          "printEnabled": true
+        },
+        {
+          "id": "india-32",
+          "publicId": "place/india/32",
+          "title": "",
+          "location": "",
+          "width": 5011,
+          "height": 3758,
+          "order": 27,
+          "printEnabled": true
+        },
+        {
+          "id": "india-33",
+          "publicId": "place/india/33",
+          "title": "",
+          "location": "",
+          "width": 5125,
+          "height": 3844,
+          "order": 28,
+          "printEnabled": true
+        },
+        {
+          "id": "india-34",
+          "publicId": "place/india/34",
+          "title": "",
+          "location": "",
+          "width": 3800,
+          "height": 4185,
+          "order": 29,
+          "printEnabled": true
+        }
+      ]
+    },
+    {
+      "id": "shapes-and-shadows",
+      "key": "shapes-and-shadows",
+      "label": "shapes & shadows",
+      "path": "./shapes-and-shadows.html",
+      "order": 3,
+      "parentId": null,
+      "preserveCase": false,
+      "printEnabled": true,
+      "items": [
+        {
+          "id": "shapes-and-shadows-1",
+          "publicId": "shapes-and-shadows/1",
+          "title": "",
+          "location": "",
+          "width": 3396,
+          "height": 4753,
+          "order": 0,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-2",
+          "publicId": "shapes-and-shadows/2",
+          "title": "",
+          "location": "",
+          "width": 5125,
+          "height": 3844,
+          "order": 1,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-3",
+          "publicId": "shapes-and-shadows/3",
+          "title": "",
+          "location": "",
+          "width": 4714,
+          "height": 3552,
+          "order": 2,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-4",
+          "publicId": "shapes-and-shadows/4",
+          "title": "",
+          "location": "",
+          "width": 3800,
+          "height": 5067,
+          "order": 3,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-5",
+          "publicId": "shapes-and-shadows/5",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 4,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-6",
+          "publicId": "shapes-and-shadows/6",
+          "title": "",
+          "location": "",
+          "width": 5057,
+          "height": 3844,
+          "order": 5,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-7",
+          "publicId": "shapes-and-shadows/7",
+          "title": "",
+          "location": "",
+          "width": 3242,
+          "height": 1862,
+          "order": 6,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-9",
+          "publicId": "shapes-and-shadows/9",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 7,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-10",
+          "publicId": "shapes-and-shadows/10",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 4978,
+          "order": 8,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-11",
+          "publicId": "shapes-and-shadows/11",
+          "title": "",
+          "location": "",
+          "width": 3845,
+          "height": 4962,
+          "order": 9,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-12",
+          "publicId": "shapes-and-shadows/12",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 10,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-13",
+          "publicId": "shapes-and-shadows/13",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 11,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-14",
+          "publicId": "shapes-and-shadows/14",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 12,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-15",
+          "publicId": "shapes-and-shadows/15",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 13,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-16",
+          "publicId": "shapes-and-shadows/16",
+          "title": "",
+          "location": "",
+          "width": 3843,
+          "height": 4651,
+          "order": 14,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-17",
+          "publicId": "shapes-and-shadows/17",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5103,
+          "order": 15,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-18",
+          "publicId": "shapes-and-shadows/18",
+          "title": "",
+          "location": "",
+          "width": 4130,
+          "height": 3256,
+          "order": 16,
+          "printEnabled": true
+        },
+        {
+          "id": "shapes-and-shadows-19",
+          "publicId": "shapes-and-shadows/19",
+          "title": "",
+          "location": "",
+          "width": 3721,
+          "height": 4976,
+          "order": 17,
+          "printEnabled": true
+        }
+      ]
+    },
+    {
+      "id": "protests",
+      "key": "protests",
+      "label": "reportage",
+      "path": "./protests.html",
+      "order": 4,
+      "parentId": null,
+      "preserveCase": false,
+      "printEnabled": true,
+      "items": [
+        {
+          "id": "protests-1",
+          "publicId": "protests/1",
+          "title": "",
+          "location": "",
+          "width": 5134,
+          "height": 3423,
+          "order": 0,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-2",
+          "publicId": "protests/2",
+          "title": "",
+          "location": "",
+          "width": 3636,
+          "height": 4706,
+          "order": 1,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-3",
+          "publicId": "protests/3",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 2,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-4",
+          "publicId": "protests/4",
+          "title": "",
+          "location": "",
+          "width": 5054,
+          "height": 3888,
+          "order": 3,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-5",
+          "publicId": "protests/5",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 4,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-6",
+          "publicId": "protests/6",
+          "title": "No Kings Day protest in San Francisco’s Dolores Park on June 14, 2025",
+          "location": "",
+          "width": 5131,
+          "height": 3634,
+          "order": 5,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-7",
+          "publicId": "protests/7",
+          "title": "No Kings Day protest in San Francisco’s Dolores Park on June 14, 2025",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 6,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-8",
+          "publicId": "protests/8",
+          "title": "No Kings Day protest in San Francisco’s Dolores Park on June 14, 2025",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 7,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-9",
+          "publicId": "protests/9",
+          "title": "No Kings Day protest in San Francisco’s Dolores Park on June 14, 2025",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 8,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-10",
+          "publicId": "protests/10",
+          "title": "No Kings Day protest in San Francisco’s Dolores Park on June 14, 2025",
+          "location": "",
+          "width": 5011,
+          "height": 3758,
+          "order": 9,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-11",
+          "publicId": "protests/11",
+          "title": "No Kings Day protest in San Francisco’s Dolores Park on June 14, 2025",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 10,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-12",
+          "publicId": "protests/12",
+          "title": "The second No Kings Day protest in downtown San Francisco on October 18, 2025",
+          "location": "",
+          "width": 2986,
+          "height": 4071,
+          "order": 11,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-13",
+          "publicId": "protests/13",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 12,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-14",
+          "publicId": "protests/14",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 3709,
+          "height": 4948,
+          "order": 13,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-15",
+          "publicId": "protests/15",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 14,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-16",
+          "publicId": "protests/16",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 15,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-17",
+          "publicId": "protests/17",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 3427,
+          "height": 5184,
+          "order": 16,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-18",
+          "publicId": "protests/18",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 4755,
+          "height": 3601,
+          "order": 17,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-19",
+          "publicId": "protests/19",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 18,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-20",
+          "publicId": "protests/20",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5119,
+          "height": 3888,
+          "order": 19,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-21",
+          "publicId": "protests/21",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5093,
+          "height": 3791,
+          "order": 20,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-22",
+          "publicId": "protests/22",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 21,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-23",
+          "publicId": "protests/23",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5056,
+          "height": 3757,
+          "order": 22,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-24",
+          "publicId": "protests/24",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 23,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-25",
+          "publicId": "protests/25",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5133,
+          "height": 3888,
+          "order": 24,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-26",
+          "publicId": "protests/26",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 25,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-27",
+          "publicId": "protests/27",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 26,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-28",
+          "publicId": "protests/28",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5131,
+          "height": 3888,
+          "order": 27,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-29",
+          "publicId": "protests/29",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 4963,
+          "height": 3765,
+          "order": 28,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-30",
+          "publicId": "protests/30",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 3774,
+          "height": 4894,
+          "order": 29,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-31",
+          "publicId": "protests/31",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5125,
+          "height": 3844,
+          "order": 30,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-32",
+          "publicId": "protests/32",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 3888,
+          "height": 4899,
+          "order": 31,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-33",
+          "publicId": "protests/33",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 4870,
+          "height": 3888,
+          "order": 32,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-34",
+          "publicId": "protests/34",
+          "title": "The third No Kings Day protest in downtown San Francisco on March 28, 2026",
+          "location": "",
+          "width": 5116,
+          "height": 3811,
+          "order": 33,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-16",
+          "publicId": "place/california/san-francisco/16",
+          "title": "",
+          "location": "",
+          "width": 4995,
+          "height": 3585,
+          "order": 34,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-17",
+          "publicId": "place/california/san-francisco/17",
+          "title": "",
+          "location": "",
+          "width": 2297,
+          "height": 2513,
+          "order": 35,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-18",
+          "publicId": "place/california/san-francisco/18",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 36,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-19",
+          "publicId": "place/california/san-francisco/19",
+          "title": "",
+          "location": "",
+          "width": 3322,
+          "height": 2498,
+          "order": 37,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-20",
+          "publicId": "place/california/san-francisco/20",
+          "title": "",
+          "location": "",
+          "width": 5107,
+          "height": 3888,
+          "order": 38,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-21",
+          "publicId": "place/california/san-francisco/21",
+          "title": "",
+          "location": "",
+          "width": 2822,
+          "height": 2058,
+          "order": 39,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-22",
+          "publicId": "place/california/san-francisco/22",
+          "title": "",
+          "location": "",
+          "width": 3715,
+          "height": 5038,
+          "order": 40,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-23",
+          "publicId": "place/california/san-francisco/23",
+          "title": "",
+          "location": "",
+          "width": 3758,
+          "height": 5011,
+          "order": 41,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-38",
+          "publicId": "place/california/san-francisco/38",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 42,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-39",
+          "publicId": "place/california/san-francisco/39",
+          "title": "",
+          "location": "",
+          "width": 3822,
+          "height": 5184,
+          "order": 43,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-116",
+          "publicId": "place/california/san-francisco/116",
+          "title": "",
+          "location": "",
+          "width": 5127,
+          "height": 3821,
+          "order": 44,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-117",
+          "publicId": "place/california/san-francisco/117",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 45,
+          "printEnabled": true
+        },
+        {
+          "id": "protests-san-francisco-118",
+          "publicId": "place/california/san-francisco/118",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 46,
+          "printEnabled": true
+        }
+      ]
+    },
+    {
+      "id": "commissioned-work",
+      "key": "commissioned-work",
+      "label": "commissioned work",
+      "path": "./commissioned-work.html",
+      "order": 1,
+      "parentId": null,
+      "preserveCase": false,
+      "printEnabled": false,
+      "items": [
+        {
+          "id": "commissioned-work-1",
+          "publicId": "commissioned-work/1",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 0,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-2",
+          "publicId": "commissioned-work/2",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3834,
+          "order": 1,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-3",
+          "publicId": "commissioned-work/3",
+          "title": "",
+          "location": "",
+          "width": 4990,
+          "height": 3747,
+          "order": 2,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-4",
+          "publicId": "commissioned-work/4",
+          "title": "",
+          "location": "",
+          "width": 5125,
+          "height": 3756,
+          "order": 3,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-5",
+          "publicId": "commissioned-work/5",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 4,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-6",
+          "publicId": "commissioned-work/6",
+          "title": "",
+          "location": "",
+          "width": 3756,
+          "height": 3848,
+          "order": 5,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-7",
+          "publicId": "commissioned-work/7",
+          "title": "",
+          "location": "",
+          "width": 4862,
+          "height": 3758,
+          "order": 6,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-8",
+          "publicId": "commissioned-work/8",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 7,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-9",
+          "publicId": "commissioned-work/9",
+          "title": "",
+          "location": "",
+          "width": 3888,
+          "height": 5184,
+          "order": 8,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-10",
+          "publicId": "commissioned-work/10",
+          "title": "",
+          "location": "",
+          "width": 5184,
+          "height": 3888,
+          "order": 9,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-11",
+          "publicId": "commissioned-work/11",
+          "title": "",
+          "location": "",
+          "width": 3717,
+          "height": 4956,
+          "order": 10,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-12",
+          "publicId": "commissioned-work/12",
+          "title": "",
+          "location": "",
+          "width": 733,
+          "height": 1100,
+          "order": 11,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-13",
+          "publicId": "commissioned-work/13",
+          "title": "",
+          "location": "",
+          "width": 1650,
+          "height": 1100,
+          "order": 12,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-14",
+          "publicId": "commissioned-work/14",
+          "title": "",
+          "location": "",
+          "width": 733,
+          "height": 1100,
+          "order": 13,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-15",
+          "publicId": "commissioned-work/15",
+          "title": "",
+          "location": "",
+          "width": 960,
+          "height": 640,
+          "order": 14,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-16",
+          "publicId": "commissioned-work/16",
+          "title": "",
+          "location": "",
+          "width": 733,
+          "height": 1100,
+          "order": 15,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-17",
+          "publicId": "commissioned-work/17",
+          "title": "",
+          "location": "",
+          "width": 1650,
+          "height": 1100,
+          "order": 16,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-18",
+          "publicId": "commissioned-work/18",
+          "title": "",
+          "location": "",
+          "width": 733,
+          "height": 1100,
+          "order": 17,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-19",
+          "publicId": "commissioned-work/19",
+          "title": "",
+          "location": "",
+          "width": 733,
+          "height": 1100,
+          "order": 18,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-20",
+          "publicId": "commissioned-work/20",
+          "title": "",
+          "location": "",
+          "width": 1650,
+          "height": 1100,
+          "order": 19,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-21",
+          "publicId": "commissioned-work/21",
+          "title": "",
+          "location": "",
+          "width": 1650,
+          "height": 1100,
+          "order": 20,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-22",
+          "publicId": "commissioned-work/22",
+          "title": "",
+          "location": "",
+          "width": 733,
+          "height": 1100,
+          "order": 21,
+          "printEnabled": false
+        },
+        {
+          "id": "commissioned-work-23",
+          "publicId": "commissioned-work/23",
+          "title": "",
+          "location": "",
+          "width": 1650,
+          "height": 1100,
+          "order": 22,
+          "printEnabled": false
+        }
+      ]
+    }
+  ],
+  "trash": []
+}

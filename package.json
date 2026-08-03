@@ -1,0 +1,7 @@
+{
+  "name": "claire-thomas-portfolio",
+  "private": true,
+  "scripts": {
+    "check": "node --check site.js && node --check cms-loader.js && node --check admin.js && node --test scripts/*.test.mjs"
+  }
+}
