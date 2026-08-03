@@ -221,6 +221,7 @@ const apiRequest = async (path, options = {}) => {
 	for (let attempt = 0; ; attempt += 1) {
 		const response = await fetch(`${API_BASE}${path}`, {
 			...options,
+			signal: options.signal ?? AbortSignal.timeout(60 * 1000),
 			headers: {
 				"Content-Type": "application/json",
 				"X-API-KEY": process.env.GELATO_API_KEY,
