@@ -424,11 +424,18 @@ const waitForProducts = async (
 	state,
 	timeoutMs = 3 * 60 * 60 * 1000,
 	pollIntervalMs = 30 * 1000,
+	stallTimeoutMs = 60 * 60 * 1000,
 ) => {
 	const pending = new Map(queuedJobs.map((job) => [state.products[job.key].id, job]));
 	const completedProducts = [];
 	const deadline = Date.now() + timeoutMs;
-	while (pending.size && Date.now() < deadline) {
+	let lastProgressAt = Date.now();
+	let previousPendingSize = pending.size;
+	while (
+		pending.size &&
+		Date.now() < deadline &&
+		Date.now() - lastProgressAt < stallTimeoutMs
+	) {
 		const errors = [];
 
 		for (const [productId, job] of pending) {
@@ -457,9 +464,16 @@ const waitForProducts = async (
 		writeState(state);
 		console.log(`Publishing: ${queuedJobs.length - pending.size}/${queuedJobs.length} complete.`);
 		if (errors.length) throw new Error(`Publishing failed:\n${errors.join("\n")}`);
+		if (pending.size < previousPendingSize) {
+			lastProgressAt = Date.now();
+			previousPendingSize = pending.size;
+		}
 		if (pending.size) await new Promise((resolvePromise) => setTimeout(resolvePromise, pollIntervalMs));
 	}
-	if (pending.size) throw new Error(`Timed out waiting for ${pending.size} Gelato products`);
+	if (pending.size) {
+		const reason = Date.now() >= deadline ? "Timed out" : "Publishing stalled";
+		throw new Error(`${reason} waiting for ${pending.size} Gelato products`);
+	}
 	return completedProducts;
 };
 
