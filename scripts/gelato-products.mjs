@@ -219,17 +219,32 @@ const buildManifest = () => {
 
 const apiRequest = async (path, options = {}) => {
 	for (let attempt = 0; ; attempt += 1) {
-		const response = await fetch(`${API_BASE}${path}`, {
-			...options,
-			signal: options.signal ?? AbortSignal.timeout(5 * 60 * 1000),
-			headers: {
-				"Content-Type": "application/json",
-				"X-API-KEY": process.env.GELATO_API_KEY,
-				...options.headers,
-			},
-		});
+		const method = (options.method ?? "GET").toUpperCase();
+		let response;
+		try {
+			response = await fetch(`${API_BASE}${path}`, {
+				...options,
+				signal: options.signal ?? AbortSignal.timeout(5 * 60 * 1000),
+				headers: {
+					"Content-Type": "application/json",
+					"X-API-KEY": process.env.GELATO_API_KEY,
+					...options.headers,
+				},
+			});
+		} catch (error) {
+			const retryableNetworkRequest = method === "GET" || method === "DELETE";
+			if (!retryableNetworkRequest || attempt + 1 >= 7) throw error;
+			const retryDelay = Math.min(30 * 1000, 1000 * 2 ** attempt);
+			console.warn(
+				`Gelato ${method} network retry in ${Math.ceil(retryDelay / 1000)}s ` +
+				`(attempt ${attempt + 1}/7): ${error.message}`,
+			);
+			await new Promise((resolvePromise) => setTimeout(resolvePromise, retryDelay));
+			continue;
+		}
 		const text = await response.text();
 		const body = text ? JSON.parse(text) : null;
+		if (method === "DELETE" && response.status === 404) return null;
 		if (response.ok) return body;
 
 		const retryable = response.status === 429 || response.status >= 500;
