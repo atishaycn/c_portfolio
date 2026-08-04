@@ -28,6 +28,18 @@ test("validates the complete migrated portfolio", () => {
 			"commissioned-work": 23,
 		},
 	);
+	assert.equal(
+		validated.albums
+			.find((album) => album.key === "commissioned-work")
+			.items.every((item) => item.printEnabled === false),
+		true,
+	);
+	assert.equal(
+		validated.albums
+			.filter((album) => album.key !== "commissioned-work")
+			.every((album) => album.items.every((item) => item.printEnabled === true)),
+		true,
+	);
 });
 
 test("rejects duplicate photo IDs", () => {

@@ -287,6 +287,24 @@ const renderPhotoCard = (album, item, index) => {
 	});
 	label.append(textarea);
 
+	const printToggle = document.createElement("label");
+	printToggle.className = "photo-print-toggle";
+	const printCheckbox = document.createElement("input");
+	printCheckbox.type = "checkbox";
+	printCheckbox.checked = item.printEnabled === true;
+	printCheckbox.dataset.testid = `print-toggle-${item.id}`;
+	printCheckbox.setAttribute(
+		"aria-label",
+		`Available for print, photo ${index + 1}`,
+	);
+	printCheckbox.addEventListener("change", () => {
+		item.printEnabled = printCheckbox.checked;
+		markDirty();
+	});
+	const printToggleText = document.createElement("span");
+	printToggleText.textContent = "Available for print";
+	printToggle.append(printCheckbox, printToggleText);
+
 	const actions = document.createElement("div");
 	actions.className = "photo-actions";
 	const orderActions = document.createElement("div");
@@ -299,7 +317,7 @@ const renderPhotoCard = (album, item, index) => {
 	orderActions.append(left, right);
 	const remove = createButton("Delete", "delete-photo", () => deletePhoto(album, item));
 	actions.append(orderActions, remove);
-	body.append(label, actions);
+	body.append(label, printToggle, actions);
 	card.append(imageWrap, body);
 	return card;
 };

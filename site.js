@@ -922,10 +922,7 @@ const updateLightboxMeta = (state = "") => {
 		lightboxCaption.hidden = !item.title;
 	}
 	if (lightboxPrintLink instanceof HTMLAnchorElement) {
-		const printEnabled =
-			lightboxState.page?.key !== "commissioned-work" &&
-			lightboxState.page?.printEnabled !== false &&
-			item.printEnabled !== false;
+		const printEnabled = item.printEnabled === true;
 		lightboxPrintLink.hidden = !printEnabled;
 		lightboxPrintLink.href = printEnabled ? printOrderUrl(item, lightboxState.page) : printOrderUrl();
 	}
