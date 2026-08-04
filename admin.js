@@ -643,7 +643,7 @@ const saveContent = async () => {
 		state.dirty = false;
 		render();
 		elements.saveStatus.textContent = "Saved";
-		showMessage("Changes published.");
+		showMessage("OK, saved.");
 	} catch (error) {
 		elements.saveButton.disabled = false;
 		elements.saveStatus.textContent = "Save failed";

@@ -8,6 +8,11 @@ import contentModule from "../api/_lib/content.js";
 
 const root = resolve(import.meta.dirname, "..");
 const portfolio = JSON.parse(readFileSync(resolve(root, "content", "portfolio.json"), "utf8"));
+const adminScript = readFileSync(resolve(root, "admin.js"), "utf8");
+
+test("confirms successful saves to the administrator", () => {
+	assert.match(adminScript, /showMessage\("OK, saved\."\)/);
+});
 
 test("validates the complete migrated portfolio", () => {
 	const validated = contentModule.validateContent(portfolio);
