@@ -39,7 +39,7 @@ Keep content image directories and generated deployment metadata out of scope un
 ## Current Operating Brief
 
 - Prefer small, attributable edits in `site.js`, `styles.css`, and the relevant HTML entrypoint.
-- Portfolio content edits should use `/admin.html`: add/delete/rename/reorder albums; upload/delete/restore/reorder photos; edit captions; toggle per-photo print availability.
+- Portfolio content edits should use `/admin.html`: add/delete/rename/reorder albums; nest an album under a section or another album; upload/delete/restore/reorder photos; edit captions; toggle per-photo print availability.
 - CMS deletion is recoverable: photos move to Trash and Cloudinary originals are preserved.
 - `printEnabled` on each photo is the sole “Order print” visibility control. Commissioned Work and new admin uploads start false. The CMS never calls Shopify or Gelato; print-product synchronization is a separate future workflow.
 - Admin saves use an authenticated Cloudinary resource version for concurrency checks. Public reads remain CDN-cacheable and fall back to `content/portfolio.json` if the CMS asset is unavailable.

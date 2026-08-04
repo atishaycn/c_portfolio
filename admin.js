@@ -79,6 +79,49 @@ const normalizeOrders = (entries) => {
 
 const albumById = (id) => state.content?.albums.find((album) => album.id === id);
 
+const descendantNodeIds = (nodeId) => {
+	const descendants = new Set();
+	const nodes = [...state.content.groups, ...state.content.albums];
+	const visit = (parentId) => {
+		for (const node of nodes.filter((entry) => entry.parentId === parentId)) {
+			if (descendants.has(node.id)) continue;
+			descendants.add(node.id);
+			visit(node.id);
+		}
+	};
+	visit(nodeId);
+	return descendants;
+};
+
+const setAlbumParent = (album, parentId) => {
+	const nextParentId = parentId || null;
+	if (album.parentId === nextParentId) return;
+	const forbiddenParents = descendantNodeIds(album.id);
+	if (nextParentId === album.id || forbiddenParents.has(nextParentId)) {
+		showMessage("An album cannot be placed inside itself or one of its sub-albums.", true);
+		return;
+	}
+
+	const previousParentId = album.parentId || null;
+	album.parentId = nextParentId;
+	const siblings = state.content.albums.filter(
+		(entry) => entry.id !== album.id && (entry.parentId || null) === nextParentId,
+	);
+	const rootGroups = nextParentId
+		? []
+		: state.content.groups.filter((entry) => !entry.parentId);
+	album.order = Math.max(-1, ...siblings.map((entry) => entry.order), ...rootGroups.map((entry) => entry.order)) + 1;
+	const previousSiblings = state.content.albums.filter(
+		(entry) => entry.id !== album.id && (entry.parentId || null) === previousParentId,
+	);
+	const previousRootGroups = previousParentId
+		? []
+		: state.content.groups.filter((entry) => !entry.parentId);
+	normalizeOrders([...previousSiblings, ...previousRootGroups]);
+	markDirty();
+	render();
+};
+
 const markDirty = () => {
 	state.dirty = true;
 	elements.saveButton.disabled = false;
@@ -380,8 +423,22 @@ const deleteAlbum = (album) => {
 			item: { ...item },
 		});
 	}
-	for (const child of state.content.albums.filter((entry) => entry.parentId === album.id)) {
-		child.parentId = album.parentId || null;
+	const nextParentId = album.parentId || null;
+	const targetSiblings = state.content.albums.filter(
+		(entry) => entry.id !== album.id && entry.parentId !== album.id && (entry.parentId || null) === nextParentId,
+	);
+	const rootGroups = nextParentId
+		? []
+		: state.content.groups.filter((entry) => !entry.parentId);
+	let nextOrder = Math.max(
+		-1,
+		...targetSiblings.map((entry) => entry.order),
+		...rootGroups.map((entry) => entry.order),
+	) + 1;
+	for (const child of sortByOrder(state.content.albums.filter((entry) => entry.parentId === album.id))) {
+		child.parentId = nextParentId;
+		child.order = nextOrder;
+		nextOrder += 1;
 	}
 	state.content.albums = state.content.albums.filter((entry) => entry.id !== album.id);
 	state.selectedAlbumId = state.content.albums[0]?.id || null;
@@ -428,10 +485,36 @@ const renderAlbumEditor = (album) => {
 		renderAlbumList();
 	});
 	nameLabel.append(nameInput);
+	const parentLabel = document.createElement("label");
+	parentLabel.textContent = "Show under";
+	const parentSelect = document.createElement("select");
+	parentSelect.dataset.testid = "album-parent";
+	const topLevelOption = document.createElement("option");
+	topLevelOption.value = "";
+	topLevelOption.textContent = "Top level";
+	parentSelect.append(topLevelOption);
+	const forbiddenParents = descendantNodeIds(album.id);
+	for (const group of sortByOrder(state.content.groups)) {
+		if (forbiddenParents.has(group.id)) continue;
+		const option = document.createElement("option");
+		option.value = group.id;
+		option.textContent = `Section — ${group.label}`;
+		parentSelect.append(option);
+	}
+	for (const candidate of sortByOrder(state.content.albums)) {
+		if (candidate.id === album.id || forbiddenParents.has(candidate.id)) continue;
+		const option = document.createElement("option");
+		option.value = candidate.id;
+		option.textContent = `Album — ${candidate.label}`;
+		parentSelect.append(option);
+	}
+	parentSelect.value = album.parentId || "";
+	parentSelect.addEventListener("change", () => setAlbumParent(album, parentSelect.value));
+	parentLabel.append(parentSelect);
 	const meta = document.createElement("div");
 	meta.className = "album-meta";
-	meta.textContent = `${album.items.length} photo${album.items.length === 1 ? "" : "s"} • URL stays stable when renamed`;
-	fields.append(nameLabel, meta);
+	meta.textContent = `${album.items.length} photo${album.items.length === 1 ? "" : "s"} • Choose another album to make this a sub-album • URL stays stable`;
+	fields.append(nameLabel, parentLabel, meta);
 
 	const uploadBar = document.createElement("div");
 	uploadBar.className = "upload-bar";

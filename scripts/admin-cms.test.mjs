@@ -48,6 +48,26 @@ test("rejects duplicate photo IDs", () => {
 	assert.throws(() => contentModule.validateContent(duplicate), /unique/);
 });
 
+test("preserves nested albums and rejects hierarchy cycles", () => {
+	const validated = contentModule.validateContent(portfolio);
+	assert.equal(
+		validated.albums.find((album) => album.id === "san-francisco").parentId,
+		"california",
+	);
+
+	const selfParent = structuredClone(portfolio);
+	selfParent.albums.find((album) => album.id === "california").parentId = "california";
+	assert.throws(() => contentModule.validateContent(selfParent), /cannot contain cycles/);
+
+	const indirectCycle = structuredClone(portfolio);
+	indirectCycle.albums.find((album) => album.id === "california").parentId = "san-francisco";
+	assert.throws(() => contentModule.validateContent(indirectCycle), /cannot contain cycles/);
+
+	const sectionCycle = structuredClone(portfolio);
+	sectionCycle.groups.find((group) => group.id === "place").parentId = "san-francisco";
+	assert.throws(() => contentModule.validateContent(sectionCycle), /cannot contain cycles/);
+});
+
 test("creates and verifies a signed admin session", () => {
 	const password = "temporary-test-password";
 	const salt = randomBytes(16).toString("hex");

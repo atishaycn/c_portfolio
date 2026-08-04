@@ -394,7 +394,7 @@ a:focus-visible {
 
 .album-fields {
 	display: grid;
-	grid-template-columns: minmax(240px, 520px) 1fr;
+	grid-template-columns: repeat(2, minmax(220px, 1fr));
 	gap: 18px;
 	padding: 20px 0;
 }
@@ -409,8 +409,7 @@ a:focus-visible {
 }
 
 .album-meta {
-	align-self: end;
-	padding-bottom: 11px;
+	grid-column: 1 / -1;
 	color: #77776f;
 	font-size: 12px;
 }

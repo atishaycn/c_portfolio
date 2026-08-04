@@ -33,18 +33,27 @@ const validateContent = (candidate) => {
 	const albumKeys = new Set();
 	const photoIds = new Set();
 	let photoCount = 0;
-	const groups = candidate.groups.map((group, index) => ({
-		id: cleanKey(group.id),
-		label: cleanText(group.label, 100),
-		order: Number.isFinite(group.order) ? group.order : index,
-		parentId: group.parentId ? cleanKey(group.parentId) : null,
-	}));
-	const groupIds = new Set(groups.map((group) => group.id));
+	const groupIds = new Set();
+	const groups = candidate.groups.map((group, index) => {
+		const id = cleanKey(group.id);
+		if (!id || groupIds.has(id)) {
+			const error = new Error("Group IDs must be valid and unique");
+			error.statusCode = 400;
+			throw error;
+		}
+		groupIds.add(id);
+		return {
+			id,
+			label: cleanText(group.label, 100),
+			order: Number.isFinite(group.order) ? group.order : index,
+			parentId: group.parentId ? cleanKey(group.parentId) : null,
+		};
+	});
 
 	const albums = candidate.albums.map((album, albumIndex) => {
 		const id = cleanKey(album.id);
 		const key = cleanKey(album.key || id);
-		if (!id || !key || albumIds.has(id) || albumKeys.has(key)) {
+		if (!id || !key || groupIds.has(id) || albumIds.has(id) || albumKeys.has(key)) {
 			const error = new Error("Album IDs and keys must be unique");
 			error.statusCode = 400;
 			throw error;
@@ -106,6 +115,20 @@ const validateContent = (candidate) => {
 			const error = new Error(`Unknown parent: ${node.parentId}`);
 			error.statusCode = 400;
 			throw error;
+		}
+	}
+	const parentById = new Map([...groups, ...albums].map((node) => [node.id, node.parentId]));
+	for (const nodeId of parentById.keys()) {
+		const visited = new Set();
+		let currentId = nodeId;
+		while (currentId) {
+			if (visited.has(currentId)) {
+				const error = new Error("Album hierarchy cannot contain cycles");
+				error.statusCode = 400;
+				throw error;
+			}
+			visited.add(currentId);
+			currentId = parentById.get(currentId) || null;
 		}
 	}
 
