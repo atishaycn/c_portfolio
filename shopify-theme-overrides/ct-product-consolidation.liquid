@@ -1,7 +1,7 @@
 {% comment %}
   Customer-facing consolidation for Gelato's three Shopify products per photo.
   Include this file before </body> in layout/theme.liquid.
-  Revision: 2026-08-02 contact validation and search-result fallback.
+  Revision: 2026-08-06 duplicate-handle normalization and full-bleed previews.
 {% endcomment %}
 
 <style>
@@ -32,6 +32,17 @@
     color: rgb(var(--color-background));
   }
 
+  /* Horizon defaults product media to contain. These print previews are
+     already aspect-ratio matched, so cover removes unused frame/letterbox
+     space while limiting the crop to the media container. */
+  .ct-print-card .product-media-container--image img,
+  .ct-print-product .product-media-container--image:not(.dialog-zoomed-gallery *) .product-media__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover !important;
+    object-position: center center;
+  }
+
   .product-grid__item[hidden],
   .resource-list__item[hidden],
   .predictive-search-results__card[hidden],
@@ -53,13 +64,48 @@
     const productHandle = (href) => {
       try {
         const pathname = new URL(href, window.location.origin).pathname;
-        return pathname.split('/products/')[1]?.replace(/\/$/, '') || '';
+        const handle = pathname.match(/\/products\/([^/]+)/)?.[1] || '';
+        return decodeURIComponent(handle).replace(/\/$/, '').toLowerCase();
       } catch {
         return '';
       }
     };
 
-    const formatForHandle = (handle) => formats.find((format) => handle.endsWith(format.suffix));
+    const stripShopifyDuplicateSuffix = (handle) => handle.replace(/-\d+$/, '');
+
+    const normalizedHandle = (handle) => stripShopifyDuplicateSuffix(handle.toLowerCase());
+
+    const formatForHandle = (handle) => {
+      const canonicalHandle = normalizedHandle(handle);
+      return formats.find((format) => canonicalHandle.endsWith(format.suffix));
+    };
+
+    const baseHandleFor = (handle) => {
+      const canonicalHandle = normalizedHandle(handle);
+      const format = formatForHandle(canonicalHandle);
+      return format ? canonicalHandle.slice(0, -format.suffix.length) : '';
+    };
+
+    const duplicateRank = (handle) => Number(handle.match(/-(\d+)$/)?.[1] || 0);
+
+    const artworkKeyFor = (card, handle) => {
+      const tagSource =
+        card.dataset.productTags ||
+        card.getAttribute('data-product-tags') ||
+        card.querySelector('[data-product-tags]')?.getAttribute('data-product-tags') ||
+        '';
+      const artworkTag = tagSource
+        .split(',')
+        .map((tag) => tag.trim().toLowerCase())
+        .find(
+          (tag) =>
+            tag &&
+            !tag.startsWith('series-') &&
+            !tag.startsWith('format-') &&
+            !['claire-thomas', 'fine-art-photography', 'wall-art'].includes(tag),
+        );
+      return artworkTag ? `tag:${artworkTag}` : `handle:${baseHandleFor(handle)}`;
+    };
 
     const cleanTitle = (title) =>
       title.replace(/\s+-\s+(?:Framed Fine Art|Fine Art|Canvas) Print\s*$/, '').trim();
@@ -74,31 +120,38 @@
 
     const consolidateProductCards = () => {
       const groupsByScope = new Map();
-      document.querySelectorAll('product-card, product-component.resource-card__wrapper').forEach((card) => {
-        const link = card.querySelector('a[href*="/products/"]');
-        const handle = productHandle(link?.href || '');
-        const format = formatForHandle(handle);
-        if (!format) return;
+      document.querySelectorAll('.ct-print-card').forEach((card) => card.classList.remove('ct-print-card'));
+      document
+        .querySelectorAll('product-card, product-component.resource-card__wrapper, .resource-card__wrapper')
+        .forEach((card) => {
+          const link = card.querySelector('a[href*="/products/"]');
+          const handle = productHandle(link?.href || '');
+          const format = formatForHandle(handle);
+          if (!format) return;
 
-        const item =
-          card.closest(
-            '.product-grid__item, .resource-list__item, .predictive-search-results__card, .menu-drawer__featured-content-list-item',
-          ) || card;
-        const scope = item.parentElement || card.parentElement || document.body;
-        const baseHandle = handle.slice(0, -format.suffix.length);
-        if (!groupsByScope.has(scope)) groupsByScope.set(scope, new Map());
-        const groups = groupsByScope.get(scope);
-        if (!groups.has(baseHandle)) groups.set(baseHandle, []);
-        groups.get(baseHandle).push({ card, item, format });
-      });
+          const item =
+            card.closest(
+              '.product-grid__item, .resource-list__item, .predictive-search-results__card, .menu-drawer__featured-content-list-item',
+            ) || card;
+          const scope = item.parentElement || card.parentElement || document.body;
+          const baseHandle = artworkKeyFor(card, handle);
+          if (!groupsByScope.has(scope)) groupsByScope.set(scope, new Map());
+          const groups = groupsByScope.get(scope);
+          if (!groups.has(baseHandle)) groups.set(baseHandle, []);
+          groups.get(baseHandle).push({ card, item, format, handle });
+        });
 
       groupsByScope.forEach((groups) => {
         groups.forEach((entries) => {
           const chosen =
-            entries.find(({ format }) => format.suffix === '-fine-art-print') || entries[0];
+            entries
+              .filter(({ format }) => format.suffix === '-fine-art-print')
+              .sort((left, right) => duplicateRank(left.handle) - duplicateRank(right.handle))[0] ||
+            entries.slice().sort((left, right) => duplicateRank(left.handle) - duplicateRank(right.handle))[0];
           entries.forEach((entry) => {
             entry.item.hidden = entry !== chosen;
           });
+          chosen.card.classList.add('ct-print-card');
           cleanCardTitle(chosen.card);
         });
       });
@@ -116,9 +169,13 @@
     const addPrintTypeChooser = () => {
       const handle = productHandle(window.location.pathname);
       const currentFormat = formatForHandle(handle);
-      if (!currentFormat) return;
+      document.documentElement.classList.toggle('ct-print-product', Boolean(currentFormat));
+      if (!currentFormat) {
+        document.querySelector('[data-ct-print-type]')?.remove();
+        return;
+      }
 
-      const baseHandle = handle.slice(0, -currentFormat.suffix.length);
+      const baseHandle = baseHandleFor(handle);
       const variantPicker = document.querySelector('main variant-picker');
       if (!variantPicker) return;
 
