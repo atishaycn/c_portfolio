@@ -4,8 +4,10 @@ import test from "node:test";
 import {
 	aspectGroupFor,
 	buildManifest,
+	buildReconcilePlan,
 	buildCatalogAudit,
 	buildCreatedRepairPlan,
+	catalogVersionTag,
 	cloudinaryUrl,
 	expectedProductKeys,
 	findStaleProducts,
@@ -13,6 +15,7 @@ import {
 	mergeProductsById,
 	normalizeVariant,
 	orientationFor,
+	productMetadata,
 	referenceLabelFor,
 	selectExistingProduct,
 	selectTemplateVariants,
@@ -74,6 +77,27 @@ test("builds a dynamic non-commissioned catalog", () => {
 		manifest.photos.find((photo) => photo.printId === "protests-san-francisco-16")?.publicId,
 		"place/california/san-francisco/16",
 	);
+});
+
+test("uses CMS printEnabled and stable item IDs, including renamed nested albums", () => {
+	const manifest = buildManifest({
+		groups: [{ id: "place", label: "place", parentId: null }],
+		albums: [{
+			id: "animals",
+			key: "animals",
+			label: "wildlife",
+			parentId: "place",
+			order: 3,
+			items: [
+				{ id: "animals-stable-1", publicId: "animals/1", width: 4000, height: 3000, order: 0, printEnabled: false },
+				{ id: "animals-stable-2", publicId: "animals/2", width: 3000, height: 4000, order: 1, printEnabled: true },
+			],
+		}],
+	});
+	assert.deepEqual(manifest.photos.map((photo) => photo.printId), ["animals-stable-2"]);
+	assert.equal(manifest.photos[0].seriesLabel, "wildlife");
+	assert.equal(manifest.photos[0].seriesPath, "place / wildlife");
+	assert.equal(manifest.photos[0].photoOrder, 1);
 });
 
 test("classifies orientation and aspect ratios", () => {
@@ -250,4 +274,75 @@ test("prefers an active product and treats a missing recorded product as recover
 	];
 	assert.equal(selectExistingProduct(products, photo, "fine-art", "recorded-created")?.id, "active-copy");
 	assert.equal(selectExistingProduct([], photo, "fine-art", "recorded-created"), undefined);
+});
+
+test("reconcile archives stale products, replaces old catalog versions, and updates renamed metadata", () => {
+	const photo = {
+		printId: "animals-stable-2",
+		albumId: "animals",
+		series: "animals",
+		seriesLabel: "wildlife",
+		seriesPath: "place / wildlife",
+		referenceLabel: "2",
+		photoOrder: 1,
+	};
+	const desired = productMetadata(photo, "fine-art");
+	const current = {
+		id: "current",
+		externalId: "101",
+		status: "active",
+		...desired,
+		tags: [...desired.tags],
+	};
+	const old = {
+		id: "old",
+		externalId: "102",
+		status: "active",
+		title: "Old title",
+		tags: [photo.printId, "series-animals", "format-framed", "claire-thomas"],
+	};
+	const stale = {
+		id: "stale",
+		externalId: "103",
+		status: "active",
+		title: "Removed",
+		tags: ["removed-photo", "format-canvas", "claire-thomas"],
+	};
+	const renamed = { ...photo, seriesLabel: "new wildlife", seriesPath: "place / new wildlife" };
+	const plan = buildReconcilePlan(
+		[renamed],
+		{ products: { "animals-stable-2:fine-art": { id: "current" } } },
+		[current, old, stale],
+		["fine-art", "framed", "canvas"],
+	);
+	assert.equal(plan.creates.length, 2);
+	assert.equal(plan.creates.some((action) => action.medium === "framed"), true);
+	assert.equal(plan.archives.some((action) => action.product.id === "old" && action.reason === "catalog-version-replacement"), true);
+	assert.equal(plan.archives.some((action) => action.product.id === "stale" && action.reason === "not-in-cms"), true);
+	assert.equal(plan.updates.length, 1);
+	assert.equal(plan.updates[0].key, "animals-stable-2:fine-art");
+	assert.equal(plan.updates[0].desired.title, "new wildlife 2 - Fine Art Print");
+	assert.equal(plan.blocked.length, 0);
+});
+
+test("does not match products by mutable title and blocks archive without Shopify mapping", () => {
+	const photo = {
+		printId: "photo-1",
+		series: "album",
+		seriesLabel: "Renamed album",
+		seriesPath: "Renamed album",
+		referenceLabel: "1",
+		photoOrder: 0,
+	};
+	const titleOnly = { id: "title-only", status: "active", title: "Renamed album 1 - Fine Art Print", tags: [] };
+	const staleWithoutExternalId = {
+		id: "stale-no-shopify-id",
+		status: "active",
+		tags: ["removed-photo", "format-fine-art", "claire-thomas"],
+	};
+	const plan = buildReconcilePlan([photo], { products: {} }, [titleOnly, staleWithoutExternalId], ["fine-art"]);
+	assert.equal(plan.creates.length, 1);
+	assert.equal(plan.archives.length, 0);
+	assert.deepEqual(plan.blocked, [{ action: "archive", key: "removed-photo:fine-art", productId: staleWithoutExternalId.id, reason: "missing-shopify-external-id" }]);
+	assert.equal(catalogVersionTag, "catalog-edge-to-edge-v1");
 });

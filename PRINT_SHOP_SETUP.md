@@ -25,7 +25,7 @@ Size groups:
 | Classic | 8x10, 12x16, 16x20 in | 8x10, 12x16, 16x20 in | 8x10, 12x16, 16x20 in |
 | Wide | 8x12, 12x18, 16x24 in | 8x12, 12x18, 16x24 in | 8x12, 12x18, 16x24 in |
 
-Current generated fulfillment inventory: 270 photographs and 810 Gelato-connected products. The storefront presents one card per photograph. The script recalculates the fulfillment counts from `site.js` on every run.
+The fulfillment inventory is CMS-authoritative: only items with `printEnabled: true` are included, and the storefront presents one card per photograph. The script reads `content/portfolio.json` by default or an explicit public CMS snapshot with `--content-file`; it does not use `site.js` as catalog truth.
 
 Create one Gelato master template for each product type. Each template must include both orientations and all nine sizes. The framed template must include Black and Natural Wood variants.
 
@@ -41,25 +41,25 @@ Then run:
 
 ```bash
 # Generate a manifest from the current portfolio.
-node scripts/gelato-products.mjs
+node scripts/gelato-products.mjs --content-file /path/to/cms-snapshot.json
 
 # Confirm every required template variant and placeholder exists.
 node scripts/gelato-products.mjs --validate-templates
 
-# Create one hidden product of each type for one photograph.
-node scripts/gelato-products.mjs --execute --only the-natural-world-3 --limit 3
+# Preview the three product actions for one photograph (dry-run; no mutation).
+node scripts/gelato-products.mjs --reconcile --content-file /path/to/cms-snapshot.json --only the-natural-world-3
 
 # After inspecting those three products in Shopify, create the remaining public catalog.
 # Low concurrency lets Gelato drain large background publishing queues.
-node scripts/gelato-products.mjs --execute --visible --concurrency 1
+node scripts/gelato-products.mjs --reconcile --execute --content-file /path/to/cms-snapshot.json
 
 # Report products for photographs removed from the portfolio.
 node scripts/gelato-products.mjs --audit
 ```
 
-The script writes `.gelato-product-state.json` after each product. Re-running it recovers already-existing products and creates only missing ones. It retries Gelato throttling responses and monitors publishing through catalog snapshots rather than polling every product separately. Adding or deleting an entry in `site.js` changes the next manifest automatically; stable filename-based print IDs prevent reordering from changing existing product identities.
+The script writes `.gelato-product-state.json` after each product. Re-running reconcile recovers already-existing products, creates only missing enabled items, updates album/photo metadata, and archives products no longer enabled. It retries Gelato throttling responses and monitors publishing through catalog snapshots. Stable CMS `item.id` tags prevent album rename, move, or reorder from changing photo identity. Review `.gelato-reconcile-plan.json` before any `--execute` run.
 
-Deletion is intentionally two-step: `--audit` writes `.gelato-stale-products.json`, including Shopify product IDs. Review that file, then archive those listings in Shopify. The script never deletes products automatically.
+Archiving is explicit and reversible: reconcile sends Shopify `productUpdate(status: ARCHIVED)` for disabled, stale, duplicate, or superseded products; it never calls a delete endpoint. Missing Shopify mappings block execution for review. The edge-to-edge catalog version archives old `meet` products before creating replacements.
 
 ## Site Integration
 

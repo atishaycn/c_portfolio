@@ -4,25 +4,26 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import vm from "node:vm";
 
 const ROOT = resolve(import.meta.dirname, "..");
-const SITE_FILE = resolve(ROOT, "site.js");
+const CONTENT_FILE = resolve(ROOT, "content", "portfolio.json");
 const ENV_FILE = resolve(ROOT, ".env.gelato.local");
 const MANIFEST_FILE = resolve(ROOT, ".gelato-product-manifest.json");
 const STATE_FILE = resolve(ROOT, ".gelato-product-state.json");
 const STALE_FILE = resolve(ROOT, ".gelato-stale-products.json");
 const CATALOG_AUDIT_FILE = resolve(ROOT, ".gelato-catalog-audit.json");
+const RECONCILE_PLAN_FILE = resolve(ROOT, ".gelato-reconcile-plan.json");
 const DEFAULT_STORE_ID = "6d03ca64-de8a-4764-bc46-8bd014a1b271";
 const CLOUD_NAME = "dpmdkrggj";
 const API_BASE = "https://ecommerce.gelatoapis.com/v1";
+const DEFAULT_SHOPIFY_API_VERSION = "2026-07";
 
 const MEDIA = {
 	"fine-art": {
 		env: "GELATO_FINE_ART_TEMPLATE_ID",
 		label: "Fine Art Print",
 		productType: "Fine Art Print",
-		fitMethod: "meet",
+		fitMethod: "slice",
 		description:
 			"<p>Fine art photography by Claire Thomas, printed on archival-quality 200 gsm enhanced matte paper.</p><p>Choose from three sizes selected to preserve the photograph's original composition. Printed on demand and shipped by Gelato.</p>",
 	},
@@ -30,7 +31,7 @@ const MEDIA = {
 		env: "GELATO_FRAMED_TEMPLATE_ID",
 		label: "Framed Fine Art Print",
 		productType: "Framed Fine Art Print",
-		fitMethod: "meet",
+		fitMethod: "slice",
 		description:
 			"<p>Fine art photography by Claire Thomas on archival-quality 200 gsm enhanced matte paper, finished in a ready-to-hang frame with plexiglass.</p><p>Choose Black or Natural Wood and one of three composition-matched sizes. Printed, framed, and shipped on demand by Gelato.</p>",
 	},
@@ -43,6 +44,9 @@ const MEDIA = {
 			"<p>Fine art photography by Claire Thomas, printed on canvas and stretched over an FSC-certified wood frame.</p><p>Choose from three sizes matched to the photograph's aspect ratio. Printed and shipped on demand by Gelato.</p>",
 	},
 };
+
+const CATALOG_VERSION = "edge-to-edge-v1";
+const catalogVersionTag = `catalog-${CATALOG_VERSION}`;
 
 const SIZE_GROUPS = {
 	"fine-art": {
@@ -78,6 +82,7 @@ const parseArgs = (argv) => {
 		validateTemplates: false,
 		audit: false,
 		strictAudit: false,
+		reconcile: false,
 		visible: false,
 		repairCreated: false,
 		repairBatchPhotos: 8,
@@ -85,6 +90,8 @@ const parseArgs = (argv) => {
 		concurrency: 3,
 		only: null,
 		media: Object.keys(MEDIA),
+		contentFile: process.env.PORTFOLIO_CONTENT_FILE || CONTENT_FILE,
+		contentUrl: process.env.PORTFOLIO_CONTENT_URL || null,
 	};
 
 	for (let index = 0; index < argv.length; index += 1) {
@@ -96,6 +103,7 @@ const parseArgs = (argv) => {
 			args.audit = true;
 			args.strictAudit = true;
 		}
+		else if (arg === "--reconcile") args.reconcile = true;
 		else if (arg === "--visible") args.visible = true;
 		else if (arg === "--repair-created") args.repairCreated = true;
 		else if (arg === "--repair-batch-photos") args.repairBatchPhotos = Number(argv[++index]);
@@ -103,6 +111,8 @@ const parseArgs = (argv) => {
 		else if (arg === "--concurrency") args.concurrency = Number(argv[++index]);
 		else if (arg === "--only") args.only = new Set(argv[++index].split(",").filter(Boolean));
 		else if (arg === "--media") args.media = argv[++index].split(",").filter(Boolean);
+		else if (arg === "--content-file") args.contentFile = resolve(argv[++index]);
+		else if (arg === "--content-url") args.contentUrl = argv[++index];
 		else if (arg === "--help") args.help = true;
 		else throw new Error(`Unknown argument: ${arg}`);
 	}
@@ -117,6 +127,7 @@ const parseArgs = (argv) => {
 	);
 	assert(!args.visible || args.execute, "--visible requires --execute");
 	assert(!args.repairCreated || (args.execute && args.visible), "--repair-created requires --execute --visible");
+	assert(!args.reconcile || !args.repairCreated, "--reconcile cannot be combined with --repair-created");
 	for (const medium of args.media) assert(MEDIA[medium], `Unknown medium: ${medium}`);
 	return args;
 };
@@ -127,11 +138,16 @@ const printHelp = () => {
   node scripts/gelato-products.mjs --validate-templates
   node scripts/gelato-products.mjs --audit
   node scripts/gelato-products.mjs --strict-audit
+  node scripts/gelato-products.mjs --reconcile [--only id,id] [--media fine-art,framed,canvas]
+  node scripts/gelato-products.mjs --reconcile --execute [--only id,id] [--media fine-art,framed,canvas]
+  node scripts/gelato-products.mjs --reconcile --content-file /tmp/claire-live-content.json
   node scripts/gelato-products.mjs --execute [--visible] [--limit N] [--concurrency N] [--only id,id] [--media fine-art,framed,canvas]
   node scripts/gelato-products.mjs --execute --visible --repair-created [--repair-batch-photos N]
 
 The default command reads the current portfolio and writes a dry-run manifest.
 --audit reports managed products whose photograph is no longer in the portfolio.
+--reconcile plans a CMS-authoritative catalog sync; it is dry-run by default.
+--reconcile --execute creates enabled products, updates customer-facing metadata, and archives disabled/stale products without deleting them.
 --execute creates hidden Shopify products by default and records progress after every item.
 --visible makes newly created products visible in Shopify.`);
 };
@@ -150,17 +166,49 @@ const loadEnv = (file) => {
 };
 
 const loadGalleryPages = () => {
-	const source = readFileSync(SITE_FILE, "utf8");
-	const markerIndex = ["\nconst portfolioLinks = [", "\nlet portfolioLinks = ["]
-		.map((marker) => source.indexOf(marker))
-		.find((index) => index > 0);
-	assert(markerIndex > 0, "Could not locate gallery data boundary in site.js");
+	return readPortfolioContent().albums;
+};
 
-	const context = {};
-	const dataSource = `${source.slice(0, markerIndex)}
-globalThis.__gelatoGalleryPages = galleryPages;`;
-	vm.runInNewContext(dataSource, context, { filename: SITE_FILE });
-	return context.__gelatoGalleryPages;
+const readPortfolioContent = (file = process.env.PORTFOLIO_CONTENT_FILE || CONTENT_FILE) => {
+	assert(existsSync(file), `Portfolio CMS snapshot not found: ${file}`);
+	const content = JSON.parse(readFileSync(file, "utf8"));
+	assert(Array.isArray(content.albums), "Portfolio CMS content must contain albums");
+	return content;
+};
+
+const loadPortfolioContent = async ({ file, url } = {}) => {
+	if (url) {
+		const response = await fetch(url, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(30 * 1000) });
+		if (!response.ok) throw new Error(`Portfolio CMS ${response.status}: ${await response.text()}`);
+		const content = await response.json();
+		assert(Array.isArray(content.albums), "Portfolio CMS response must contain albums");
+		return content;
+	}
+	return readPortfolioContent(file || process.env.PORTFOLIO_CONTENT_FILE || CONTENT_FILE);
+};
+
+const albumMetadata = (content) => {
+	const nodes = new Map([
+		...(content.groups || []).map((group) => [group.id, { ...group, kind: "group" }]),
+		...content.albums.map((album) => [album.id, { ...album, kind: "album" }]),
+	]);
+	const pathCache = new Map();
+	const pathFor = (album) => {
+		if (pathCache.has(album.id)) return pathCache.get(album.id);
+		const seen = new Set();
+		const labels = [];
+		let current = album;
+		while (current) {
+			assert(!seen.has(current.id), `CMS hierarchy cycle at ${current.id}`);
+			seen.add(current.id);
+			labels.unshift(current.label || current.key || current.id);
+			current = current.parentId ? nodes.get(current.parentId) : null;
+		}
+		const path = labels.join(" / ");
+		pathCache.set(album.id, path);
+		return path;
+	};
+	return { nodes, pathFor };
 };
 
 const aspectGroupFor = (width, height) => {
@@ -184,19 +232,26 @@ const referenceLabelFor = (printId, series) =>
 		.map((part) => (/^\d+$/.test(part) ? part : `${part.charAt(0).toUpperCase()}${part.slice(1)}`))
 		.join(" ");
 
-const buildManifest = () => {
-	const photos = loadGalleryPages()
-		.filter((page) => page.key !== "commissioned-work")
-		.flatMap((page) =>
-			page.items.map((item) => {
+const buildManifest = (content = readPortfolioContent()) => {
+	const { pathFor } = albumMetadata(content);
+	const photos = content.albums.flatMap((album) =>
+		(album.items || [])
+			.filter((item) => item.printEnabled === true)
+			.sort((left, right) => left.order - right.order)
+			.map((item) => {
 				assert(item.publicId, `Missing Cloudinary public ID for ${item.id}`);
+				assert(item.id, "CMS print-enabled photo is missing a stable id");
 				const printId = item.id;
 				const aspectGroup = aspectGroupFor(item.width, item.height);
 				return {
 					printId,
-					series: page.key,
-					seriesLabel: SERIES_LABELS[page.key] ?? page.label,
-					referenceLabel: referenceLabelFor(printId, page.key),
+					albumId: album.id,
+					series: album.key || album.id,
+					seriesLabel: album.label || SERIES_LABELS[album.key] || album.key || album.id,
+					seriesPath: pathFor(album),
+					referenceLabel: referenceLabelFor(printId, album.key || album.id),
+					albumOrder: album.order,
+					photoOrder: item.order,
 					width: item.width,
 					height: item.height,
 					orientation: orientationFor(item.width, item.height),
@@ -208,7 +263,7 @@ const buildManifest = () => {
 					fileUrl: cloudinaryUrl(item.publicId),
 				};
 			}),
-		);
+	);
 
 	return {
 		generatedAt: new Date().toISOString(),
@@ -381,23 +436,44 @@ const splitProductKey = (key) => {
 };
 
 const isExistingMatch = (product, photo, medium) => {
-	const title = product.title.toLowerCase();
-	const expectedTitle = `${photo.seriesLabel} ${photo.referenceLabel} - ${MEDIA[medium].label}`.toLowerCase();
 	const tags = Array.isArray(product.tags) ? product.tags : [];
-	return (
-		(tags.includes(photo.printId) && tags.includes(`format-${medium}`)) ||
-		title === expectedTitle
-	);
+	return (tags.includes(photo.printId) || tags.includes(`photo-id:${photo.printId}`)) && tags.includes(`format-${medium}`);
 };
 
 const selectExistingProduct = (products, photo, medium, recordedId) => {
 	const matches = products.filter((product) => isExistingMatch(product, photo, medium));
 	return (
+		matches.find((product) => product.id === recordedId && product.status === "active" && product.tags?.includes(catalogVersionTag)) ??
+		matches.find((product) => product.status === "active" && product.tags?.includes(catalogVersionTag)) ??
 		matches.find((product) => product.id === recordedId && product.status === "active") ??
 		matches.find((product) => product.status === "active") ??
 		matches.find((product) => product.id === recordedId) ??
 		matches[0]
 	);
+};
+
+const productMetadata = (photo, medium) => {
+	const media = MEDIA[medium];
+	const position = Number.isInteger(photo.photoOrder) ? ` Portfolio position: ${photo.photoOrder + 1}.` : "";
+	const collectionPosition = Number.isInteger(photo.albumOrder) ? ` Collection position: ${photo.albumOrder + 1}.` : "";
+	const collection = photo.seriesPath || photo.seriesLabel;
+	return {
+		title: `${photo.seriesLabel} ${photo.referenceLabel} - ${media.label}`,
+		description: `${media.description}<p>Collection: ${collection}.${collectionPosition}</p><p>Artwork reference: ${photo.printId}.${position}</p>`,
+		tags: [
+			photo.printId,
+			`photo-id:${photo.printId}`,
+			`series-${photo.series}`,
+			`album-${photo.albumId || photo.series}`,
+			`format-${medium}`,
+			catalogVersionTag,
+			"claire-thomas",
+			"fine-art-photography",
+			"wall-art",
+		],
+		productType: media.productType,
+		vendor: "Claire Thomas",
+	};
 };
 
 const createPayload = (template, photo, medium, visible = false) => {
@@ -419,20 +495,9 @@ const createPayload = (template, photo, medium, visible = false) => {
 
 	return {
 		templateId: template.id,
-		title: `${photo.seriesLabel} ${photo.referenceLabel} - ${media.label}`,
-		description: `${media.description}<p>Artwork reference: ${photo.printId}</p>`,
+		...productMetadata(photo, medium),
 		isVisibleInTheOnlineStore: visible,
 		salesChannels: ["web"],
-		tags: [
-			photo.printId,
-			`series-${photo.series}`,
-			`format-${medium}`,
-			"claire-thomas",
-			"fine-art-photography",
-			"wall-art",
-		],
-		productType: media.productType,
-		vendor: "Claire Thomas",
 		variants,
 	};
 };
@@ -501,11 +566,252 @@ const expectedProductKeys = (photos, selectedMedia = Object.keys(MEDIA)) =>
 
 const managedProductKey = (product) => {
 	const tags = Array.isArray(product.tags) ? product.tags : [];
-	const printId = tags.find((tag) => !tag.startsWith("series-") && !tag.startsWith("format-") && tag !== "claire-thomas" && tag !== "fine-art-photography" && tag !== "wall-art");
+	const explicitPrintId = tags.find((tag) => typeof tag === "string" && tag.startsWith("photo-id:"));
+	const printId = explicitPrintId
+		? explicitPrintId.slice("photo-id:".length)
+		: tags.find((tag) => typeof tag === "string" &&
+		!tag.startsWith("series-") &&
+		!tag.startsWith("format-") &&
+		!tag.startsWith("album-") &&
+		!tag.startsWith("catalog-") &&
+		!tag.startsWith("photo-id:") &&
+		tag !== "claire-thomas" &&
+		tag !== "fine-art-photography" &&
+		tag !== "wall-art",
+	);
 	const formatTag = tags.find((tag) => tag.startsWith("format-"));
 	if (!tags.includes("claire-thomas") || !printId || !formatTag) return null;
 	const medium = formatTag.slice("format-".length);
 	return MEDIA[medium] ? productKey(printId, medium) : null;
+};
+
+const isArchivedProduct = (product) => ["archived", "deleted"].includes(String(product.status).toLowerCase());
+
+const sameStringArray = (left, right) =>
+	JSON.stringify([...(left || [])].map(String).sort()) === JSON.stringify([...(right || [])].map(String).sort());
+
+const productNeedsMetadataUpdate = (product, desired) =>
+	product.title !== desired.title ||
+	(product.description ?? product.descriptionHtml) !== desired.description ||
+	!sameStringArray(product.tags, desired.tags);
+
+const productShopifyId = (product) => {
+	const externalId = product?.externalId;
+	if (!externalId) return null;
+	return String(externalId).startsWith("gid://shopify/Product/")
+		? String(externalId)
+		: `gid://shopify/Product/${externalId}`;
+};
+
+const buildReconcilePlan = (
+	photos,
+	state,
+	existingProducts,
+	selectedMedia = Object.keys(MEDIA),
+	{ includeStale = true } = {},
+) => {
+	const selectedMediaSet = new Set(selectedMedia);
+	const expected = new Map(
+		photos.flatMap((photo) => selectedMedia.map((medium) => [productKey(photo.printId, medium), { photo, medium }])),
+	);
+	const groups = new Map([...expected.keys()].map((key) => [key, []]));
+	const staleProducts = [];
+	for (const product of existingProducts) {
+		const key = managedProductKey(product);
+		if (!key) continue;
+		const { medium } = splitProductKey(key);
+		if (expected.has(key)) groups.get(key).push(product);
+		else if (includeStale && selectedMediaSet.has(medium)) staleProducts.push({ key, product, reason: "not-in-cms" });
+	}
+
+	const plan = {
+		creates: [],
+		updates: [],
+		unarchives: [],
+		pending: [],
+		archives: [],
+		blocked: [],
+		unchanged: [],
+	};
+	const addArchive = (key, product, reason) => {
+		if (isArchivedProduct(product)) return;
+		if (plan.archives.some((entry) => entry.product.id === product.id) || plan.blocked.some((entry) => entry.productId === product.id)) return;
+		if (!productShopifyId(product)) {
+			plan.blocked.push({ action: "archive", key, productId: product.id, reason: "missing-shopify-external-id" });
+			return;
+		}
+		plan.archives.push({ key, product, reason });
+	};
+
+	for (const [key, target] of expected) {
+		const matches = groups.get(key);
+		const current = matches.filter((product) => product.tags?.includes(catalogVersionTag));
+		const canonical = current.find((product) => product.status === "active") ?? current[0];
+		const desired = productMetadata(target.photo, target.medium);
+		if (!canonical) {
+			const replacement = matches.find((product) => product.status === "active") ?? matches[0];
+			if (replacement) addArchive(key, replacement, "catalog-version-replacement");
+			plan.creates.push({ key, photo: target.photo, medium: target.medium, replacementId: replacement?.id ?? null });
+		} else if (isArchivedProduct(canonical)) {
+			if (!productShopifyId(canonical)) {
+				plan.blocked.push({ action: "unarchive", key, productId: canonical.id, reason: "missing-shopify-external-id" });
+			} else {
+				plan.unarchives.push({ key, product: canonical, desired });
+			}
+		} else if (["created", "publishing", "publishing_queued"].includes(canonical.status)) {
+			plan.pending.push({ key, product: canonical });
+			if (productNeedsMetadataUpdate(canonical, desired)) {
+				if (!productShopifyId(canonical)) {
+					plan.blocked.push({ action: "update", key, productId: canonical.id, reason: "missing-shopify-external-id" });
+				} else {
+					plan.updates.push({ key, product: canonical, desired });
+				}
+			}
+		} else if (canonical.status !== "active") {
+			plan.blocked.push({ action: "inspect", key, productId: canonical.id, reason: `unsupported-status:${canonical.status}` });
+		} else if (productNeedsMetadataUpdate(canonical, desired)) {
+			if (!productShopifyId(canonical)) {
+				plan.blocked.push({ action: "update", key, productId: canonical.id, reason: "missing-shopify-external-id" });
+			} else {
+				plan.updates.push({ key, product: canonical, desired });
+			}
+		} else {
+			plan.unchanged.push(key);
+		}
+		for (const duplicate of matches) {
+			if (duplicate.id !== canonical?.id) addArchive(key, duplicate, "duplicate-managed-product");
+		}
+	}
+	for (const stale of staleProducts) addArchive(stale.key, stale.product, stale.reason);
+
+	for (const [key, record] of Object.entries(state.products || {})) {
+		if (includeStale && !expected.has(key)) {
+			const { medium } = splitProductKey(key);
+			if (selectedMediaSet.has(medium) && !existingProducts.some((product) => product.id === record?.id)) {
+				plan.unchanged.push(`${key}:state-only`);
+			}
+		}
+	}
+	return plan;
+};
+
+const shopifyGraphql = async (query, variables) => {
+	const domain = (process.env.SHOPIFY_STORE_DOMAIN || process.env.SHOPIFY_SHOP_DOMAIN || "")
+		.replace(/^https?:\/\//, "")
+		.replace(/\/$/, "");
+	const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+	assert(domain && token, "SHOPIFY_STORE_DOMAIN and SHOPIFY_ADMIN_ACCESS_TOKEN are required for reconcile mutations");
+	const version = process.env.SHOPIFY_API_VERSION || DEFAULT_SHOPIFY_API_VERSION;
+	const response = await fetch(`https://${domain}/admin/api/${version}/graphql.json`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"X-Shopify-Access-Token": token,
+		},
+		body: JSON.stringify({ query, variables }),
+		signal: AbortSignal.timeout(60 * 1000),
+	});
+	const body = await response.json();
+	if (!response.ok || body.errors?.length) {
+		throw new Error(`Shopify GraphQL ${response.status}: ${JSON.stringify(body.errors || body)}`);
+	}
+	return body.data;
+};
+
+const updateShopifyProduct = async (product, desired, status) => {
+	const id = productShopifyId(product);
+	assert(id, `Product ${product.id} has no Shopify externalId`);
+	const data = await shopifyGraphql(
+		`mutation ReconcileProduct($product: ProductUpdateInput!) {
+			productUpdate(product: $product) {
+				product { id title status }
+				userErrors { field message }
+			}
+		}`,
+		{
+			product: {
+				id,
+				...(desired ? {
+					title: desired.title,
+					descriptionHtml: desired.description,
+					tags: desired.tags,
+				} : {}),
+				...(status ? { status: status.toUpperCase() } : {}),
+			},
+		},
+	);
+	const result = data.productUpdate;
+	if (result.userErrors?.length) {
+		throw new Error(`Shopify product update failed for ${id}: ${JSON.stringify(result.userErrors)}`);
+	}
+	return result.product;
+};
+
+const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = true }) => {
+	assert(!plan.blocked.length, `Reconcile has ${plan.blocked.length} unmappable product actions; inspect the dry-run plan first`);
+	for (const action of plan.archives) {
+		await updateShopifyProduct(action.product, null, "ARCHIVED");
+		const record = state.products[action.key];
+		if (record?.id === action.product.id) {
+			state.products[action.key] = {
+				...record,
+				status: "archived",
+				archivedAt: new Date().toISOString(),
+			};
+			writeState(state);
+		}
+	}
+	for (const action of [...plan.updates, ...plan.unarchives]) {
+		const status = plan.unarchives.includes(action) ? "ACTIVE" : null;
+		await updateShopifyProduct(action.product, action.desired, status);
+		state.products[action.key] = {
+			...(state.products[action.key] || {}),
+			id: action.product.id,
+			externalId: action.product.externalId,
+			status: "active",
+			catalogVersion: CATALOG_VERSION,
+			metadataUpdatedAt: new Date().toISOString(),
+		};
+		writeState(state);
+	}
+
+	const jobs = [];
+	for (const action of plan.pending) {
+		state.products[action.key] = {
+			...(state.products[action.key] || {}),
+			id: action.product.id,
+			externalId: action.product.externalId,
+			status: action.product.status,
+			catalogVersion: CATALOG_VERSION,
+		};
+		writeState(state);
+		jobs.push({ key: action.key });
+	}
+	for (const action of plan.creates) {
+		const key = action.key;
+		const payload = createPayload(templates[action.medium], action.photo, action.medium, visible);
+		const createdProduct = await apiRequest(`/stores/${storeId}/products:create-from-template`, {
+			method: "POST",
+			body: JSON.stringify(payload),
+		});
+		state.products[key] = {
+			id: createdProduct.id,
+			externalId: createdProduct.externalId,
+			status: createdProduct.status,
+			visible,
+			catalogVersion: CATALOG_VERSION,
+			createdAt: new Date().toISOString(),
+		};
+		writeState(state);
+		jobs.push({ key });
+	}
+	if (jobs.length) await waitForProducts(storeId, jobs, state);
+	return {
+		archived: plan.archives.length,
+		updated: plan.updates.length,
+		unarchived: plan.unarchives.length,
+		created: jobs.length,
+	};
 };
 
 const buildCatalogAudit = (photos, existingProducts, selectedMedia = Object.keys(MEDIA)) => {
@@ -741,14 +1047,15 @@ const writeStaleReport = (staleProducts) => {
 };
 
 const run = async () => {
+	loadEnv(ENV_FILE);
 	const args = parseArgs(process.argv.slice(2));
 	if (args.help) {
 		printHelp();
 		return;
 	}
 
-	loadEnv(ENV_FILE);
-	const manifest = buildManifest();
+	const content = await loadPortfolioContent({ file: args.contentFile, url: args.contentUrl });
+	const manifest = buildManifest(content);
 	writeFileSync(MANIFEST_FILE, `${JSON.stringify(manifest, null, 2)}\n`);
 
 	const orientationCounts = manifest.photos.reduce(
@@ -763,9 +1070,11 @@ const run = async () => {
 	console.log(
 		JSON.stringify(
 			{
-				mode: args.execute ? "execute" : args.validateTemplates ? "validate-templates" : "dry-run",
+				mode: args.reconcile ? (args.execute ? "reconcile-execute" : "reconcile-dry-run") : args.execute ? "execute" : args.validateTemplates ? "validate-templates" : "dry-run",
 				photos: manifest.photoCount,
 				products: manifest.productCount,
+				cmsRevision: content.revision ?? null,
+				cmsUpdatedAt: content.updatedAt ?? null,
 				orientationCounts,
 				aspectCounts,
 				manifest: MANIFEST_FILE,
@@ -775,7 +1084,7 @@ const run = async () => {
 		),
 	);
 
-	if (!args.execute && !args.validateTemplates && !args.audit) return;
+	if (!args.execute && !args.validateTemplates && !args.audit && !args.reconcile) return;
 	assert(process.env.GELATO_API_KEY, "GELATO_API_KEY is required");
 
 	const selectedPhotos = manifest.photos.filter((photo) => !args.only || args.only.has(photo.printId));
@@ -799,6 +1108,52 @@ const run = async () => {
 	const staleProducts = findStaleProducts(state, existingProducts, manifest.photos);
 	writeStaleReport(staleProducts);
 	console.log(`Stale managed products: ${staleProducts.length}. Report: ${STALE_FILE}`);
+	if (args.reconcile) {
+		const selectedPhotos = manifest.photos.filter((photo) => !args.only || args.only.has(photo.printId));
+		assert(selectedPhotos.length, "No photographs matched --only");
+		const plan = buildReconcilePlan(
+			selectedPhotos,
+			state,
+			existingProducts,
+			args.media,
+			{ includeStale: !args.only },
+		);
+		const planReport = {
+			generatedAt: new Date().toISOString(),
+			cmsRevision: content.revision ?? null,
+			cmsUpdatedAt: content.updatedAt ?? null,
+			catalogVersion: CATALOG_VERSION,
+			photoCount: selectedPhotos.length,
+			...plan,
+		};
+		writeFileSync(RECONCILE_PLAN_FILE, `${JSON.stringify(planReport, null, 2)}\n`);
+		console.log(JSON.stringify({
+			creates: plan.creates.length,
+			updates: plan.updates.length,
+			unarchives: plan.unarchives.length,
+			pending: plan.pending.length,
+			archives: plan.archives.length,
+			blocked: plan.blocked.length,
+			unchanged: plan.unchanged.length,
+			plan: RECONCILE_PLAN_FILE,
+		}, null, 2));
+		if (!args.execute) return;
+		assert(!plan.blocked.length, `Reconcile blocked by ${plan.blocked.length} product mappings; dry-run plan: ${RECONCILE_PLAN_FILE}`);
+		let templates = {};
+		if (plan.creates.length) {
+			templates = await loadTemplates(args.media);
+			validateTemplates(templates, selectedPhotos, args.media);
+		}
+		const result = await applyReconcilePlan({
+			plan,
+			state,
+			storeId,
+			templates,
+			visible: true,
+		});
+		console.log(`Reconcile complete: ${result.created} created, ${result.updated} updated, ${result.unarchived} unarchived, ${result.archived} archived.`);
+		return;
+	}
 	if (args.audit) {
 		const catalogAudit = buildCatalogAudit(manifest.photos, existingProducts);
 		writeFileSync(
@@ -915,15 +1270,18 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
 export {
 	aspectGroupFor,
 	buildManifest,
+	buildReconcilePlan,
 	buildCreatedRepairPlan,
 	buildCatalogAudit,
 	cloudinaryUrl,
+	catalogVersionTag,
 	expectedProductKeys,
 	findStaleProducts,
 	managedProductKey,
 	mergeProductsById,
 	normalizeVariant,
 	orientationFor,
+	productMetadata,
 	referenceLabelFor,
 	selectExistingProduct,
 	selectTemplateVariants,
