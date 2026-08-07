@@ -30,6 +30,7 @@ import {
 	shopifyGraphql,
 	shopifyRetryDelayMs,
 	runWithRetryableDeferral,
+	safelyPublishShopifyProduct,
 	shouldUploadArtworkMedia,
 	waitForShopifyArtworkBindings,
 	waitForShopifyArtworkMedia,
@@ -621,6 +622,56 @@ test("reconcile updates a metadata-clean active product when its artwork media i
 		["fine-art"],
 	);
 	assert.deepEqual(plan.updates.map(({ key, photo: target }) => [key, target.printId]), [["photo-1:fine-art", "photo-1"]]);
+});
+
+test("keeps Shopify products hidden until artwork repair succeeds", async () => {
+	const calls = [];
+	const updateProduct = async (_product, _desired, status, options = {}) => {
+		calls.push({ status, hasPhoto: Boolean(options.photo) });
+		return { id: "gid://shopify/Product/101" };
+	};
+	await safelyPublishShopifyProduct(
+		{ id: "gelato-1", externalId: "101" },
+		{ title: "Photo 1" },
+		{ photo: { printId: "photo-1" }, updateProduct },
+	);
+	assert.deepEqual(calls, [
+		{ status: "DRAFT", hasPhoto: true },
+		{ status: "ACTIVE", hasPhoto: false },
+	]);
+});
+
+test("resumes a repaired Shopify draft and republishes it", () => {
+	const photo = {
+		printId: "photo-draft",
+		albumId: "album",
+		series: "album",
+		seriesLabel: "Album",
+		seriesPath: "Album",
+		referenceLabel: "1",
+		photoOrder: 0,
+		fileUrl: "https://res.cloudinary.com/dpmdkrggj/image/upload/photo-draft.jpg",
+	};
+	const desired = productMetadata(photo, "fine-art");
+	const artwork = { id: "artwork", alt: artworkMediaAltFor(photo), status: "READY" };
+	const draft = {
+		id: "gelato-draft",
+		externalId: "101",
+		status: "active",
+		shopifyStatus: "draft",
+		...desired,
+		shopifyMedia: { nodes: [artwork] },
+		shopifyVariants: { nodes: [{ id: "variant-1", media: { nodes: [artwork] } }] },
+	};
+	const plan = buildReconcilePlan(
+		[photo],
+		{ products: { "photo-draft:fine-art": { id: draft.id } } },
+		[draft],
+		["fine-art"],
+	);
+	assert.deepEqual(plan.unarchives.map(({ key }) => key), ["photo-draft:fine-art"]);
+	assert.equal(plan.creates.length, 0);
+	assert.equal(plan.blocked.length, 0);
 });
 
 test("strict audit detects variants that can still fall back to Gelato mockups", () => {

@@ -841,7 +841,10 @@ const buildReconcilePlan = (
 			const replacement = usableMatches.find((product) => product.status === "active") ?? usableMatches[0];
 			if (replacement) addArchive(key, replacement, "catalog-version-replacement");
 			plan.creates.push({ key, photo: target.photo, medium: target.medium, replacementId: replacement?.id ?? null });
-		} else if (isArchivedProduct(canonical)) {
+		} else if (
+			isArchivedProduct(canonical) ||
+			String(canonical.shopifyStatus || "").toLowerCase() === "draft"
+		) {
 			if (!productShopifyId(canonical)) {
 				plan.blocked.push({ action: "unarchive", key, productId: canonical.id, reason: "missing-shopify-external-id" });
 			} else {
@@ -1269,7 +1272,16 @@ const updateShopifyProduct = async (product, desired, status, { photo = null, ..
 	return result.product;
 };
 
-const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = true }) => {
+const safelyPublishShopifyProduct = async (
+	product,
+	desired,
+	{ photo, updateProduct = updateShopifyProduct } = {},
+) => {
+	await updateProduct(product, desired, "DRAFT", { photo });
+	return updateProduct(product, desired, "ACTIVE");
+};
+
+const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = false }) => {
 	assert(!plan.blocked.length, `Reconcile has ${plan.blocked.length} unmappable product actions; inspect the dry-run plan first`);
 	const deferred = new Map();
 	for (const action of plan.archives) {
@@ -1303,8 +1315,7 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 		}
 	}
 	await runWithRetryableDeferral([...plan.updates, ...plan.unarchives], async (action) => {
-		const status = plan.unarchives.includes(action) ? "ACTIVE" : null;
-		await updateShopifyProduct(action.product, action.desired, status, { photo: action.photo });
+		await safelyPublishShopifyProduct(action.product, action.desired, { photo: action.photo });
 		state.products[action.key] = {
 			...(state.products[action.key] || {}),
 			id: action.product.id,
@@ -1363,10 +1374,9 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 		createdActions.set(key, action);
 		if (productShopifyId(createdProduct)) {
 			await runWithRetryableDeferral([action], async () => {
-				await updateShopifyProduct(
+				await safelyPublishShopifyProduct(
 					createdProduct,
 					productMetadata(action.photo, action.medium),
-					"ACTIVE",
 					{ photo: action.photo },
 				);
 				state.products[key].metadataSynced = true;
@@ -1385,7 +1395,7 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 			if (!action) return;
 			const product = await apiRequest(`/stores/${storeId}/products/${state.products[job.key].id}`);
 			const desired = action.desired ?? productMetadata(action.photo, action.medium);
-			await updateShopifyProduct(product, desired, "ACTIVE", { photo: action.photo });
+			await safelyPublishShopifyProduct(product, desired, { photo: action.photo });
 			state.products[job.key].metadataSynced = true;
 			state.products[job.key].mediaSynced = true;
 			state.products[job.key].handle = desired.handle;
@@ -1764,7 +1774,7 @@ const run = async () => {
 			state,
 			storeId,
 			templates,
-			visible: true,
+			visible: false,
 		});
 		console.log(`Reconcile complete: ${result.created} created, ${result.updated} updated, ${result.unarchived} unarchived, ${result.archived} archived, ${result.recovered} failed products recovered.`);
 		return;
@@ -1912,6 +1922,7 @@ export {
 	shopifyGraphql,
 	shopifyRetryDelayMs,
 	runWithRetryableDeferral,
+	safelyPublishShopifyProduct,
 	shouldUploadArtworkMedia,
 	waitForShopifyArtworkBindings,
 	waitForShopifyArtworkMedia,
