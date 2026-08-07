@@ -120,13 +120,13 @@ test("renders exactly one Fine Art card per artwork within a Horizon scope", () 
 	assert.equal(cards.filter((card) => card.classList.has("ct-print-card")).length, 1);
 });
 
-test("hides non-Fine-Art cards across paginated listing pages", () => {
+test("hides non-Fine-Art cards across paginated product and resource listings", () => {
 	const scope = {};
-	const makeCard = (href, paginatedListing) => {
+	const makeCard = (href, itemClass = "") => {
 		const item = {
 			hidden: false,
 			parentElement: scope,
-			matches: (selector) => paginatedListing && selector === ".product-grid__item",
+			matches: (selector) => selector.split(",").map((part) => part.trim()).includes(itemClass),
 		};
 		return {
 			dataset: {},
@@ -139,12 +139,14 @@ test("hides non-Fine-Art cards across paginated listing pages", () => {
 			item,
 		};
 	};
-	const listingCanvas = makeCard("https://shop.test/products/animals-17-canvas-print", true);
-	const predictiveCanvas = makeCard("https://shop.test/products/animals-18-canvas-print", false);
-	const api = loadApi([listingCanvas, predictiveCanvas]);
+	const productGridCanvas = makeCard("https://shop.test/products/animals-17-canvas-print", ".product-grid__item");
+	const resourceListCanvas = makeCard("https://shop.test/products/animals-18-canvas-print", ".resource-list__item");
+	const predictiveCanvas = makeCard("https://shop.test/products/animals-19-canvas-print", ".predictive-search-results__card");
+	const api = loadApi([productGridCanvas, resourceListCanvas, predictiveCanvas]);
 
 	api.consolidateProductCards();
-	assert.equal(listingCanvas.item.hidden, true);
+	assert.equal(productGridCanvas.item.hidden, true);
+	assert.equal(resourceListCanvas.item.hidden, true);
 	assert.equal(predictiveCanvas.item.hidden, false);
 	assert.equal(predictiveCanvas.classList.has("ct-print-card"), true);
 });

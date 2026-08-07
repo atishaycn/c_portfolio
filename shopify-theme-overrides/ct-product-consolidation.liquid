@@ -156,7 +156,7 @@
               .filter(({ format }) => format.suffix === '-fine-art-print')
               .sort((left, right) => duplicateRank(left.handle) - duplicateRank(right.handle))[0] || null;
           const isPaginatedListing = entries.some(({ item }) =>
-            item.matches?.('.product-grid__item'),
+            item.matches?.('.product-grid__item, .resource-list__item'),
           );
           const chosen =
             fineArt ||
