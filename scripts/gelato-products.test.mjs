@@ -22,6 +22,7 @@ import {
 	findStaleProducts,
 	gelato429MaxAttempts,
 	isStalledCreatedProduct,
+	hasRetiredShopifyProduct,
 	managedProductKey,
 	mergeProductsById,
 	mergeShopifyProductState,
@@ -800,6 +801,58 @@ test("reconcile deletes and recreates a stranded created product", () => {
 	assert.equal(plan.creates.length, 1);
 	assert.equal(plan.pending.length, 0);
 	assert.equal(plan.blocked.length, 0);
+});
+
+test("purges Gelato only after its mapped Shopify product is retired", async () => {
+	const photo = {
+		printId: "photo-1",
+		series: "album",
+		seriesLabel: "Album",
+		referenceLabel: "1",
+	};
+	const retired = {
+		id: "gelato-retired",
+		externalId: "shopify-retired",
+		status: "active",
+		shopifyStatus: "archived",
+		tags: ["photo-1", "photo-id:photo-1", "format-fine-art", "claire-thomas", catalogVersionTag],
+	};
+	assert.equal(hasRetiredShopifyProduct(retired), true);
+	assert.equal(hasRetiredShopifyProduct({ ...retired, shopifyStatus: "active" }), false);
+	assert.equal(hasRetiredShopifyProduct({ ...retired, externalId: null }), false);
+
+	const plan = buildReconcilePlan([photo], { products: {} }, [retired], ["fine-art"]);
+	assert.deepEqual(
+		plan.purges.map(({ product, reason }) => ({ id: product.id, reason })),
+		[{ id: retired.id, reason: "shopify-archived" }],
+	);
+	assert.equal(plan.creates.length, 1);
+	assert.equal(plan.unarchives.length, 0);
+
+	const calls = [];
+	const purgeOnlyPlan = {
+		archives: [],
+		blocked: [],
+		creates: [],
+		pending: [],
+		purges: plan.purges,
+		recoveries: [],
+		unarchives: [],
+		updates: [],
+	};
+	const result = await applyReconcilePlan({
+		plan: purgeOnlyPlan,
+		state: { products: {} },
+		storeId: "store-1",
+		templates: {},
+		apiRequestImpl: async (path, options = {}) => {
+			calls.push({ path, method: options.method });
+			return null;
+		},
+		writeStateImpl() {},
+	});
+	assert.deepEqual(calls, [{ path: "/stores/store-1/products/gelato-retired", method: "DELETE" }]);
+	assert.equal(result.purged, 1);
 });
 
 test("recovers publishing errors by archiving their mapped Shopify product and recreating the stable key", () => {

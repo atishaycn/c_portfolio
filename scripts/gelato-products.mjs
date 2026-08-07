@@ -708,6 +708,10 @@ const isArchivedProduct = (product) =>
 	["archived", "deleted"].includes(String(product.status).toLowerCase()) ||
 	["archived", "deleted", "missing"].includes(String(product.shopifyStatus).toLowerCase());
 
+const hasRetiredShopifyProduct = (product) =>
+	Boolean(productShopifyId(product)) &&
+	["archived", "deleted", "missing"].includes(String(product.shopifyStatus).toLowerCase());
+
 const isReadyActiveProduct = (product) =>
 	product.status === "active" &&
 	Boolean(productShopifyId(product)) &&
@@ -832,7 +836,16 @@ const buildReconcilePlan = (
 	);
 	const groups = new Map([...expected.keys()].map((key) => [key, []]));
 	const staleProducts = [];
+	const purges = [];
 	for (const product of existingProducts) {
+		if (hasRetiredShopifyProduct(product)) {
+			purges.push({
+				key: managedProductKey(product),
+				product,
+				reason: `shopify-${String(product.shopifyStatus).toLowerCase()}`,
+			});
+			continue;
+		}
 		const key = managedProductKey(product);
 		if (!key) continue;
 		const { medium } = splitProductKey(key);
@@ -841,6 +854,7 @@ const buildReconcilePlan = (
 	}
 
 	const plan = {
+		purges,
 		creates: [],
 		updates: [],
 		unarchives: [],
@@ -1374,6 +1388,19 @@ const applyReconcilePlan = async ({
 }) => {
 	assert(!plan.blocked.length, `Reconcile has ${plan.blocked.length} unmappable product actions; inspect the dry-run plan first`);
 	const deferred = new Map();
+	for (const action of plan.purges || []) {
+		await apiRequestImpl(`/stores/${storeId}/products/${action.product.id}`, { method: "DELETE" });
+		if (action.key && state.products[action.key]?.id === action.product.id) {
+			state.products[action.key] = {
+				...state.products[action.key],
+				id: null,
+				externalId: null,
+				status: "deleted_after_shopify_archive",
+				deletedAt: new Date().toISOString(),
+			};
+			writeStateImpl(state);
+		}
+	}
 	for (const action of plan.archives) {
 		await updateShopifyProductImpl(action.product, null, "ARCHIVED", { archive: true });
 		const record = state.products[action.key];
@@ -1531,6 +1558,7 @@ const applyReconcilePlan = async ({
 	}
 	return {
 		archived: plan.archives.length,
+		purged: (plan.purges || []).length,
 		recovered: plan.recoveries.length,
 		updated: plan.updates.length,
 		unarchived: plan.unarchives.length,
@@ -1868,6 +1896,7 @@ const run = async () => {
 		writeFileSync(RECONCILE_PLAN_FILE, `${JSON.stringify(planReport, null, 2)}\n`);
 		console.log(JSON.stringify({
 			creates: plan.creates.length,
+			purges: plan.purges.length,
 			updates: plan.updates.length,
 			unarchives: plan.unarchives.length,
 			pending: plan.pending.length,
@@ -2021,6 +2050,7 @@ export {
 	extraArtworkMediaIds,
 	gelato429MaxAttempts,
 	isStalledCreatedProduct,
+	hasRetiredShopifyProduct,
 	buildCreatedRepairPlan,
 	buildCatalogAudit,
 	cloudinaryUrl,
