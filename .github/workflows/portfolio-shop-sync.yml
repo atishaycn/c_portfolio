@@ -1,0 +1,37 @@
+name: Portfolio shop sync
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: portfolio-shop-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      contents: read
+    env:
+      PORTFOLIO_CONTENT_URL: https://clairethomas.art/api/content
+      GELATO_API_KEY: ${{ secrets.GELATO_API_KEY }}
+      GELATO_STORE_ID: ${{ secrets.GELATO_STORE_ID }}
+      GELATO_FINE_ART_TEMPLATE_ID: ${{ secrets.GELATO_FINE_ART_TEMPLATE_ID }}
+      GELATO_FRAMED_TEMPLATE_ID: ${{ secrets.GELATO_FRAMED_TEMPLATE_ID }}
+      GELATO_CANVAS_TEMPLATE_ID: ${{ secrets.GELATO_CANVAS_TEMPLATE_ID }}
+      SHOPIFY_STORE_DOMAIN: esf4bj-wk.myshopify.com
+      SHOPIFY_CLIENT_ID: ${{ secrets.SHOPIFY_CLIENT_ID }}
+      SHOPIFY_CLIENT_SECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
+      SHOPIFY_API_VERSION: "2026-07"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify synchronization code
+        run: npm run check
+      - name: Reconcile portfolio and print shop
+        run: node scripts/portfolio-print-sync.mjs --execute
+      - name: Strict catalog audit
+        run: node scripts/gelato-products.mjs --strict-audit --content-url "$PORTFOLIO_CONTENT_URL"

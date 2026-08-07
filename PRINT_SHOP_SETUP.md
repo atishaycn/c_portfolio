@@ -76,16 +76,7 @@ Archiving is explicit and reversible: reconcile sends Shopify `productUpdate(sta
 
 The poller fetches the public CMS revision, writes a pending marker before reconcile, and advances `lastSuccessfulRevision` only after the child reconcile exits successfully. It uses an exclusive lock to prevent overlapping LaunchAgent invocations. If `SHOPIFY_ADMIN_ACCESS_TOKEN` is absent, reconcile requests a 24-hour Shopify Dev Dashboard client-credentials token from `/admin/oauth/access_token`; tokens and secrets are never logged or written to state.
 
-After the first manual execute and strict audit pass, install the 15-minute poller:
-
-```bash
-cp launchd/art.clairethomas.portfolio-print-sync.plist ~/Library/LaunchAgents/
-launchctl bootout "gui/$(id -u)" ~/Library/LaunchAgents/art.clairethomas.gelato-catalog.plist 2>/dev/null || true
-launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/art.clairethomas.portfolio-print-sync.plist
-launchctl print "gui/$(id -u)/art.clairethomas.portfolio-print-sync"
-```
-
-The new job replaces the obsolete one-shot `art.clairethomas.gelato-catalog` repair job. Do not install both.
+The administrator’s **Sync shop** button saves pending content first, then calls the authenticated `/api/admin/shop-sync` endpoint. That endpoint dispatches `.github/workflows/portfolio-shop-sync.yml`; it does not run on a timer. Configure `GITHUB_SHOP_SYNC_TOKEN` in Vercel with Actions write access to `atishaycn/c_portfolio`, and configure the Gelato/Shopify values used by the workflow as GitHub Actions secrets.
 
 Copy each credential in Shopify, then capture it without printing it:
 

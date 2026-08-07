@@ -5,13 +5,45 @@ import { resolve } from "node:path";
 import test from "node:test";
 import auth from "../api/_lib/auth.js";
 import contentModule from "../api/_lib/content.js";
+import shopSyncModule from "../api/admin/shop-sync.js";
 
 const root = resolve(import.meta.dirname, "..");
 const portfolio = JSON.parse(readFileSync(resolve(root, "content", "portfolio.json"), "utf8"));
+const adminHtml = readFileSync(resolve(root, "admin.html"), "utf8");
 const adminScript = readFileSync(resolve(root, "admin.js"), "utf8");
 
 test("confirms successful saves to the administrator", () => {
 	assert.match(adminScript, /showMessage\("OK, saved\."\)/);
+});
+
+test("provides an authenticated one-time shop sync control", async () => {
+	assert.match(adminHtml, /id="shop-sync-button"/);
+	assert.match(adminScript, /if \(state\.dirty\) await saveContent\(\)/);
+	assert.match(adminScript, /request\("\/api\/admin\/shop-sync", \{ method: "POST" \}\)/);
+
+	const requests = [];
+	const result = await shopSyncModule.dispatchShopSync({
+		token: "test-token",
+		fetchImpl: async (url, options) => {
+			requests.push({ url, options });
+			return { ok: true, status: 204 };
+		},
+	});
+	assert.deepEqual(result, { status: "started" });
+	assert.equal(
+		requests[0].url,
+		"https://api.github.com/repos/atishaycn/c_portfolio/actions/workflows/portfolio-shop-sync.yml/dispatches",
+	);
+	assert.equal(requests[0].options.method, "POST");
+	assert.deepEqual(JSON.parse(requests[0].options.body), { ref: "main" });
+	assert.equal(requests[0].options.headers.Authorization, "Bearer test-token");
+});
+
+test("shop sync fails closed without its dispatch credential", async () => {
+	await assert.rejects(
+		shopSyncModule.dispatchShopSync({ token: "" }),
+		(error) => error.statusCode === 503 && /not configured/.test(error.message),
+	);
 });
 
 test("validates the complete migrated portfolio", () => {

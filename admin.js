@@ -7,6 +7,7 @@ const elements = {
 	dashboardView: document.getElementById("dashboard-view"),
 	logoutButton: document.getElementById("logout-button"),
 	saveButton: document.getElementById("save-button"),
+	shopSyncButton: document.getElementById("shop-sync-button"),
 	saveStatus: document.getElementById("save-status"),
 	systemMessage: document.getElementById("system-message"),
 	albumList: document.getElementById("album-list"),
@@ -26,6 +27,7 @@ const state = {
 	showTrash: false,
 	dirty: false,
 	saving: false,
+	shopSyncing: false,
 	uploading: false,
 	draggedPhotoId: null,
 };
@@ -654,6 +656,32 @@ const saveContent = async () => {
 	}
 };
 
+const syncShop = async () => {
+	if (state.shopSyncing) return;
+	if (state.saving || state.uploading) {
+		showMessage("Wait for the current save or upload to finish.", true);
+		return;
+	}
+	state.shopSyncing = true;
+	elements.shopSyncButton.disabled = true;
+	elements.shopSyncButton.textContent = "Starting…";
+	try {
+		if (state.dirty) await saveContent();
+		await request("/api/admin/shop-sync", { method: "POST" });
+		elements.shopSyncButton.textContent = "Sync started";
+		showMessage("Shop sync started. You can continue editing while it runs.");
+	} catch (error) {
+		elements.shopSyncButton.textContent = "Sync shop";
+		showMessage(error.message, true);
+	} finally {
+		window.setTimeout(() => {
+			state.shopSyncing = false;
+			elements.shopSyncButton.disabled = false;
+			elements.shopSyncButton.textContent = "Sync shop";
+		}, 3_000);
+	}
+};
+
 const initializeDashboard = async (session) => {
 	state.csrf = session.csrf;
 	state.email = session.email;
@@ -690,6 +718,7 @@ elements.loginForm.addEventListener("submit", async (event) => {
 });
 
 elements.saveButton.addEventListener("click", () => saveContent().catch(() => {}));
+elements.shopSyncButton.addEventListener("click", () => syncShop());
 
 elements.logoutButton.addEventListener("click", async () => {
 	if (state.dirty && !window.confirm("Sign out and discard unsaved changes?")) return;

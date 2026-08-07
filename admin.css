@@ -183,6 +183,11 @@ a:focus-visible {
 	opacity: 0.45;
 }
 
+.shop-sync-button:disabled {
+	cursor: wait;
+	opacity: 0.55;
+}
+
 .save-status {
 	min-width: 82px;
 	color: #63635e;
