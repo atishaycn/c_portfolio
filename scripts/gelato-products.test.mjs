@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+	apiRequest,
 	applyReconcilePlan,
 	aspectGroupFor,
 	buildManifest,
@@ -44,6 +45,114 @@ import {
 	selectExistingProduct,
 	selectTemplateVariants,
 } from "./gelato-products.mjs";
+
+const response = ({ status, body, contentType = "text/html", retryAfter = null }) => ({
+	ok: status >= 200 && status < 300,
+	status,
+	text: async () => body,
+	headers: {
+		get: (name) => {
+			if (name.toLowerCase() === "content-type") return contentType;
+			if (name.toLowerCase() === "retry-after") return retryAfter;
+			return null;
+		},
+	},
+});
+
+test("retries a non-JSON Gelato GET response and returns recovered JSON", async () => {
+	const responses = [
+		response({ status: 502, body: "<!DOCTYPE html><title>Bad gateway</title>" }),
+		response({ status: 200, body: JSON.stringify({ status: "active" }), contentType: "application/json" }),
+	];
+	const delays = [];
+
+	assert.deepEqual(
+		await apiRequest("/stores/store-1/products/product-1", {}, {
+			fetchImpl: async () => responses.shift(),
+			sleepImpl: async (delay) => delays.push(delay),
+		}),
+		{ status: "active" },
+	);
+	assert.deepEqual(delays, [1000]);
+});
+
+test("marks exhausted non-JSON Gelato responses retryable without exposing HTML", async () => {
+	let calls = 0;
+	await assert.rejects(
+		apiRequest("/stores/store-1/products/product-1", {}, {
+			fetchImpl: async () => {
+				calls += 1;
+				return response({ status: 502, body: "<!DOCTYPE html><script>internal gateway details</script>" });
+			},
+			sleepImpl: async () => {},
+		}),
+		(error) =>
+			error.retryableReconcile === true &&
+			error.status === 502 &&
+			/non-JSON/.test(error.message) &&
+			!error.message.includes("internal gateway details"),
+	);
+	assert.equal(calls, 7);
+});
+
+test("defers a non-JSON successful Gelato POST without replaying it", async () => {
+	let calls = 0;
+	await assert.rejects(
+		apiRequest("/stores/store-1/products:create-from-template", { method: "POST" }, {
+			fetchImpl: async () => {
+				calls += 1;
+				return response({ status: 200, body: "<html>upstream proxy</html>" });
+			},
+			sleepImpl: async () => {},
+		}),
+		(error) => error.retryableReconcile === true && error.status === 200,
+	);
+	assert.equal(calls, 1);
+});
+
+test("retries an empty successful Gelato GET response", async () => {
+	const responses = [
+		response({ status: 200, body: "" }),
+		response({ status: 200, body: JSON.stringify({ id: "product-1" }), contentType: "application/json" }),
+	];
+	assert.deepEqual(
+		await apiRequest("/stores/store-1/products/product-1", {}, {
+			fetchImpl: async () => responses.shift(),
+			sleepImpl: async () => {},
+		}),
+		{ id: "product-1" },
+	);
+});
+
+test("defers an empty successful Gelato POST without replaying it", async () => {
+	let calls = 0;
+	await assert.rejects(
+		apiRequest("/stores/store-1/products:create-from-template", { method: "POST" }, {
+			fetchImpl: async () => {
+				calls += 1;
+				return response({ status: 200, body: "" });
+			},
+			sleepImpl: async () => {},
+		}),
+		(error) => error.retryableReconcile === true && error.status === 200,
+	);
+	assert.equal(calls, 1);
+});
+
+test("keeps ordinary Gelato 4xx responses nonretryable", async () => {
+	await assert.rejects(
+		apiRequest("/stores/store-1/products/missing", {}, {
+			fetchImpl: async () =>
+				response({
+					status: 400,
+					body: JSON.stringify({ error: "bad request" }),
+					contentType: "application/json",
+				}),
+			sleepImpl: async () => {},
+		}),
+		(error) => error.status === 400 && error.retryableReconcile !== true,
+	);
+});
 
 test("deduplicates overlapping Gelato product pages by exact ID", () => {
 	assert.deepEqual(

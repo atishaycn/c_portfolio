@@ -332,12 +332,16 @@ const buildManifest = (content = readPortfolioContent()) => {
 	};
 };
 
-const apiRequest = async (path, options = {}) => {
+const apiRequest = async (
+	path,
+	options = {},
+	{ fetchImpl = fetch, sleepImpl = (delay) => new Promise((resolvePromise) => setTimeout(resolvePromise, delay)) } = {},
+) => {
 	for (let attempt = 0; ; attempt += 1) {
 		const method = (options.method ?? "GET").toUpperCase();
 		let response;
 		try {
-			response = await fetch(`${API_BASE}${path}`, {
+			response = await fetchImpl(`${API_BASE}${path}`, {
 				...options,
 				signal:
 					options.signal ??
@@ -356,12 +360,48 @@ const apiRequest = async (path, options = {}) => {
 				`Gelato ${method} network retry in ${Math.ceil(retryDelay / 1000)}s ` +
 				`(attempt ${attempt + 1}/7): ${error.message}`,
 			);
-			await new Promise((resolvePromise) => setTimeout(resolvePromise, retryDelay));
+			await sleepImpl(retryDelay);
 			continue;
 		}
 		const text = await response.text();
-		const body = text ? JSON.parse(text) : null;
 		if (method === "DELETE" && response.status === 404) return null;
+		let body = null;
+		let parseError = null;
+		if (!text && response.ok && method !== "DELETE") {
+			parseError = new Error("empty response");
+		} else if (text) {
+			try {
+				body = JSON.parse(text);
+			} catch (error) {
+				parseError = error;
+			}
+		}
+
+		if (parseError) {
+			const responseRetryable = response.status === 429 || response.status >= 500;
+			const requestRetryable = method === "GET" || method === "DELETE";
+			const maxAttempts = response.status === 429 ? gelato429MaxAttempts() : 7;
+			const canRetryNow = (responseRetryable || requestRetryable) && attempt + 1 < maxAttempts;
+			if (canRetryNow) {
+				const retryAfterSeconds = Number(response.headers.get("retry-after"));
+				const retryDelay = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+					? retryAfterSeconds * 1000
+					: Math.min(5 * 60 * 1000, 1000 * 2 ** attempt);
+				console.warn(
+					`Gelato ${method} ${response.status} returned non-JSON; retrying in ` +
+					`${Math.ceil(retryDelay / 1000)}s (attempt ${attempt + 1}/${maxAttempts}).`,
+				);
+				await sleepImpl(retryDelay);
+				continue;
+			}
+			const error = new Error(
+				`Gelato ${response.status} returned an empty or non-JSON response ` +
+				`(${response.headers.get("content-type") || "unknown content type"}, ${text.length} bytes)`,
+			);
+			error.status = response.status;
+			if (responseRetryable || response.ok) error.retryableReconcile = true;
+			throw error;
+		}
 		if (response.ok) return body;
 
 		const retryable = response.status === 429 || response.status >= 500;
@@ -369,7 +409,7 @@ const apiRequest = async (path, options = {}) => {
 		if (!retryable || attempt + 1 >= maxAttempts) {
 			const error = new Error(`Gelato ${response.status}: ${JSON.stringify(body)}`);
 			error.status = response.status;
-			if (response.status === 429) error.retryableReconcile = true;
+			if (retryable) error.retryableReconcile = true;
 			throw error;
 		}
 		const retryAfterSeconds = Number(response.headers.get("retry-after"));
@@ -381,7 +421,7 @@ const apiRequest = async (path, options = {}) => {
 				`Gelato rate limit: retrying in ${Math.ceil(retryDelay / 1000)}s (attempt ${attempt + 1}/${maxAttempts}).`,
 			);
 		}
-		await new Promise((resolvePromise) => setTimeout(resolvePromise, retryDelay));
+		await sleepImpl(retryDelay);
 	}
 };
 
@@ -1931,6 +1971,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
 }
 
 export {
+	apiRequest,
 	applyReconcilePlan,
 	aspectGroupFor,
 	buildManifest,
