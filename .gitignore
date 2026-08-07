@@ -22,6 +22,7 @@ Shapes & Shadows/
 .portfolio-print-sync-state.json
 .portfolio-print-sync-content.json
 .portfolio-print-sync.lock
+.portfolio-print-sync.log
 .playwright-cli/
 .admin-credentials.local.json
 .gelato-product-manifest.json
