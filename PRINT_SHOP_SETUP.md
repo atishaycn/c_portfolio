@@ -72,6 +72,19 @@ node scripts/portfolio-print-sync.mjs --execute
 
 The script writes `.gelato-product-state.json` after each product. Re-running reconcile recovers already-existing products, creates only missing enabled items, updates album/photo metadata, and archives products no longer enabled. It retries Gelato throttling responses and monitors publishing through catalog snapshots. Stable CMS `item.id` tags prevent album rename, move, or reorder from changing photo identity. Review `.gelato-reconcile-plan.json` before any `--execute` run.
 
+### Full-Bleed Preview Repair
+
+Gelato mockup previews can contain baked white margins that CSS cannot remove. On every normal reconcile, the script idempotently uploads the original Cloudinary artwork to the managed Shopify product using the alt marker `Claire Thomas artwork: <print-id>`, moves that media to the first position, and binds every product variant to it. A restart after any successful Shopify mutation finds the marker and continues with the missing step instead of uploading another image. Shopify HTTP 429 and GraphQL `THROTTLED` responses use capped exponential backoff.
+
+Run the migration through the normal CMS-authoritative reconcile:
+
+```bash
+node scripts/gelato-products.mjs --reconcile --execute --content-file /path/to/cms-snapshot.json
+node scripts/gelato-products.mjs --strict-audit --content-file /path/to/cms-snapshot.json
+```
+
+The strict audit must report `mediaRepairKeys: 0`. It checks both the product’s first artwork media and every variant’s media association, so a product can remain flagged even when its primary image looks correct if a selected size or frame can still display a Gelato mockup.
+
 Archiving is explicit and reversible: reconcile sends Shopify `productUpdate(status: ARCHIVED)` for disabled, stale, duplicate, or superseded products; it never calls a delete endpoint. Missing Shopify mappings block execution for review. The edge-to-edge catalog version archives old `meet` products before creating replacements.
 
 The runner fetches the public CMS revision, writes a pending marker before reconcile, and advances `lastSuccessfulRevision` only after the child reconcile exits successfully. It uses an exclusive lock to prevent overlapping manual workflow invocations. If `SHOPIFY_ADMIN_ACCESS_TOKEN` is absent, reconcile requests a 24-hour Shopify Dev Dashboard client-credentials token from `/admin/oauth/access_token`; tokens and secrets are never logged or written to state.

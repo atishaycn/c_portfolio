@@ -19,6 +19,9 @@ const CLOUD_NAME = "dpmdkrggj";
 const API_BASE = "https://ecommerce.gelatoapis.com/v1";
 const DEFAULT_SHOPIFY_API_VERSION = "2026-07";
 const RETRYABLE_RECONCILE_EXIT_CODE = 75;
+const SHOPIFY_ARTWORK_ALT_PREFIX = "Claire Thomas artwork: ";
+const SHOPIFY_MAX_ATTEMPTS = 8;
+const SHOPIFY_MAX_RETRY_DELAY_MS = 5 * 60 * 1000;
 let shopifyAccessTokenCache = null;
 
 const MEDIA = {
@@ -656,6 +659,39 @@ const productNeedsMetadataUpdate = (product, desired) =>
 	product.handle !== desired.handle ||
 	!sameStringArray(product.tags, desired.tags);
 
+const artworkMediaAltFor = (photo) => `${SHOPIFY_ARTWORK_ALT_PREFIX}${photo.printId}`;
+
+const shopifyMediaNodes = (product) => product?.shopifyMedia?.nodes ?? product?.shopifyMedia ?? [];
+
+const shopifyVariantNodes = (product) => product?.shopifyVariants?.nodes ?? product?.shopifyVariants ?? [];
+
+const findArtworkMedia = (product, photo) =>
+	shopifyMediaNodes(product).find((media) => media.alt === artworkMediaAltFor(photo));
+
+const productNeedsShopifyMediaRepair = (product, photo) => {
+	const artworkMedia = findArtworkMedia(product, photo);
+	if (!artworkMedia) return true;
+	if (shopifyMediaNodes(product).findIndex((media) => media.id === artworkMedia.id) !== 0) return true;
+	return shopifyVariantNodes(product).some((variant) => {
+		const mediaIds = (variant.media?.nodes ?? variant.media ?? []).map((media) => media.id);
+		return mediaIds.length !== 1 || mediaIds[0] !== artworkMedia.id;
+	});
+};
+
+const artworkMediaInput = (photo) => ({
+	originalSource: photo.fileUrl,
+	alt: artworkMediaAltFor(photo),
+	mediaContentType: "IMAGE",
+});
+
+const buildShopifyVariantMediaUpdates = (product, artworkMedia) =>
+	shopifyVariantNodes(product)
+		.filter((variant) => {
+			const mediaIds = (variant.media?.nodes ?? variant.media ?? []).map((media) => media.id);
+			return mediaIds.length !== 1 || mediaIds[0] !== artworkMedia.id;
+		})
+		.map((variant) => ({ id: variant.id, mediaId: artworkMedia.id }));
+
 const productShopifyId = (product) => {
 	const externalId = product?.externalId;
 	if (!externalId) return null;
@@ -768,20 +804,20 @@ const buildReconcilePlan = (
 			if (!productShopifyId(canonical)) {
 				plan.blocked.push({ action: "unarchive", key, productId: canonical.id, reason: "missing-shopify-external-id" });
 			} else {
-				plan.unarchives.push({ key, product: canonical, desired });
+				plan.unarchives.push({ key, product: canonical, photo: target.photo, desired });
 			}
 		} else if (
 			["created", "publishing", "publishing_queued"].includes(canonical.status) ||
 			(canonical.status === "active" && !productShopifyId(canonical))
 		) {
-			plan.pending.push({ key, product: canonical, desired });
+			plan.pending.push({ key, product: canonical, photo: target.photo, desired });
 		} else if (canonical.status !== "active") {
 			plan.blocked.push({ action: "inspect", key, productId: canonical.id, reason: `unsupported-status:${canonical.status}` });
-		} else if (productNeedsMetadataUpdate(observed, desired)) {
+		} else if (productNeedsMetadataUpdate(observed, desired) || productNeedsShopifyMediaRepair(observed, target.photo)) {
 			if (!productShopifyId(canonical)) {
 				plan.blocked.push({ action: "update", key, productId: canonical.id, reason: "missing-shopify-external-id" });
 			} else {
-				plan.updates.push({ key, product: canonical, desired });
+				plan.updates.push({ key, product: canonical, photo: target.photo, desired });
 			}
 		} else {
 			plan.unchanged.push(key);
@@ -803,24 +839,50 @@ const buildReconcilePlan = (
 	return plan;
 };
 
-const shopifyGraphql = async (query, variables) => {
+const shopifyRetryDelayMs = (attempt, retryAfterSeconds = null) => {
+	if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+		return Math.min(SHOPIFY_MAX_RETRY_DELAY_MS, retryAfterSeconds * 1000);
+	}
+	return Math.min(SHOPIFY_MAX_RETRY_DELAY_MS, 1000 * 2 ** attempt);
+};
+
+const isShopifyThrottled = (response, body) =>
+	response.status === 429 ||
+	(body?.errors || []).some((error) => String(error?.extensions?.code || "").toUpperCase() === "THROTTLED");
+
+const shopifyGraphql = async (query, variables, { fetchImpl = fetch, sleepImpl = null, retryDelayImpl = shopifyRetryDelayMs } = {}) => {
 	const domain = normalizedShopifyDomain();
 	const token = await getShopifyAdminAccessToken();
 	const version = process.env.SHOPIFY_API_VERSION || DEFAULT_SHOPIFY_API_VERSION;
-	const response = await fetch(`https://${domain}/admin/api/${version}/graphql.json`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			"X-Shopify-Access-Token": token,
-		},
-		body: JSON.stringify({ query, variables }),
-		signal: AbortSignal.timeout(60 * 1000),
-	});
-	const body = await response.json();
-	if (!response.ok || body.errors?.length) {
-		throw new Error(`Shopify GraphQL ${response.status}: ${JSON.stringify(body.errors || body)}`);
+	for (let attempt = 0; attempt < SHOPIFY_MAX_ATTEMPTS; attempt += 1) {
+		const response = await fetchImpl(`https://${domain}/admin/api/${version}/graphql.json`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Shopify-Access-Token": token,
+			},
+			body: JSON.stringify({ query, variables }),
+			signal: AbortSignal.timeout(60 * 1000),
+		});
+		const text = await response.text();
+		let body = null;
+		try {
+			body = text ? JSON.parse(text) : null;
+		} catch {
+			body = { raw: text };
+		}
+		if (response.ok && !body?.errors?.length) return body.data;
+		if (isShopifyThrottled(response, body) && attempt + 1 < SHOPIFY_MAX_ATTEMPTS) {
+			const retryAfterSeconds = Number(response.headers?.get?.("retry-after"));
+			const retryDelay = retryDelayImpl(attempt, retryAfterSeconds);
+			console.warn(`Shopify throttle: retrying in ${Math.ceil(retryDelay / 1000)}s (attempt ${attempt + 1}/${SHOPIFY_MAX_ATTEMPTS}).`);
+			if (sleepImpl) await sleepImpl(retryDelay);
+			else await new Promise((resolvePromise) => setTimeout(resolvePromise, retryDelay));
+			continue;
+		}
+		throw new Error(`Shopify GraphQL ${response.status}: ${JSON.stringify(body?.errors || body)}`);
 	}
-	return body.data;
+	throw new Error("Shopify GraphQL retry limit exceeded");
 };
 
 const mergeShopifyProductState = (products, shopifyProducts) => {
@@ -842,6 +904,8 @@ const mergeShopifyProductState = (products, shopifyProducts) => {
 			shopifyHandle: shopifyProduct.handle,
 			shopifyDescription: shopifyProduct.descriptionHtml,
 			shopifyTags: shopifyProduct.tags,
+			shopifyMedia: shopifyProduct.media,
+			shopifyVariants: shopifyProduct.variants,
 		};
 	});
 };
@@ -861,6 +925,21 @@ const enrichProductsWithShopifyState = async (products) => {
 						handle
 						descriptionHtml
 						tags
+						media(first: 100) {
+							nodes {
+								id
+								alt
+								mediaContentType
+							}
+						}
+						variants(first: 100) {
+							nodes {
+								id
+								media(first: 10) {
+									nodes { id }
+								}
+							}
+						}
 					}
 				}
 			}`,
@@ -906,24 +985,103 @@ const getShopifyAdminAccessToken = async () => {
 	return shopifyAccessTokenCache;
 };
 
-const updateShopifyProduct = async (product, desired, status, options = {}) => {
+const fetchShopifyProductMedia = async (id) => {
+	const data = await shopifyGraphql(
+		`query CatalogProductMedia($id: ID!) {
+			node(id: $id) {
+				... on Product {
+					id
+					media(first: 100) {
+						nodes { id alt mediaContentType }
+					}
+					variants(first: 100) {
+						nodes {
+							id
+							media(first: 10) { nodes { id } }
+						}
+					}
+				}
+			}
+		}`,
+		{ id },
+	);
+	return data.node;
+};
+
+const repairShopifyProductMedia = async (product, photo) => {
+	let observed = product;
+	if (!findArtworkMedia(observed, photo)) {
+		observed = await fetchShopifyProductMedia(product.id);
+	}
+	const artworkMedia = findArtworkMedia(observed, photo);
+	assert(artworkMedia, `Shopify product ${product.id} did not expose uploaded artwork media`);
+
+	const mediaNodes = shopifyMediaNodes(observed);
+	const artworkPosition = mediaNodes.findIndex((media) => media.id === artworkMedia.id);
+	if (artworkPosition > 0) {
+		const data = await shopifyGraphql(
+			`mutation ReorderArtworkMedia($id: ID!, $moves: [MoveInput!]!) {
+				productReorderMedia(id: $id, moves: $moves) {
+					mediaUserErrors { field message }
+				}
+			}`,
+			{
+				id: product.id,
+				moves: [{ id: artworkMedia.id, newPosition: "0" }],
+			},
+		);
+		const errors = data.productReorderMedia?.mediaUserErrors || [];
+		if (errors.length) throw new Error(`Shopify media reorder failed for ${product.id}: ${JSON.stringify(errors)}`);
+	}
+
+	const variants = buildShopifyVariantMediaUpdates(observed, artworkMedia);
+	if (variants.length) {
+		const data = await shopifyGraphql(
+			`mutation BindArtworkMediaToVariants($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+				productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+					userErrors { field message }
+				}
+			}`,
+			{ productId: product.id, variants },
+		);
+		const errors = data.productVariantsBulkUpdate?.userErrors || [];
+		if (errors.length) throw new Error(`Shopify variant media update failed for ${product.id}: ${JSON.stringify(errors)}`);
+	}
+	return { artworkMediaId: artworkMedia.id, reordered: artworkPosition > 0, variantsUpdated: variants.length };
+};
+
+const updateShopifyProduct = async (product, desired, status, { photo = null, ...options } = {}) => {
 	const id = productShopifyId(product);
 	assert(id, `Product ${product.id} has no Shopify externalId`);
+	const media = photo && !findArtworkMedia(product, photo) ? [artworkMediaInput(photo)] : undefined;
 	const data = await shopifyGraphql(
-		`mutation ReconcileProduct($product: ProductUpdateInput!) {
-			productUpdate(product: $product) {
-				product { id title status }
+		`mutation ReconcileProduct($product: ProductUpdateInput!, $media: [CreateMediaInput!]) {
+			productUpdate(product: $product, media: $media) {
+				product {
+					id
+					title
+					status
+					media(first: 100) { nodes { id alt mediaContentType } }
+					variants(first: 100) {
+						nodes {
+							id
+							media(first: 10) { nodes { id } }
+						}
+					}
+				}
 				userErrors { field message }
 			}
 		}`,
 		{
 			product: buildShopifyProductUpdate(product, desired, status, options),
+			...(media ? { media } : {}),
 		},
 	);
 	const result = data.productUpdate;
 	if (result.userErrors?.length) {
 		throw new Error(`Shopify product update failed for ${id}: ${JSON.stringify(result.userErrors)}`);
 	}
+	if (photo) await repairShopifyProductMedia(result.product, photo);
 	return result.product;
 };
 
@@ -961,7 +1119,7 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 	}
 	for (const action of [...plan.updates, ...plan.unarchives]) {
 		const status = plan.unarchives.includes(action) ? "ACTIVE" : null;
-		await updateShopifyProduct(action.product, action.desired, status);
+		await updateShopifyProduct(action.product, action.desired, status, { photo: action.photo });
 		state.products[action.key] = {
 			...(state.products[action.key] || {}),
 			id: action.product.id,
@@ -972,7 +1130,9 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 			description: action.desired.description,
 			tags: action.desired.tags,
 			metadataSynced: true,
+			mediaSynced: true,
 			metadataUpdatedAt: new Date().toISOString(),
+			mediaUpdatedAt: new Date().toISOString(),
 		};
 		writeState(state);
 	}
@@ -1017,8 +1177,9 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 		writeState(state);
 		createdActions.set(key, action);
 		if (productShopifyId(createdProduct)) {
-			await updateShopifyProduct(createdProduct, productMetadata(action.photo, action.medium), "ACTIVE");
+			await updateShopifyProduct(createdProduct, productMetadata(action.photo, action.medium), "ACTIVE", { photo: action.photo });
 			state.products[key].metadataSynced = true;
+			state.products[key].mediaSynced = true;
 			writeState(state);
 			createdWithShopifyMapping.add(key);
 		}
@@ -1032,8 +1193,9 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 			if (!action) continue;
 			const product = await apiRequest(`/stores/${storeId}/products/${state.products[job.key].id}`);
 			const desired = action.desired ?? productMetadata(action.photo, action.medium);
-			await updateShopifyProduct(product, desired, "ACTIVE");
+			await updateShopifyProduct(product, desired, "ACTIVE", { photo: action.photo });
 			state.products[job.key].metadataSynced = true;
+			state.products[job.key].mediaSynced = true;
 			state.products[job.key].handle = desired.handle;
 			state.products[job.key].description = desired.description;
 			state.products[job.key].tags = desired.tags;
@@ -1071,11 +1233,20 @@ const buildCatalogAudit = (photos, existingProducts, selectedMedia = Object.keys
 	const missingActiveKeys = [];
 	const duplicateActiveKeys = [];
 	const nonActiveProducts = [];
+	const mediaRepairKeys = [];
+	const photosById = new Map(photos.map((photo) => [photo.printId, photo]));
 	for (const [key, products] of groups) {
 		const active = products.filter(isReadyActiveProduct);
 		if (!active.length) missingActiveKeys.push(key);
 		if (active.length > 1) duplicateActiveKeys.push({ key, productIds: active.map((product) => product.id) });
 		nonActiveProducts.push(...products.filter((product) => !isReadyActiveProduct(product)));
+		const { printId } = splitProductKey(key);
+		const photo = photosById.get(printId);
+		for (const product of active) {
+			if (photo?.fileUrl && Object.hasOwn(product, "shopifyMedia") && productNeedsShopifyMediaRepair(product, photo)) {
+				mediaRepairKeys.push(key);
+			}
+		}
 	}
 
 	return {
@@ -1085,12 +1256,14 @@ const buildCatalogAudit = (photos, existingProducts, selectedMedia = Object.keys
 		missingActiveKeys,
 		duplicateActiveKeys,
 		nonActiveProducts,
+		mediaRepairKeys,
 		staleProducts,
 		unmanagedProducts,
 		clean:
 			missingActiveKeys.length === 0 &&
 			duplicateActiveKeys.length === 0 &&
 			nonActiveProducts.length === 0 &&
+			mediaRepairKeys.length === 0 &&
 			staleProducts.length === 0 &&
 			unmanagedProducts.length === 0,
 	};
@@ -1418,6 +1591,7 @@ const run = async () => {
 					missingActiveKeys: catalogAudit.missingActiveKeys.length,
 					duplicateActiveKeys: catalogAudit.duplicateActiveKeys.length,
 					nonActiveProducts: catalogAudit.nonActiveProducts.length,
+					mediaRepairKeys: catalogAudit.mediaRepairKeys.length,
 					staleProducts: catalogAudit.staleProducts.length,
 					unmanagedProducts: catalogAudit.unmanagedProducts.length,
 					report: CATALOG_AUDIT_FILE,
@@ -1513,6 +1687,9 @@ export {
 	buildManifest,
 	buildReconcilePlan,
 	buildShopifyProductUpdate,
+	artworkMediaAltFor,
+	artworkMediaInput,
+	buildShopifyVariantMediaUpdates,
 	buildCreatedRepairPlan,
 	buildCatalogAudit,
 	cloudinaryUrl,
@@ -1527,6 +1704,10 @@ export {
 	normalizeVariant,
 	orientationFor,
 	productMetadata,
+	productNeedsShopifyMediaRepair,
+	isShopifyThrottled,
+	shopifyGraphql,
+	shopifyRetryDelayMs,
 	archivedProductHandle,
 	requestShopifyClientCredentialsToken,
 	referenceLabelFor,

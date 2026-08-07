@@ -6,6 +6,9 @@ import {
 	buildManifest,
 	buildReconcilePlan,
 	buildShopifyProductUpdate,
+	artworkMediaAltFor,
+	artworkMediaInput,
+	buildShopifyVariantMediaUpdates,
 	buildCatalogAudit,
 	buildCreatedRepairPlan,
 	catalogVersionTag,
@@ -20,6 +23,10 @@ import {
 	normalizeVariant,
 	orientationFor,
 	productMetadata,
+	productNeedsShopifyMediaRepair,
+	isShopifyThrottled,
+	shopifyGraphql,
+	shopifyRetryDelayMs,
 	archivedProductHandle,
 	referenceLabelFor,
 	selectExistingProduct,
@@ -501,4 +508,124 @@ test("archives old handles before replacement and exposes the canonical Fine Art
 	});
 	assert.notEqual(archiveUpdate.handle, oldProduct.handle);
 	assert.equal(buildShopifyProductUpdate(oldProduct, productMetadata(photo, "fine-art"), "ACTIVE").handle, canonicalHandle);
+});
+
+test("plans a deterministic full-bleed artwork media repair for every Shopify variant", () => {
+	const photo = {
+		printId: "the-natural-world-1",
+		fileUrl: "https://res.cloudinary.com/dpmdkrggj/image/upload/f_jpg,q_95/1_asebdu.jpg",
+	};
+	const artworkMedia = { id: "gid://shopify/MediaImage/artwork", alt: artworkMediaAltFor(photo) };
+	const product = {
+		shopifyMedia: { nodes: [artworkMedia, { id: "mockup", alt: "Gelato mockup" }] },
+		shopifyVariants: {
+			nodes: [
+				{ id: "variant-1", media: { nodes: [{ id: "mockup" }] } },
+				{ id: "variant-2", media: { nodes: [{ id: artworkMedia.id }] } },
+			],
+		},
+	};
+
+	assert.deepEqual(artworkMediaInput(photo), {
+		originalSource: photo.fileUrl,
+		alt: "Claire Thomas artwork: the-natural-world-1",
+		mediaContentType: "IMAGE",
+	});
+	assert.equal(productNeedsShopifyMediaRepair(product, photo), true);
+	assert.deepEqual(buildShopifyVariantMediaUpdates(product, artworkMedia), [
+		{ id: "variant-1", mediaId: artworkMedia.id },
+	]);
+	assert.equal(
+		productNeedsShopifyMediaRepair(
+			{ ...product, shopifyMedia: { nodes: [{ id: "mockup", alt: "Gelato mockup" }, artworkMedia] } },
+			photo,
+		),
+		true,
+	);
+
+	const repaired = {
+		...product,
+		shopifyVariants: {
+			nodes: product.shopifyVariants.nodes.map((variant) => ({
+				...variant,
+				media: { nodes: [{ id: artworkMedia.id }] },
+			})),
+		},
+	};
+	assert.equal(productNeedsShopifyMediaRepair(repaired, photo), false);
+});
+
+test("reconcile updates a metadata-clean active product when its artwork media is missing", () => {
+	const photo = {
+		printId: "photo-1",
+		albumId: "album",
+		series: "album",
+		seriesLabel: "Album",
+		seriesPath: "Album",
+		referenceLabel: "1",
+		photoOrder: 0,
+		fileUrl: "https://res.cloudinary.com/dpmdkrggj/image/upload/f_jpg,q_95/photo-1.jpg",
+	};
+	const desired = productMetadata(photo, "fine-art");
+	const plan = buildReconcilePlan(
+		[photo],
+		{ products: { "photo-1:fine-art": { id: "gelato-1" } } },
+		[{ id: "gelato-1", externalId: "101", status: "active", ...desired }],
+		["fine-art"],
+	);
+	assert.deepEqual(plan.updates.map(({ key, photo: target }) => [key, target.printId]), [["photo-1:fine-art", "photo-1"]]);
+});
+
+test("strict audit detects variants that can still fall back to Gelato mockups", () => {
+	const photo = {
+		printId: "photo-1",
+		fileUrl: "https://res.cloudinary.com/dpmdkrggj/image/upload/f_jpg,q_95/photo-1.jpg",
+	};
+	const product = {
+		id: "gelato-1",
+		externalId: "101",
+		status: "active",
+		shopifyStatus: "active",
+		tags: ["photo-1", "format-fine-art", "claire-thomas"],
+		shopifyMedia: { nodes: [{ id: "artwork", alt: artworkMediaAltFor(photo) }] },
+		shopifyVariants: { nodes: [{ id: "variant-1", media: { nodes: [{ id: "gelato-mockup" }] } }] },
+	};
+	const audit = buildCatalogAudit([photo], [product], ["fine-art"]);
+	assert.equal(audit.clean, false);
+	assert.deepEqual(audit.mediaRepairKeys, ["photo-1:fine-art"]);
+});
+
+test("retries HTTP 429 and GraphQL THROTTLED responses with bounded backoff", async () => {
+	const originalDomain = process.env.SHOPIFY_STORE_DOMAIN;
+	const originalToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+	process.env.SHOPIFY_STORE_DOMAIN = "shop.test";
+	process.env.SHOPIFY_ADMIN_ACCESS_TOKEN = "test-token";
+	let calls = 0;
+	const responses = [
+		{ status: 429, ok: false, headers: { get: () => "0" }, text: async () => "{}" },
+		{
+			status: 200,
+			ok: true,
+			headers: { get: () => null },
+			text: async () => JSON.stringify({ errors: [{ extensions: { code: "THROTTLED" } }] }),
+		},
+		{ status: 200, ok: true, headers: { get: () => null }, text: async () => JSON.stringify({ data: { ok: true } }) },
+	];
+	try {
+		const result = await shopifyGraphql("query Test { shop { id } }", {}, {
+			fetchImpl: async () => responses[calls++],
+			sleepImpl: async () => {},
+			retryDelayImpl: () => 0,
+		});
+		assert.deepEqual(result, { ok: true });
+		assert.equal(calls, 3);
+	} finally {
+		if (originalDomain === undefined) delete process.env.SHOPIFY_STORE_DOMAIN;
+		else process.env.SHOPIFY_STORE_DOMAIN = originalDomain;
+		if (originalToken === undefined) delete process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+		else process.env.SHOPIFY_ADMIN_ACCESS_TOKEN = originalToken;
+	}
+	assert.equal(isShopifyThrottled({ status: 429 }, null), true);
+	assert.equal(isShopifyThrottled({ status: 200 }, { errors: [{ extensions: { code: "THROTTLED" } }] }), true);
+	assert.equal(shopifyRetryDelayMs(99), 5 * 60 * 1000);
 });
