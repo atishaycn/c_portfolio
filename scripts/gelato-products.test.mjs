@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+	applyReconcilePlan,
 	aspectGroupFor,
 	buildManifest,
 	buildReconcilePlan,
@@ -31,6 +32,7 @@ import {
 	shopifyRetryDelayMs,
 	runWithRetryableDeferral,
 	publishingPollIntervalMs,
+	reconcileCreateActions,
 	safelyPublishShopifyProduct,
 	shouldUploadArtworkMedia,
 	waitForShopifyArtworkBindings,
@@ -55,6 +57,73 @@ test("deduplicates overlapping Gelato product pages by exact ID", () => {
 			{ id: "three", status: "active" },
 		],
 	);
+});
+
+test("waits for publishing products before requesting more Gelato products", () => {
+	const creates = [{ key: "photo-2:fine-art" }];
+	assert.deepEqual(reconcileCreateActions({ pending: [{ key: "photo-1:fine-art" }], creates }), []);
+	assert.deepEqual(reconcileCreateActions({ pending: [], creates }), creates);
+});
+
+test("drains pending products without creating more and requests a retryable continuation", async () => {
+	const key = "photo-1:fine-art";
+	const desired = { handle: "photo-1-fine-art-print", description: "Photo 1", tags: ["photo-id:photo-1"] };
+	const photo = { printId: "photo-1", publicId: "photo/1" };
+	const plan = {
+		archives: [],
+		blocked: [],
+		creates: [{ key: "photo-2:fine-art", medium: "fine-art", photo: { printId: "photo-2" } }],
+		pending: [{
+			key,
+			desired,
+			photo,
+			product: { id: "gelato-pending", externalId: null, status: "publishing" },
+		}],
+		recoveries: [],
+		unarchives: [],
+		updates: [],
+	};
+	const state = { products: {} };
+	const apiCalls = [];
+	const updates = [];
+	const repairs = [];
+
+	await assert.rejects(
+		applyReconcilePlan({
+			plan,
+			state,
+			storeId: "store-1",
+			templates: {},
+			apiRequestImpl: async (path, options = {}) => {
+				apiCalls.push({ path, method: options.method || "GET" });
+				assert.notEqual(options.method, "POST");
+				return { id: "gelato-pending", externalId: "123", status: "active" };
+			},
+			updateShopifyProductImpl: async (product, metadata, status) => {
+				updates.push({ product, metadata, status });
+				return product;
+			},
+			safelyPublishShopifyProductImpl: async (product, metadata) => {
+				repairs.push({ product, metadata });
+				return product;
+			},
+			waitForProductsImpl: async (_storeId, jobs, currentState, { onActive }) => {
+				assert.deepEqual(jobs, [{ key }]);
+				const active = { id: "gelato-pending", externalId: "123", status: "active" };
+				currentState.products[key].externalId = active.externalId;
+				currentState.products[key].status = active.status;
+				await onActive(active, jobs[0]);
+				return [active];
+			},
+			writeStateImpl() {},
+		}),
+		(error) =>
+			error.retryableReconcile === true &&
+			error.message === "Deferred 1 new products until 1 publishing products finish",
+	);
+	assert.deepEqual(apiCalls, [{ path: "/stores/store-1/products/gelato-pending", method: "GET" }]);
+	assert.equal(updates.some((update) => update.status === "DRAFT"), true);
+	assert.equal(repairs.length, 1);
 });
 
 test("requires exactly one active managed product for every catalog key", () => {

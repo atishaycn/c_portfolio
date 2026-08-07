@@ -1291,11 +1291,24 @@ const safelyPublishShopifyProduct = async (
 	return updateProduct(product, desired, "ACTIVE");
 };
 
-const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = false }) => {
+const reconcileCreateActions = (plan) => plan.pending.length ? [] : plan.creates;
+
+const applyReconcilePlan = async ({
+	plan,
+	state,
+	storeId,
+	templates,
+	visible = false,
+	apiRequestImpl = apiRequest,
+	safelyPublishShopifyProductImpl = safelyPublishShopifyProduct,
+	updateShopifyProductImpl = updateShopifyProduct,
+	waitForProductsImpl = waitForProducts,
+	writeStateImpl = writeState,
+}) => {
 	assert(!plan.blocked.length, `Reconcile has ${plan.blocked.length} unmappable product actions; inspect the dry-run plan first`);
 	const deferred = new Map();
 	for (const action of plan.archives) {
-		await updateShopifyProduct(action.product, null, "ARCHIVED", { archive: true });
+		await updateShopifyProductImpl(action.product, null, "ARCHIVED", { archive: true });
 		const record = state.products[action.key];
 		if (record?.id === action.product.id) {
 			state.products[action.key] = {
@@ -1303,15 +1316,15 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = f
 				status: "archived",
 				archivedAt: new Date().toISOString(),
 			};
-			writeState(state);
+			writeStateImpl(state);
 		}
 	}
 	for (const action of plan.recoveries) {
 		const shopifyStatus = String(action.product.shopifyStatus || "").toLowerCase();
 		if (productShopifyId(action.product) && !["archived", "deleted", "missing"].includes(shopifyStatus)) {
-			await updateShopifyProduct(action.product, null, "ARCHIVED", { archive: true });
+			await updateShopifyProductImpl(action.product, null, "ARCHIVED", { archive: true });
 		}
-		await apiRequest(`/stores/${storeId}/products/${action.product.id}`, { method: "DELETE" });
+		await apiRequestImpl(`/stores/${storeId}/products/${action.product.id}`, { method: "DELETE" });
 		const record = state.products[action.key];
 		if (record?.id === action.product.id) {
 			state.products[action.key] = {
@@ -1321,11 +1334,11 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = f
 				status: "deleted_for_recovery",
 				recoveredAt: new Date().toISOString(),
 			};
-			writeState(state);
+			writeStateImpl(state);
 		}
 	}
 	await runWithRetryableDeferral([...plan.updates, ...plan.unarchives], async (action) => {
-		await safelyPublishShopifyProduct(action.product, action.desired, { photo: action.photo });
+		await safelyPublishShopifyProductImpl(action.product, action.desired, { photo: action.photo });
 		state.products[action.key] = {
 			...(state.products[action.key] || {}),
 			id: action.product.id,
@@ -1340,13 +1353,14 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = f
 			metadataUpdatedAt: new Date().toISOString(),
 			mediaUpdatedAt: new Date().toISOString(),
 		};
-		writeState(state);
+		writeStateImpl(state);
 	}, deferred);
 
 	const jobs = [];
 	const createdActions = new Map();
 	const pendingActions = new Map();
 	const createdWithShopifyMapping = new Set();
+	const createsToApply = reconcileCreateActions(plan);
 	for (const action of plan.pending) {
 		state.products[action.key] = {
 			...(state.products[action.key] || {}),
@@ -1358,14 +1372,14 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = f
 			description: action.desired.description,
 			tags: action.desired.tags,
 		};
-		writeState(state);
+		writeStateImpl(state);
 		jobs.push({ key: action.key });
 		pendingActions.set(action.key, action);
 	}
-	for (const action of plan.creates) {
+	for (const action of createsToApply) {
 		const key = action.key;
 		const payload = createPayload(templates[action.medium], action.photo, action.medium, visible);
-		const createdProduct = await apiRequest(`/stores/${storeId}/products:create-from-template`, {
+		const createdProduct = await apiRequestImpl(`/stores/${storeId}/products:create-from-template`, {
 			method: "POST",
 			body: JSON.stringify(payload),
 		});
@@ -1380,47 +1394,47 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = f
 			tags: productMetadata(action.photo, action.medium).tags,
 			createdAt: new Date().toISOString(),
 		};
-		writeState(state);
+		writeStateImpl(state);
 		createdActions.set(key, action);
 		if (productShopifyId(createdProduct)) {
 			await runWithRetryableDeferral([action], async () => {
-				await safelyPublishShopifyProduct(
+				await safelyPublishShopifyProductImpl(
 					createdProduct,
 					productMetadata(action.photo, action.medium),
 					{ photo: action.photo },
 				);
 				state.products[key].metadataSynced = true;
 				state.products[key].mediaSynced = true;
-				writeState(state);
+				writeStateImpl(state);
 				createdWithShopifyMapping.add(key);
 			}, deferred);
 		}
 		jobs.push({ key });
 	}
 	if (jobs.length) {
-		await waitForProducts(storeId, jobs, state, {
+		await waitForProductsImpl(storeId, jobs, state, {
 			pollIntervalMs: publishingPollIntervalMs(jobs, state),
 			onActive: async (product, job) => {
 				const action = createdActions.get(job.key) ?? pendingActions.get(job.key);
 				if (!action || !productShopifyId(product)) return;
 				const desired = action.desired ?? productMetadata(action.photo, action.medium);
-				await updateShopifyProduct(product, desired, "DRAFT");
+				await updateShopifyProductImpl(product, desired, "DRAFT");
 			},
 		});
 		await runWithRetryableDeferral(jobs, async (job) => {
 			if (createdWithShopifyMapping.has(job.key)) return;
 			const action = createdActions.get(job.key) ?? pendingActions.get(job.key);
 			if (!action) return;
-			const product = await apiRequest(`/stores/${storeId}/products/${state.products[job.key].id}`);
+			const product = await apiRequestImpl(`/stores/${storeId}/products/${state.products[job.key].id}`);
 			const desired = action.desired ?? productMetadata(action.photo, action.medium);
-			await safelyPublishShopifyProduct(product, desired, { photo: action.photo });
+			await safelyPublishShopifyProductImpl(product, desired, { photo: action.photo });
 			state.products[job.key].metadataSynced = true;
 			state.products[job.key].mediaSynced = true;
 			state.products[job.key].handle = desired.handle;
 			state.products[job.key].description = desired.description;
 			state.products[job.key].tags = desired.tags;
 			state.products[job.key].metadataUpdatedAt = new Date().toISOString();
-			writeState(state);
+			writeStateImpl(state);
 		}, deferred);
 	}
 	if (deferred.size) {
@@ -1432,12 +1446,17 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = f
 			`Deferred ${deferred.size} asynchronous Shopify media repairs for the next continuation:\n${sample}`,
 		);
 	}
+	if (plan.pending.length && plan.creates.length) {
+		throw retryableReconcileError(
+			`Deferred ${plan.creates.length} new products until ${plan.pending.length} publishing products finish`,
+		);
+	}
 	return {
 		archived: plan.archives.length,
 		recovered: plan.recoveries.length,
 		updated: plan.updates.length,
 		unarchived: plan.unarchives.length,
-		created: plan.creates.length,
+		created: createsToApply.length,
 	};
 };
 
@@ -1783,7 +1802,7 @@ const run = async () => {
 		if (!args.execute) return;
 		assert(!plan.blocked.length, `Reconcile blocked by ${plan.blocked.length} product mappings; dry-run plan: ${RECONCILE_PLAN_FILE}`);
 		let templates = {};
-		if (plan.creates.length) {
+		if (reconcileCreateActions(plan).length) {
 			templates = await loadTemplates(args.media);
 			validateTemplates(templates, selectedPhotos, args.media);
 		}
@@ -1912,6 +1931,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
 }
 
 export {
+	applyReconcilePlan,
 	aspectGroupFor,
 	buildManifest,
 	buildReconcilePlan,
@@ -1950,6 +1970,7 @@ export {
 	archivedProductHandle,
 	requestShopifyClientCredentialsToken,
 	referenceLabelFor,
+	reconcileCreateActions,
 	selectExistingProduct,
 	selectTemplateVariants,
 };
