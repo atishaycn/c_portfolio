@@ -101,17 +101,12 @@
         card.dataset.productTags ||
         card.getAttribute('data-product-tags') ||
         card.querySelector('[data-product-tags]')?.getAttribute('data-product-tags') ||
+        card.closest?.('[data-product-tags]')?.getAttribute?.('data-product-tags') ||
         '';
       const artworkTag = tagSource
         .split(',')
         .map((tag) => tag.trim().toLowerCase())
-        .find(
-          (tag) =>
-            tag &&
-            !tag.startsWith('series-') &&
-            !tag.startsWith('format-') &&
-            !['claire-thomas', 'fine-art-photography', 'wall-art'].includes(tag),
-        );
+        .find((tag) => tag.startsWith('photo-id:'));
       return artworkTag ? `tag:${artworkTag}` : `handle:${baseHandleFor(handle)}`;
     };
 

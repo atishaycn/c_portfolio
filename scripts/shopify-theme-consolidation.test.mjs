@@ -67,7 +67,10 @@ test("normalizes numeric Shopify duplicate suffixes without losing numeric artwo
 test("prefers stable artwork tags and supports arbitrary renamed album handles", () => {
 	const api = loadApi();
 	const card = {
-		dataset: { productTags: "series-new-label, format-fine-art, animals-17, claire-thomas" },
+		dataset: {
+			productTags:
+				"album-animals, catalog-edge-to-edge-v1, series-new-label, format-fine-art, photo-id:animals-17, claire-thomas",
+		},
 		getAttribute() {
 			return null;
 		},
@@ -76,7 +79,7 @@ test("prefers stable artwork tags and supports arbitrary renamed album handles",
 		},
 	};
 
-	assert.equal(api.artworkKeyFor(card, "renamed-album-17-fine-art-print-3"), "tag:animals-17");
+	assert.equal(api.artworkKeyFor(card, "renamed-album-17-fine-art-print-3"), "tag:photo-id:animals-17");
 	assert.equal(api.artworkKeyFor({ dataset: {}, getAttribute: () => null, querySelector: () => null }, "renamed-album-17-fine-art-print-3"), "handle:renamed-album-17");
 });
 
@@ -118,6 +121,37 @@ test("renders exactly one Fine Art card per artwork within a Horizon scope", () 
 	api.consolidateProductCards();
 	assert.deepEqual(cards.map((card) => card.item.hidden), [true, false, true, true]);
 	assert.equal(cards.filter((card) => card.classList.has("ct-print-card")).length, 1);
+});
+
+test("consolidates divergent format handles by the shared stable photo tag", () => {
+	const scope = {};
+	const makeCard = (href) => {
+		const item = {
+			hidden: false,
+			parentElement: scope,
+			matches: () => false,
+		};
+		return {
+			dataset: { productTags: "album-renamed, photo-id:stable-photo-17, catalog-edge-to-edge-v1" },
+			classList: new Set(),
+			parentElement: scope,
+			querySelector: (selector) => selector === 'a[href*="/products/"]' ? { href } : null,
+			querySelectorAll: () => [],
+			getAttribute: () => null,
+			closest: () => item,
+			item,
+		};
+	};
+	const cards = [
+		makeCard("https://shop.test/products/old-album-17-fine-art-print"),
+		makeCard("https://shop.test/products/renamed-album-uuid-canvas-print"),
+		makeCard("https://shop.test/products/another-handle-framed-fine-art-print-2"),
+	];
+	const api = loadApi(cards);
+
+	api.consolidateProductCards();
+	assert.deepEqual(cards.map((card) => card.item.hidden), [false, true, true]);
+	assert.equal(cards[0].classList.has("ct-print-card"), true);
 });
 
 test("hides non-Fine-Art cards across paginated product and resource listings", () => {
