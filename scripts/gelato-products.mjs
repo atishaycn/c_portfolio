@@ -698,6 +698,9 @@ const artworkMediaInput = (photo) => ({
 	mediaContentType: "IMAGE",
 });
 
+const shouldUploadArtworkMedia = (product, photo) =>
+	Boolean(photo && !findArtworkMedia(product, photo));
+
 const buildShopifyVariantMediaUpdates = (product, artworkMedia) =>
 	shopifyVariantNodes(product)
 		.filter((variant) => {
@@ -1187,7 +1190,10 @@ const runWithRetryableDeferral = async (actions, handler, deferred = new Map()) 
 const updateShopifyProduct = async (product, desired, status, { photo = null, ...options } = {}) => {
 	const id = productShopifyId(product);
 	assert(id, `Product ${product.id} has no Shopify externalId`);
-	const media = photo && !findArtworkMedia(product, photo) ? [artworkMediaInput(photo)] : undefined;
+	const existingShopifyProduct = photo ? await fetchShopifyProductMedia(id) : null;
+	const media = shouldUploadArtworkMedia(existingShopifyProduct, photo)
+		? [artworkMediaInput(photo)]
+		: undefined;
 	const data = await shopifyGraphql(
 		`mutation ReconcileProduct($product: ProductUpdateInput!, $media: [CreateMediaInput!]) {
 			productUpdate(product: $product, media: $media) {
@@ -1861,6 +1867,7 @@ export {
 	shopifyGraphql,
 	shopifyRetryDelayMs,
 	runWithRetryableDeferral,
+	shouldUploadArtworkMedia,
 	waitForShopifyArtworkBindings,
 	waitForShopifyArtworkMedia,
 	waitForShopifyJob,

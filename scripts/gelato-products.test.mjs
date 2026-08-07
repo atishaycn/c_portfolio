@@ -29,6 +29,7 @@ import {
 	shopifyGraphql,
 	shopifyRetryDelayMs,
 	runWithRetryableDeferral,
+	shouldUploadArtworkMedia,
 	waitForShopifyArtworkBindings,
 	waitForShopifyArtworkMedia,
 	waitForShopifyJob,
@@ -536,6 +537,8 @@ test("plans a deterministic full-bleed artwork media repair for every Shopify va
 		alt: "Claire Thomas artwork: the-natural-world-1",
 		mediaContentType: "IMAGE",
 	});
+	assert.equal(shouldUploadArtworkMedia(null, photo), true);
+	assert.equal(shouldUploadArtworkMedia(product, photo), false);
 	assert.equal(productNeedsShopifyMediaRepair(product, photo), true);
 	assert.deepEqual(buildShopifyVariantMediaUpdates(product, artworkMedia), [
 		{ id: "variant-1", mediaId: artworkMedia.id },
