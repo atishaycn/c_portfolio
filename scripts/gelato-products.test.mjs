@@ -351,6 +351,30 @@ test("does not match products by mutable title and blocks archive without Shopif
 	assert.equal(catalogVersionTag, "catalog-edge-to-edge-v1");
 });
 
+test("allows pending publishing products to wait for Shopify mappings", () => {
+	const photo = {
+		printId: "photo-1",
+		series: "album",
+		seriesLabel: "Renamed album",
+		seriesPath: "Renamed album",
+		referenceLabel: "1",
+		photoOrder: 0,
+	};
+	const pending = {
+		id: "pending-no-shopify-id",
+		status: "publishing_queued",
+		title: "Old title",
+		handle: "old-handle",
+		tags: ["photo-1", "format-fine-art", "claire-thomas", "catalog-edge-to-edge-v1"],
+	};
+	const plan = buildReconcilePlan([photo], { products: {} }, [pending], ["fine-art"]);
+	assert.equal(plan.pending.length, 1);
+	assert.equal(plan.pending[0].key, "photo-1:fine-art");
+	assert.equal(plan.creates.length, 0);
+	assert.equal(plan.updates.length, 0);
+	assert.equal(plan.blocked.length, 0);
+});
+
 test("archives old handles before replacement and exposes the canonical Fine Art URL", () => {
 	const photo = {
 		printId: "the-natural-world-3",

@@ -737,13 +737,6 @@ const buildReconcilePlan = (
 			}
 		} else if (["created", "publishing", "publishing_queued"].includes(canonical.status)) {
 			plan.pending.push({ key, product: canonical, desired });
-			if (productNeedsMetadataUpdate(observed, desired)) {
-				if (!productShopifyId(canonical)) {
-					plan.blocked.push({ action: "update", key, productId: canonical.id, reason: "missing-shopify-external-id" });
-				} else {
-					plan.updates.push({ key, product: canonical, desired });
-				}
-			}
 		} else if (canonical.status !== "active") {
 			plan.blocked.push({ action: "inspect", key, productId: canonical.id, reason: `unsupported-status:${canonical.status}` });
 		} else if (productNeedsMetadataUpdate(observed, desired)) {
@@ -882,8 +875,8 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 
 	const jobs = [];
 	const createdActions = new Map();
+	const pendingActions = new Map();
 	const createdWithShopifyMapping = new Set();
-	const pendingKeys = new Set();
 	for (const action of plan.pending) {
 		state.products[action.key] = {
 			...(state.products[action.key] || {}),
@@ -897,7 +890,7 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 		};
 		writeState(state);
 		jobs.push({ key: action.key });
-		pendingKeys.add(action.key);
+		pendingActions.set(action.key, action);
 	}
 	for (const action of plan.creates) {
 		const key = action.key;
@@ -930,11 +923,17 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 	if (jobs.length) {
 		await waitForProducts(storeId, jobs, state);
 		for (const job of jobs) {
-			if (pendingKeys.has(job.key) || createdWithShopifyMapping.has(job.key)) continue;
-			const action = createdActions.get(job.key);
+			if (createdWithShopifyMapping.has(job.key)) continue;
+			const action = createdActions.get(job.key) ?? pendingActions.get(job.key);
+			if (!action) continue;
 			const product = await apiRequest(`/stores/${storeId}/products/${state.products[job.key].id}`);
-			await updateShopifyProduct(product, productMetadata(action.photo, action.medium), "ACTIVE");
+			const desired = action.desired ?? productMetadata(action.photo, action.medium);
+			await updateShopifyProduct(product, desired, "ACTIVE");
 			state.products[job.key].metadataSynced = true;
+			state.products[job.key].handle = desired.handle;
+			state.products[job.key].description = desired.description;
+			state.products[job.key].tags = desired.tags;
+			state.products[job.key].metadataUpdatedAt = new Date().toISOString();
 			writeState(state);
 		}
 	}
