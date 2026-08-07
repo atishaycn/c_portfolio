@@ -26,7 +26,7 @@ const printShopConfig = {
 	},
 };
 
-const shopifySeriesHandles = {
+const SHOPIFY_SERIES_HANDLES = {
 	"the-natural-world": "the-natural-world",
 	california: "california",
 	"san-francisco": "san-francisco",
@@ -581,16 +581,37 @@ const printInquiryUrl = (item, page) => {
 	);
 	return `mailto:${printShopConfig.email}?subject=${subject}&body=${body}`;
 };
+const referenceLabelFor = (printId, albumKey) => {
+	const prefix = `${albumKey}-`;
+	const reference = printId.startsWith(prefix) ? printId.slice(prefix.length) : printId;
+	return reference
+		.split("-")
+		.map((part) => (/^\d+$/.test(part) ? part : `${part.charAt(0).toUpperCase()}${part.slice(1)}`))
+		.join(" ");
+};
+
+const shopifyHandleize = (value) =>
+	value
+		.normalize("NFKD")
+		.replace(/[\u0300-\u036f]/g, "")
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "");
+
+const shopifyFineArtHandleFor = (item, album) => {
+	if (!item?.id || !album?.key) return "";
+	const seriesHandle = SHOPIFY_SERIES_HANDLES[album.key] || shopifyHandleize(album.key);
+	const referenceHandle = shopifyHandleize(referenceLabelFor(item.id, album.key));
+	return seriesHandle && referenceHandle ? `${seriesHandle}-${referenceHandle}-fine-art-print` : "";
+};
+
 const printOrderUrl = (item, page) => {
 	const printId = item && page ? item.id : "";
 	if (!printShopConfig.shopUrl) return printInquiryUrl(item, page);
 	if (printId) {
 		if (printShopConfig.productUrls[printId]) return printShopConfig.productUrls[printId];
-		const seriesHandle = shopifySeriesHandles[page.key];
-		const referenceHandle = printId.replace(new RegExp(`^${page.key}-`), "");
-		if (seriesHandle && referenceHandle) {
-			return `https://shop.clairethomas.art/products/${seriesHandle}-${referenceHandle}-fine-art-print`;
-		}
+		const productHandle = shopifyFineArtHandleFor(item, page);
+		if (productHandle) return `https://shop.clairethomas.art/products/${productHandle}`;
 	}
 	return printShopConfig.shopUrl;
 };
