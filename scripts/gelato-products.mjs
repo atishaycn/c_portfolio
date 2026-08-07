@@ -568,9 +568,13 @@ const waitForProducts = async (
 	storeId,
 	queuedJobs,
 	state,
-	timeoutMs = 3 * 60 * 60 * 1000,
-	pollIntervalMs = 30 * 1000,
-	stallTimeoutMs = 60 * 60 * 1000,
+	{
+		timeoutMs = 3 * 60 * 60 * 1000,
+		pollIntervalMs = 30 * 1000,
+		stallTimeoutMs = 60 * 60 * 1000,
+		onActive = null,
+		apiRequestImpl = apiRequest,
+	} = {},
 ) => {
 	const pending = new Map(queuedJobs.map((job) => [state.products[job.key].id, job]));
 	const completedProducts = [];
@@ -587,7 +591,7 @@ const waitForProducts = async (
 		for (const [productId, job] of pending) {
 			let product;
 			try {
-				product = await apiRequest(`/stores/${storeId}/products/${productId}`);
+				product = await apiRequestImpl(`/stores/${storeId}/products/${productId}`);
 			} catch (error) {
 				if (error.status === 404) continue;
 				throw error;
@@ -599,6 +603,7 @@ const waitForProducts = async (
 				updatedAt: new Date().toISOString(),
 			};
 			if (product.status === "active") {
+				if (onActive) await onActive(product, job);
 				state.products[job.key].activeAt = new Date().toISOString();
 				completedProducts.push(product);
 				pending.delete(productId);
@@ -1234,6 +1239,11 @@ const runWithRetryableDeferral = async (actions, handler, deferred = new Map()) 
 	return deferred;
 };
 
+const publishingPollIntervalMs = (jobs, state) =>
+	jobs.some((job) => state.products[job.key]?.visible !== false)
+		? 5 * 1000
+		: 30 * 1000;
+
 const updateShopifyProduct = async (product, desired, status, { photo = null, ...options } = {}) => {
 	const id = productShopifyId(product);
 	assert(id, `Product ${product.id} has no Shopify externalId`);
@@ -1388,7 +1398,15 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = f
 		jobs.push({ key });
 	}
 	if (jobs.length) {
-		await waitForProducts(storeId, jobs, state);
+		await waitForProducts(storeId, jobs, state, {
+			pollIntervalMs: publishingPollIntervalMs(jobs, state),
+			onActive: async (product, job) => {
+				const action = createdActions.get(job.key) ?? pendingActions.get(job.key);
+				if (!action || !productShopifyId(product)) return;
+				const desired = action.desired ?? productMetadata(action.photo, action.medium);
+				await updateShopifyProduct(product, desired, "DRAFT");
+			},
+		});
 		await runWithRetryableDeferral(jobs, async (job) => {
 			if (createdWithShopifyMapping.has(job.key)) return;
 			const action = createdActions.get(job.key) ?? pendingActions.get(job.key);
@@ -1922,11 +1940,13 @@ export {
 	shopifyGraphql,
 	shopifyRetryDelayMs,
 	runWithRetryableDeferral,
+	publishingPollIntervalMs,
 	safelyPublishShopifyProduct,
 	shouldUploadArtworkMedia,
 	waitForShopifyArtworkBindings,
 	waitForShopifyArtworkMedia,
 	waitForShopifyJob,
+	waitForProducts,
 	archivedProductHandle,
 	requestShopifyClientCredentialsToken,
 	referenceLabelFor,

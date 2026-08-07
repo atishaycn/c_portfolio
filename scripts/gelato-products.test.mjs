@@ -30,11 +30,13 @@ import {
 	shopifyGraphql,
 	shopifyRetryDelayMs,
 	runWithRetryableDeferral,
+	publishingPollIntervalMs,
 	safelyPublishShopifyProduct,
 	shouldUploadArtworkMedia,
 	waitForShopifyArtworkBindings,
 	waitForShopifyArtworkMedia,
 	waitForShopifyJob,
+	waitForProducts,
 	archivedProductHandle,
 	referenceLabelFor,
 	selectExistingProduct,
@@ -639,6 +641,53 @@ test("keeps Shopify products hidden until artwork repair succeeds", async () => 
 		{ status: "DRAFT", hasPhoto: true },
 		{ status: "ACTIVE", hasPhoto: false },
 	]);
+});
+
+test("quarantines each published Gelato product before waiting for the rest", async () => {
+	const state = { products: { first: { id: "gelato-first" }, second: { id: "gelato-second" } } };
+	const responses = new Map([
+		["gelato-first", [{ id: "gelato-first", externalId: "101", status: "active" }]],
+		[
+			"gelato-second",
+			[
+				{ id: "gelato-second", status: "publishing" },
+				{ id: "gelato-second", externalId: "102", status: "active" },
+			],
+		],
+	]);
+	const quarantined = [];
+	await waitForProducts(
+		"store",
+		[{ key: "first" }, { key: "second" }],
+		state,
+		{
+			pollIntervalMs: 0,
+			onActive: async (product, job) => quarantined.push([job.key, product.externalId]),
+			apiRequestImpl: async (path) => {
+				const productId = path.split("/").at(-1);
+				const queue = responses.get(productId);
+				return queue.length > 1 ? queue.shift() : queue[0];
+			},
+		},
+	);
+	assert.deepEqual(quarantined, [
+		["first", "101"],
+		["second", "102"],
+	]);
+	assert.equal(
+		publishingPollIntervalMs(
+			[{ key: "first" }, { key: "second" }],
+			{ products: { first: { visible: true }, second: { visible: false } } },
+		),
+		5_000,
+	);
+	assert.equal(
+		publishingPollIntervalMs(
+			[{ key: "first" }, { key: "second" }],
+			{ products: { first: { visible: false }, second: { visible: false } } },
+		),
+		30_000,
+	);
 });
 
 test("resumes a repaired Shopify draft and republishes it", () => {
