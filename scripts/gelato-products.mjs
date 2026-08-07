@@ -18,6 +18,7 @@ const DEFAULT_STORE_ID = "6d03ca64-de8a-4764-bc46-8bd014a1b271";
 const CLOUD_NAME = "dpmdkrggj";
 const API_BASE = "https://ecommerce.gelatoapis.com/v1";
 const DEFAULT_SHOPIFY_API_VERSION = "2026-07";
+const DEFAULT_GELATO_429_MAX_ATTEMPTS = 48;
 const RETRYABLE_RECONCILE_EXIT_CODE = 75;
 const SHOPIFY_ARTWORK_ALT_PREFIX = "Claire Thomas artwork: ";
 const SHOPIFY_MAX_ATTEMPTS = 8;
@@ -27,6 +28,13 @@ const SHOPIFY_MEDIA_POLL_INTERVAL_MS = 2 * 1000;
 const SHOPIFY_JOB_TIMEOUT_MS = 10 * 60 * 1000;
 const SHOPIFY_JOB_POLL_INTERVAL_MS = 2 * 1000;
 let shopifyAccessTokenCache = null;
+
+const gelato429MaxAttempts = () => {
+	const configured = Number.parseInt(process.env.GELATO_429_MAX_ATTEMPTS || "", 10);
+	return Number.isInteger(configured) && configured > 0
+		? configured
+		: DEFAULT_GELATO_429_MAX_ATTEMPTS;
+};
 
 const MEDIA = {
 	"fine-art": {
@@ -357,7 +365,7 @@ const apiRequest = async (path, options = {}) => {
 		if (response.ok) return body;
 
 		const retryable = response.status === 429 || response.status >= 500;
-		const maxAttempts = response.status === 429 ? 432 : 7;
+		const maxAttempts = response.status === 429 ? gelato429MaxAttempts() : 7;
 		if (!retryable || attempt + 1 >= maxAttempts) {
 			const error = new Error(`Gelato ${response.status}: ${JSON.stringify(body)}`);
 			error.status = response.status;
@@ -1783,6 +1791,7 @@ export {
 	artworkMediaAltFor,
 	artworkMediaInput,
 	buildShopifyVariantMediaUpdates,
+	gelato429MaxAttempts,
 	buildCreatedRepairPlan,
 	buildCatalogAudit,
 	cloudinaryUrl,

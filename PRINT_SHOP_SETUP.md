@@ -70,7 +70,7 @@ node scripts/portfolio-print-sync.mjs
 node scripts/portfolio-print-sync.mjs --execute
 ```
 
-The script writes `.gelato-product-state.json` after each product. Re-running reconcile recovers already-existing products, creates only missing enabled items, updates album/photo metadata, and archives products no longer enabled. It retries Gelato throttling responses and monitors publishing through catalog snapshots. Stable CMS `item.id` tags prevent album rename, move, or reorder from changing photo identity. Review `.gelato-reconcile-plan.json` before any `--execute` run.
+The script writes `.gelato-product-state.json` after each product. Re-running reconcile recovers already-existing products, creates only missing enabled items, updates album/photo metadata, and archives products no longer enabled. It retries Gelato throttling responses and monitors publishing through catalog snapshots. The admin-triggered workflow caps each `429` window at 48 attempts, then uses exit code 75 for at most five serialized continuations; unrelated failures never self-retry. Stable CMS `item.id` tags prevent album rename, move, or reorder from changing photo identity. Review `.gelato-reconcile-plan.json` before any `--execute` run.
 
 ### Full-Bleed Preview Repair
 

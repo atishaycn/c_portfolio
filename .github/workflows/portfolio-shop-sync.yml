@@ -27,6 +27,7 @@ jobs:
       GELATO_FINE_ART_TEMPLATE_ID: ${{ secrets.GELATO_FINE_ART_TEMPLATE_ID }}
       GELATO_FRAMED_TEMPLATE_ID: ${{ secrets.GELATO_FRAMED_TEMPLATE_ID }}
       GELATO_CANVAS_TEMPLATE_ID: ${{ secrets.GELATO_CANVAS_TEMPLATE_ID }}
+      GELATO_429_MAX_ATTEMPTS: "48"
       SHOPIFY_STORE_DOMAIN: esf4bj-wk.myshopify.com
       SHOPIFY_CLIENT_ID: ${{ secrets.SHOPIFY_CLIENT_ID }}
       SHOPIFY_CLIENT_SECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
@@ -44,7 +45,7 @@ jobs:
           set +e
           timeout --signal=TERM --kill-after=30s 330m node scripts/portfolio-print-sync.mjs --execute
           status=$?
-          if [ "$status" -eq 75 ] || [ "$status" -eq 124 ]; then
+          if [ "$status" -eq 75 ]; then
             echo "retryable=true" >> "$GITHUB_OUTPUT"
           else
             echo "retryable=false" >> "$GITHUB_OUTPUT"

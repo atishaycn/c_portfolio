@@ -23,6 +23,14 @@ const responseFor = (revision) => ({
 	json: async () => ({ revision, updatedAt: "2026-08-06T16:34:43.953Z", albums: [] }),
 });
 
+test("workflow continues only explicit retryable reconcile exits", () => {
+	const workflow = readFileSync(new URL("../.github/workflows/portfolio-shop-sync.yml", import.meta.url), "utf8");
+	assert.match(workflow, /GELATO_429_MAX_ATTEMPTS: "48"/);
+	assert.match(workflow, /if \[ "\$status" -eq 75 \]; then/);
+	assert.doesNotMatch(workflow, /\$status" -eq 124/);
+	assert.match(workflow, /fromJSON\(inputs\.continuation\) < 5/);
+});
+
 test("Shopify client credentials requests a token without logging credentials", async () => {
 	let request;
 	const token = await requestShopifyClientCredentialsToken({

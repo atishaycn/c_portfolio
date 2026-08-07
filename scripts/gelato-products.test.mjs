@@ -17,6 +17,7 @@ import {
 	cloudinaryUrl,
 	expectedProductKeys,
 	findStaleProducts,
+	gelato429MaxAttempts,
 	managedProductKey,
 	mergeProductsById,
 	mergeShopifyProductState,
@@ -631,6 +632,21 @@ test("retries HTTP 429 and GraphQL THROTTLED responses with bounded backoff", as
 	assert.equal(isShopifyThrottled({ status: 429 }, null), true);
 	assert.equal(isShopifyThrottled({ status: 200 }, { errors: [{ extensions: { code: "THROTTLED" } }] }), true);
 	assert.equal(shopifyRetryDelayMs(99), 5 * 60 * 1000);
+});
+
+test("bounds each Gelato 429 retry window and accepts a positive override", () => {
+	const original = process.env.GELATO_429_MAX_ATTEMPTS;
+	try {
+		delete process.env.GELATO_429_MAX_ATTEMPTS;
+		assert.equal(gelato429MaxAttempts(), 48);
+		process.env.GELATO_429_MAX_ATTEMPTS = "12";
+		assert.equal(gelato429MaxAttempts(), 12);
+		process.env.GELATO_429_MAX_ATTEMPTS = "0";
+		assert.equal(gelato429MaxAttempts(), 48);
+	} finally {
+		if (original === undefined) delete process.env.GELATO_429_MAX_ATTEMPTS;
+		else process.env.GELATO_429_MAX_ATTEMPTS = original;
+	}
 });
 
 test("polls Shopify media until the stable artwork marker is READY", async () => {
