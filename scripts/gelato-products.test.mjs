@@ -16,6 +16,7 @@ import {
 	findStaleProducts,
 	managedProductKey,
 	mergeProductsById,
+	mergeShopifyProductState,
 	normalizeVariant,
 	orientationFor,
 	productMetadata,
@@ -43,6 +44,7 @@ test("requires exactly one active managed product for every catalog key", () => 
 	const photos = [{ printId: "photo-1" }];
 	const cleanProducts = ["fine-art", "framed", "canvas"].map((medium) => ({
 		id: medium,
+		externalId: medium,
 		status: "active",
 		tags: ["photo-1", `format-${medium}`, "claire-thomas"],
 	}));
@@ -62,6 +64,71 @@ test("requires exactly one active managed product for every catalog key", () => 
 	assert.equal(broken.duplicateActiveKeys.length, 1);
 	assert.equal(broken.nonActiveProducts.length, 1);
 	assert.equal(broken.unmanagedProducts.length, 1);
+});
+
+test("uses Shopify status to ignore archived Gelato records on fresh runners", () => {
+	const products = [
+		{
+			id: "old",
+			externalId: "101",
+			status: "active",
+			tags: ["photo-1", "format-fine-art", "claire-thomas"],
+		},
+		{
+			id: "current",
+			externalId: "102",
+			status: "active",
+			tags: ["photo-1", "format-fine-art", "claire-thomas"],
+		},
+	];
+	const enriched = mergeShopifyProductState(products, [
+		{ id: "gid://shopify/Product/101", status: "ARCHIVED", handle: "archived-101", tags: products[0].tags },
+		{ id: "gid://shopify/Product/102", status: "ACTIVE", handle: "photo-1-fine-art-print", tags: products[1].tags },
+	]);
+	assert.equal(enriched[0].shopifyStatus, "archived");
+	assert.equal(enriched[1].shopifyStatus, "active");
+	const audit = buildCatalogAudit([{ printId: "photo-1" }], enriched, ["fine-art"]);
+	assert.equal(audit.clean, true);
+	assert.equal(audit.uniqueRemoteProducts, 1);
+	assert.equal(audit.activeExpectedProducts, 1);
+});
+
+test("Shopify active stale products still fail strict audit", () => {
+	const products = [
+		{
+			id: "current",
+			externalId: "102",
+			status: "active",
+			shopifyStatus: "active",
+			tags: ["photo-1", "format-fine-art", "claire-thomas"],
+		},
+		{
+			id: "stale",
+			externalId: "103",
+			status: "active",
+			shopifyStatus: "active",
+			tags: ["removed", "format-fine-art", "claire-thomas"],
+		},
+	];
+	const audit = buildCatalogAudit([{ printId: "photo-1" }], products, ["fine-art"]);
+	assert.equal(audit.clean, false);
+	assert.equal(audit.staleProducts.map((product) => product.id).includes("stale"), true);
+});
+
+test("missing Shopify nodes are treated as inactive", () => {
+	const products = [
+		{
+			id: "current",
+			externalId: "101",
+			status: "active",
+			tags: ["photo-1", "format-fine-art", "claire-thomas"],
+		},
+	];
+	const enriched = mergeShopifyProductState(products, []);
+	assert.equal(enriched[0].shopifyStatus, "missing");
+	const audit = buildCatalogAudit([{ printId: "photo-1" }], enriched, ["fine-art"]);
+	assert.equal(audit.clean, false);
+	assert.deepEqual(audit.missingActiveKeys, ["photo-1:fine-art"]);
 });
 
 test("builds a dynamic non-commissioned catalog", () => {
@@ -373,6 +440,15 @@ test("allows pending publishing products to wait for Shopify mappings", () => {
 	assert.equal(plan.creates.length, 0);
 	assert.equal(plan.updates.length, 0);
 	assert.equal(plan.blocked.length, 0);
+
+	const activeBeforeMapping = buildReconcilePlan(
+		[photo],
+		{ products: {} },
+		[{ ...pending, status: "active" }],
+		["fine-art"],
+	);
+	assert.equal(activeBeforeMapping.pending.length, 1);
+	assert.equal(activeBeforeMapping.blocked.length, 0);
 });
 
 test("archives old handles before replacement and exposes the canonical Fine Art URL", () => {

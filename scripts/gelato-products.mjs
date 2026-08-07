@@ -630,7 +630,14 @@ const managedProductKey = (product) => {
 	return MEDIA[medium] ? productKey(printId, medium) : null;
 };
 
-const isArchivedProduct = (product) => ["archived", "deleted"].includes(String(product.status).toLowerCase());
+const isArchivedProduct = (product) =>
+	["archived", "deleted"].includes(String(product.status).toLowerCase()) ||
+	["archived", "deleted", "missing"].includes(String(product.shopifyStatus).toLowerCase());
+
+const isReadyActiveProduct = (product) =>
+	product.status === "active" &&
+	Boolean(productShopifyId(product)) &&
+	(!product.shopifyStatus || String(product.shopifyStatus).toLowerCase() === "active");
 
 const sameStringArray = (left, right) =>
 	JSON.stringify([...(left || [])].map(String).sort()) === JSON.stringify([...(right || [])].map(String).sort());
@@ -713,16 +720,23 @@ const buildReconcilePlan = (
 	for (const [key, target] of expected) {
 		const matches = groups.get(key);
 		const current = matches.filter((product) => product.tags?.includes(catalogVersionTag));
-		const canonical = current.find((product) => product.status === "active") ?? current[0];
+		const canonical =
+			current.find(isReadyActiveProduct) ??
+			current.find((product) => product.status === "active") ??
+			current[0];
 		const desired = productMetadata(target.photo, target.medium);
 		const recorded = state.products?.[key] || {};
 		const recordedMetadata = recorded.metadataSynced ? recorded : {};
 		const observed = canonical
 			? {
 				...canonical,
-				handle: canonical.handle ?? recordedMetadata.handle,
-				description: canonical.description ?? recordedMetadata.description,
-				tags: canonical.tags ?? recordedMetadata.tags,
+				title: canonical.shopifyTitle ?? canonical.title,
+				handle: canonical.shopifyHandle ?? canonical.handle ?? recordedMetadata.handle,
+				description:
+					canonical.shopifyDescription ??
+					canonical.description ??
+					recordedMetadata.description,
+				tags: canonical.shopifyTags ?? canonical.tags ?? recordedMetadata.tags,
 			}
 			: null;
 		if (!canonical) {
@@ -735,7 +749,10 @@ const buildReconcilePlan = (
 			} else {
 				plan.unarchives.push({ key, product: canonical, desired });
 			}
-		} else if (["created", "publishing", "publishing_queued"].includes(canonical.status)) {
+		} else if (
+			["created", "publishing", "publishing_queued"].includes(canonical.status) ||
+			(canonical.status === "active" && !productShopifyId(canonical))
+		) {
 			plan.pending.push({ key, product: canonical, desired });
 		} else if (canonical.status !== "active") {
 			plan.blocked.push({ action: "inspect", key, productId: canonical.id, reason: `unsupported-status:${canonical.status}` });
@@ -783,6 +800,54 @@ const shopifyGraphql = async (query, variables) => {
 		throw new Error(`Shopify GraphQL ${response.status}: ${JSON.stringify(body.errors || body)}`);
 	}
 	return body.data;
+};
+
+const mergeShopifyProductState = (products, shopifyProducts) => {
+	const byId = new Map(shopifyProducts.filter(Boolean).map((product) => [product.id, product]));
+	return products.map((product) => {
+		const shopifyId = productShopifyId(product);
+		if (!shopifyId) return product;
+		const shopifyProduct = byId.get(shopifyId);
+		if (!shopifyProduct) {
+			return {
+				...product,
+				shopifyStatus: "missing",
+			};
+		}
+		return {
+			...product,
+			shopifyStatus: String(shopifyProduct.status || "").toLowerCase(),
+			shopifyTitle: shopifyProduct.title,
+			shopifyHandle: shopifyProduct.handle,
+			shopifyDescription: shopifyProduct.descriptionHtml,
+			shopifyTags: shopifyProduct.tags,
+		};
+	});
+};
+
+const enrichProductsWithShopifyState = async (products) => {
+	const ids = [...new Set(products.map(productShopifyId).filter(Boolean))];
+	if (!ids.length) return products;
+	const shopifyProducts = [];
+	for (let index = 0; index < ids.length; index += 100) {
+		const data = await shopifyGraphql(
+			`query CatalogProductState($ids: [ID!]!) {
+				nodes(ids: $ids) {
+					... on Product {
+						id
+						status
+						title
+						handle
+						descriptionHtml
+						tags
+					}
+				}
+			}`,
+			{ ids: ids.slice(index, index + 100) },
+		);
+		shopifyProducts.push(...data.nodes.filter(Boolean));
+	}
+	return mergeShopifyProductState(products, shopifyProducts);
 };
 
 const normalizedShopifyDomain = () => (process.env.SHOPIFY_STORE_DOMAIN || process.env.SHOPIFY_SHOP_DOMAIN || "")
@@ -950,8 +1015,9 @@ const buildCatalogAudit = (photos, existingProducts, selectedMedia = Object.keys
 	const groups = new Map([...expected].map((key) => [key, []]));
 	const unmanagedProducts = [];
 	const staleProducts = [];
+	const auditableProducts = existingProducts.filter((product) => !isArchivedProduct(product));
 
-	for (const product of existingProducts) {
+	for (const product of auditableProducts) {
 		const key = managedProductKey(product);
 		if (!key) {
 			unmanagedProducts.push(product);
@@ -966,16 +1032,16 @@ const buildCatalogAudit = (photos, existingProducts, selectedMedia = Object.keys
 	const duplicateActiveKeys = [];
 	const nonActiveProducts = [];
 	for (const [key, products] of groups) {
-		const active = products.filter((product) => product.status === "active");
+		const active = products.filter(isReadyActiveProduct);
 		if (!active.length) missingActiveKeys.push(key);
 		if (active.length > 1) duplicateActiveKeys.push({ key, productIds: active.map((product) => product.id) });
-		nonActiveProducts.push(...products.filter((product) => product.status !== "active"));
+		nonActiveProducts.push(...products.filter((product) => !isReadyActiveProduct(product)));
 	}
 
 	return {
 		expectedKeys: expected.size,
-		uniqueRemoteProducts: new Set(existingProducts.map((product) => product.id)).size,
-		activeExpectedProducts: [...groups.values()].flat().filter((product) => product.status === "active").length,
+		uniqueRemoteProducts: new Set(auditableProducts.map((product) => product.id)).size,
+		activeExpectedProducts: [...groups.values()].flat().filter(isReadyActiveProduct).length,
 		missingActiveKeys,
 		duplicateActiveKeys,
 		nonActiveProducts,
@@ -1151,17 +1217,19 @@ const findStaleProducts = (state, existingProducts, photos) => {
 	const staleByKey = new Map();
 
 	for (const [key, record] of Object.entries(state.products ?? {})) {
-		if (!expected.has(key)) staleByKey.set(key, { key, ...record, source: "state" });
+		if (!expected.has(key) && !isArchivedProduct(record)) staleByKey.set(key, { key, ...record, source: "state" });
 	}
 
 	for (const product of existingProducts) {
 		const key = managedProductKey(product);
 		if (!key || expected.has(key)) continue;
+		if (isArchivedProduct(product)) continue;
 		staleByKey.set(key, {
 			key,
 			id: product.id,
 			externalId: product.externalId,
 			status: product.status,
+			shopifyStatus: product.shopifyStatus,
 			title: product.title,
 			source: staleByKey.has(key) ? "state+gelato" : "gelato",
 		});
@@ -1224,10 +1292,10 @@ const run = async () => {
 
 	const storeId = process.env.GELATO_STORE_ID || DEFAULT_STORE_ID;
 	const state = readState();
-	const existingProducts = await listExistingProducts(
+	const existingProducts = await enrichProductsWithShopifyState(await listExistingProducts(
 		storeId,
 		Object.values(state.products ?? {}).map((record) => record?.id),
-	);
+	));
 	const existingStatusCounts = Object.fromEntries(
 		Object.entries(
 			existingProducts.reduce((counts, product) => {
@@ -1414,6 +1482,7 @@ export {
 	findStaleProducts,
 	managedProductKey,
 	mergeProductsById,
+	mergeShopifyProductState,
 	normalizeVariant,
 	orientationFor,
 	productMetadata,
