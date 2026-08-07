@@ -176,8 +176,17 @@
 
     const filterProductMedia = () => {
       const isPrintProduct = document.documentElement.classList.contains('ct-print-product');
-      document.querySelectorAll('.product-media-container--image, .ct-non-artwork-media').forEach((container) => {
-        if (!isPrintProduct) {
+      const containers = [
+        ...document.querySelectorAll('.product-media-container--image, .ct-non-artwork-media'),
+      ];
+      const hasArtwork = containers.some((container) =>
+        (container.querySelector('img')?.alt || '')
+          .trim()
+          .toLowerCase()
+          .startsWith(artworkMediaAltPrefix.toLowerCase()),
+      );
+      containers.forEach((container) => {
+        if (!isPrintProduct || !hasArtwork) {
           container.classList.remove('ct-non-artwork-media', 'ct-artwork-media');
           container.closest('li')?.classList.remove('ct-non-artwork-media', 'ct-artwork-media');
           return;

@@ -132,6 +132,18 @@ test("keeps only stable-marker artwork media in the PDP gallery", () => {
 	assert.equal(mockup.classList.has("ct-non-artwork-media"), true);
 });
 
+test("keeps Gelato media visible until stable-marker artwork exists", () => {
+	const mockup = {
+		classList: createClassList(["product-media-container--image"]),
+		querySelector: () => ({ alt: "Gelato mockup preview" }),
+		closest: () => null,
+	};
+	const api = loadApi([], [mockup], true);
+
+	api.filterProductMedia();
+	assert.equal(mockup.classList.has("ct-non-artwork-media"), false);
+});
+
 test("targets Horizon media primitives and leaves zoom-dialog sizing to Horizon", () => {
 	assert.match(liquid, /product-card, product-component\.resource-card__wrapper, \.resource-card__wrapper/);
 	assert.match(liquid, /\.product-media-container--image[^{}]*\.product-media__image/);
