@@ -16,6 +16,7 @@ import {
 	canonicalHandleFor,
 	cloudinaryUrl,
 	expectedProductKeys,
+	extraArtworkMediaIds,
 	findStaleProducts,
 	gelato429MaxAttempts,
 	managedProductKey,
@@ -561,6 +562,44 @@ test("plans a deterministic full-bleed artwork media repair for every Shopify va
 		},
 	};
 	assert.equal(productNeedsShopifyMediaRepair(repaired, photo), false);
+});
+
+test("recognizes direct Shopify media query results and keeps one ready artwork marker", () => {
+	const photo = {
+		printId: "photo-direct",
+		fileUrl: "https://res.cloudinary.com/dpmdkrggj/image/upload/photo-direct.jpg",
+	};
+	const processing = {
+		id: "gid://shopify/MediaImage/processing",
+		alt: artworkMediaAltFor(photo),
+		status: "PROCESSING",
+	};
+	const ready = {
+		id: "gid://shopify/MediaImage/ready",
+		alt: artworkMediaAltFor(photo),
+		status: "READY",
+	};
+	const directProduct = {
+		media: { nodes: [ready, { id: "mockup", alt: "Gelato mockup", status: "READY" }] },
+		variants: {
+			nodes: [
+				{ id: "variant-1", media: { nodes: [{ id: ready.id }] } },
+				{ id: "variant-2", media: { nodes: [{ id: ready.id }] } },
+			],
+		},
+	};
+
+	assert.equal(shouldUploadArtworkMedia(directProduct, photo), false);
+	assert.equal(productNeedsShopifyMediaRepair(directProduct, photo), false);
+	assert.deepEqual(buildShopifyVariantMediaUpdates(directProduct, ready), []);
+
+	const duplicateProduct = {
+		...directProduct,
+		media: { nodes: [processing, ready, { id: "mockup", alt: "Gelato mockup", status: "READY" }] },
+	};
+	assert.equal(shouldUploadArtworkMedia(duplicateProduct, photo), false);
+	assert.equal(productNeedsShopifyMediaRepair(duplicateProduct, photo), true);
+	assert.deepEqual(extraArtworkMediaIds(duplicateProduct, photo), [processing.id]);
 });
 
 test("reconcile updates a metadata-clean active product when its artwork media is missing", () => {

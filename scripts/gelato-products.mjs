@@ -673,16 +673,40 @@ const productNeedsMetadataUpdate = (product, desired) =>
 
 const artworkMediaAltFor = (photo) => `${SHOPIFY_ARTWORK_ALT_PREFIX}${photo.printId}`;
 
-const shopifyMediaNodes = (product) => product?.shopifyMedia?.nodes ?? product?.shopifyMedia ?? [];
+const shopifyMediaNodes = (product) =>
+	product?.shopifyMedia?.nodes ??
+	product?.shopifyMedia ??
+	product?.media?.nodes ??
+	product?.media ??
+	[];
 
-const shopifyVariantNodes = (product) => product?.shopifyVariants?.nodes ?? product?.shopifyVariants ?? [];
+const shopifyVariantNodes = (product) =>
+	product?.shopifyVariants?.nodes ??
+	product?.shopifyVariants ??
+	product?.variants?.nodes ??
+	product?.variants ??
+	[];
 
-const findArtworkMedia = (product, photo) =>
-	shopifyMediaNodes(product).find((media) => media.alt === artworkMediaAltFor(photo));
+const artworkMediaNodesFor = (product, photo) =>
+	shopifyMediaNodes(product).filter((media) => media.alt === artworkMediaAltFor(photo));
 
 const isShopifyMediaReady = (media) => String(media?.status || "").toUpperCase() === "READY";
 
+const findArtworkMedia = (product, photo) => {
+	const matches = artworkMediaNodesFor(product, photo);
+	return matches.find(isShopifyMediaReady) ?? matches[0] ?? null;
+};
+
+const extraArtworkMediaIds = (product, photo) => {
+	const keep = findArtworkMedia(product, photo);
+	return artworkMediaNodesFor(product, photo)
+		.filter((media) => media.id !== keep?.id)
+		.map((media) => media.id)
+		.filter(Boolean);
+};
+
 const productNeedsShopifyMediaRepair = (product, photo) => {
+	if (artworkMediaNodesFor(product, photo).length !== 1) return true;
 	const artworkMedia = findArtworkMedia(product, photo);
 	if (!artworkMedia || !isShopifyMediaReady(artworkMedia)) return true;
 	if (shopifyMediaNodes(product).findIndex((media) => media.id === artworkMedia.id) !== 0) return true;
@@ -1122,6 +1146,26 @@ const waitForShopifyArtworkBindings = async (
 
 const repairShopifyProductMedia = async (product, photo) => {
 	let observed = await fetchShopifyProductMedia(product.id);
+	const duplicateMediaIds = extraArtworkMediaIds(observed, photo);
+	if (duplicateMediaIds.length) {
+		const data = await shopifyGraphql(
+			`mutation DeleteDuplicateArtworkMedia($productId: ID!, $mediaIds: [ID!]!) {
+				productDeleteMedia(productId: $productId, mediaIds: $mediaIds) {
+					deletedMediaIds
+					mediaUserErrors { field message }
+				}
+			}`,
+			{ productId: product.id, mediaIds: duplicateMediaIds },
+		);
+		const errors = data.productDeleteMedia?.mediaUserErrors || [];
+		if (errors.length) {
+			throw new Error(`Shopify duplicate artwork media deletion failed for ${product.id}: ${JSON.stringify(errors)}`);
+		}
+		observed = await fetchShopifyProductMedia(product.id);
+		if (artworkMediaNodesFor(observed, photo).length !== 1) {
+			throw retryableReconcileError(`Shopify duplicate artwork media deletion is still pending on ${product.id}`);
+		}
+	}
 	let artworkMedia = findArtworkMedia(observed, photo);
 	if (!isShopifyMediaReady(artworkMedia)) {
 		throw retryableReconcileError(
@@ -1847,6 +1891,7 @@ export {
 	artworkMediaAltFor,
 	artworkMediaInput,
 	buildShopifyVariantMediaUpdates,
+	extraArtworkMediaIds,
 	gelato429MaxAttempts,
 	buildCreatedRepairPlan,
 	buildCatalogAudit,
