@@ -855,6 +855,45 @@ test("purges Gelato only after its mapped Shopify product is retired", async () 
 	assert.equal(result.purged, 1);
 });
 
+test("purges retired Gelato records with bounded concurrency", async () => {
+	const purges = Array.from({ length: 9 }, (_, index) => ({
+		key: `photo-${index}:fine-art`,
+		product: { id: `gelato-${index}`, externalId: `shopify-${index}`, shopifyStatus: "archived" },
+	}));
+	let active = 0;
+	let maxActive = 0;
+	let deleted = 0;
+	const result = await applyReconcilePlan({
+		plan: {
+			archives: [],
+			blocked: [],
+			creates: [],
+			pending: [],
+			purges,
+			recoveries: [],
+			unarchives: [],
+			updates: [],
+		},
+		state: { products: {} },
+		storeId: "store-1",
+		templates: {},
+		purgeBatchSize: 4,
+		apiRequestImpl: async (_path, options = {}) => {
+			assert.equal(options.method, "DELETE");
+			active += 1;
+			maxActive = Math.max(maxActive, active);
+			await new Promise((resolvePromise) => setImmediate(resolvePromise));
+			active -= 1;
+			deleted += 1;
+			return null;
+		},
+		writeStateImpl() {},
+	});
+	assert.equal(deleted, 9);
+	assert.equal(maxActive, 4);
+	assert.equal(result.purged, 9);
+});
+
 test("recovers publishing errors by archiving their mapped Shopify product and recreating the stable key", () => {
 	const photo = {
 		printId: "the-natural-world-1",

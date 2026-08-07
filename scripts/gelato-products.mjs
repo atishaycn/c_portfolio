@@ -1385,21 +1385,25 @@ const applyReconcilePlan = async ({
 	waitForProductsImpl = waitForProducts,
 	writeStateImpl = writeState,
 	createBatchSize = reconcileCreateBatchSize(),
+	purgeBatchSize = 4,
 }) => {
 	assert(!plan.blocked.length, `Reconcile has ${plan.blocked.length} unmappable product actions; inspect the dry-run plan first`);
 	const deferred = new Map();
-	for (const action of plan.purges || []) {
-		await apiRequestImpl(`/stores/${storeId}/products/${action.product.id}`, { method: "DELETE" });
-		if (action.key && state.products[action.key]?.id === action.product.id) {
-			state.products[action.key] = {
-				...state.products[action.key],
-				id: null,
-				externalId: null,
-				status: "deleted_after_shopify_archive",
-				deletedAt: new Date().toISOString(),
-			};
-			writeStateImpl(state);
-		}
+	const purgeActions = plan.purges || [];
+	for (let offset = 0; offset < purgeActions.length; offset += purgeBatchSize) {
+		await Promise.all(purgeActions.slice(offset, offset + purgeBatchSize).map(async (action) => {
+			await apiRequestImpl(`/stores/${storeId}/products/${action.product.id}`, { method: "DELETE" });
+			if (action.key && state.products[action.key]?.id === action.product.id) {
+				state.products[action.key] = {
+					...state.products[action.key],
+					id: null,
+					externalId: null,
+					status: "deleted_after_shopify_archive",
+					deletedAt: new Date().toISOString(),
+				};
+				writeStateImpl(state);
+			}
+		}));
 	}
 	for (const action of plan.archives) {
 		await updateShopifyProductImpl(action.product, null, "ARCHIVED", { archive: true });
