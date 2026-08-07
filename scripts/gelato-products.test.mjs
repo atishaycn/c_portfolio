@@ -27,6 +27,9 @@ import {
 	isShopifyThrottled,
 	shopifyGraphql,
 	shopifyRetryDelayMs,
+	waitForShopifyArtworkBindings,
+	waitForShopifyArtworkMedia,
+	waitForShopifyJob,
 	archivedProductHandle,
 	referenceLabelFor,
 	selectExistingProduct,
@@ -515,7 +518,7 @@ test("plans a deterministic full-bleed artwork media repair for every Shopify va
 		printId: "the-natural-world-1",
 		fileUrl: "https://res.cloudinary.com/dpmdkrggj/image/upload/f_jpg,q_95/1_asebdu.jpg",
 	};
-	const artworkMedia = { id: "gid://shopify/MediaImage/artwork", alt: artworkMediaAltFor(photo) };
+	const artworkMedia = { id: "gid://shopify/MediaImage/artwork", alt: artworkMediaAltFor(photo), status: "READY" };
 	const product = {
 		shopifyMedia: { nodes: [artworkMedia, { id: "mockup", alt: "Gelato mockup" }] },
 		shopifyVariants: {
@@ -587,7 +590,7 @@ test("strict audit detects variants that can still fall back to Gelato mockups",
 		status: "active",
 		shopifyStatus: "active",
 		tags: ["photo-1", "format-fine-art", "claire-thomas"],
-		shopifyMedia: { nodes: [{ id: "artwork", alt: artworkMediaAltFor(photo) }] },
+		shopifyMedia: { nodes: [{ id: "artwork", alt: artworkMediaAltFor(photo), status: "READY" }] },
 		shopifyVariants: { nodes: [{ id: "variant-1", media: { nodes: [{ id: "gelato-mockup" }] } }] },
 	};
 	const audit = buildCatalogAudit([photo], [product], ["fine-art"]);
@@ -628,4 +631,64 @@ test("retries HTTP 429 and GraphQL THROTTLED responses with bounded backoff", as
 	assert.equal(isShopifyThrottled({ status: 429 }, null), true);
 	assert.equal(isShopifyThrottled({ status: 200 }, { errors: [{ extensions: { code: "THROTTLED" } }] }), true);
 	assert.equal(shopifyRetryDelayMs(99), 5 * 60 * 1000);
+});
+
+test("polls Shopify media until the stable artwork marker is READY", async () => {
+	const photo = { printId: "photo-1" };
+	const processing = {
+		id: "gid://shopify/Product/1",
+		shopifyMedia: { nodes: [{ id: "artwork", alt: artworkMediaAltFor(photo), status: "PROCESSING" }] },
+	};
+	const ready = {
+		...processing,
+		shopifyMedia: { nodes: [{ id: "artwork", alt: artworkMediaAltFor(photo), status: "READY" }] },
+	};
+	let fetches = 0;
+	let sleeps = 0;
+	const observed = await waitForShopifyArtworkMedia(processing, photo, {
+		fetchProduct: async () => (fetches++ === 0 ? processing : ready),
+		sleepImpl: async () => { sleeps += 1; },
+		timeoutMs: 100,
+		pollIntervalMs: 1,
+	});
+	assert.equal(observed, ready);
+	assert.equal(fetches, 2);
+	assert.equal(sleeps, 1);
+});
+
+test("polls asynchronous Shopify reorder jobs to completion", async () => {
+	let fetches = 0;
+	let sleeps = 0;
+	const result = await waitForShopifyJob("gid://shopify/Job/1", {
+		fetchJob: async () => ({ id: "gid://shopify/Job/1", done: fetches++ > 0 }),
+		sleepImpl: async () => { sleeps += 1; },
+		timeoutMs: 100,
+		pollIntervalMs: 1,
+	});
+	assert.equal(result.done, true);
+	assert.equal(fetches, 2);
+	assert.equal(sleeps, 1);
+});
+
+test("waits until every Shopify variant points at the artwork media", async () => {
+	const photo = { printId: "photo-1" };
+	const artworkMedia = { id: "artwork", alt: artworkMediaAltFor(photo), status: "READY" };
+	const pending = {
+		id: "gid://shopify/Product/1",
+		shopifyMedia: { nodes: [artworkMedia] },
+		shopifyVariants: { nodes: [{ id: "variant-1", media: { nodes: [{ id: "mockup" }] } }] },
+	};
+	const complete = {
+		...pending,
+		shopifyVariants: { nodes: [{ id: "variant-1", media: { nodes: [{ id: "artwork" }] } }] },
+	};
+	let fetches = 0;
+	const observed = await waitForShopifyArtworkBindings(pending, photo, {
+		fetchProduct: async () => (fetches++ === 0 ? pending : complete),
+		sleepImpl: async () => {},
+		timeoutMs: 100,
+		pollIntervalMs: 1,
+	});
+	assert.equal(observed, complete);
+	assert.equal(fetches, 2);
 });

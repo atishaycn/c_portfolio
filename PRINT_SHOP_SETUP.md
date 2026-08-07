@@ -74,7 +74,7 @@ The script writes `.gelato-product-state.json` after each product. Re-running re
 
 ### Full-Bleed Preview Repair
 
-Gelato mockup previews can contain baked white margins that CSS cannot remove. On every normal reconcile, the script idempotently uploads the original Cloudinary artwork to the managed Shopify product using the alt marker `Claire Thomas artwork: <print-id>`, moves that media to the first position, and binds every product variant to it. A restart after any successful Shopify mutation finds the marker and continues with the missing step instead of uploading another image. Shopify HTTP 429 and GraphQL `THROTTLED` responses use capped exponential backoff.
+Gelato mockup previews can contain baked white margins that CSS cannot remove. On every normal reconcile, the script idempotently uploads the original Cloudinary artwork to the managed Shopify product using the alt marker `Claire Thomas artwork: <print-id>`, waits for that media to become `READY`, moves it to the first position and waits for Shopify's reorder job, then binds every product variant to it. The Horizon theme override hides non-marker Gelato media from the PDP gallery, including after variant-driven DOM updates; the marker artwork remains available to the existing zoom dialog. A restart after any successful Shopify mutation finds the marker and continues with the missing step instead of uploading another image. Shopify HTTP 429 and GraphQL `THROTTLED` responses use capped exponential backoff.
 
 Run the migration through the normal CMS-authoritative reconcile:
 

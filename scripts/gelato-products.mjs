@@ -22,6 +22,10 @@ const RETRYABLE_RECONCILE_EXIT_CODE = 75;
 const SHOPIFY_ARTWORK_ALT_PREFIX = "Claire Thomas artwork: ";
 const SHOPIFY_MAX_ATTEMPTS = 8;
 const SHOPIFY_MAX_RETRY_DELAY_MS = 5 * 60 * 1000;
+const SHOPIFY_MEDIA_READY_TIMEOUT_MS = 10 * 60 * 1000;
+const SHOPIFY_MEDIA_POLL_INTERVAL_MS = 2 * 1000;
+const SHOPIFY_JOB_TIMEOUT_MS = 10 * 60 * 1000;
+const SHOPIFY_JOB_POLL_INTERVAL_MS = 2 * 1000;
 let shopifyAccessTokenCache = null;
 
 const MEDIA = {
@@ -668,9 +672,11 @@ const shopifyVariantNodes = (product) => product?.shopifyVariants?.nodes ?? prod
 const findArtworkMedia = (product, photo) =>
 	shopifyMediaNodes(product).find((media) => media.alt === artworkMediaAltFor(photo));
 
+const isShopifyMediaReady = (media) => String(media?.status || "").toUpperCase() === "READY";
+
 const productNeedsShopifyMediaRepair = (product, photo) => {
 	const artworkMedia = findArtworkMedia(product, photo);
-	if (!artworkMedia) return true;
+	if (!artworkMedia || !isShopifyMediaReady(artworkMedia)) return true;
 	if (shopifyMediaNodes(product).findIndex((media) => media.id === artworkMedia.id) !== 0) return true;
 	return shopifyVariantNodes(product).some((variant) => {
 		const mediaIds = (variant.media?.nodes ?? variant.media ?? []).map((media) => media.id);
@@ -926,11 +932,12 @@ const enrichProductsWithShopifyState = async (products) => {
 						descriptionHtml
 						tags
 						media(first: 100) {
-							nodes {
-								id
-								alt
-								mediaContentType
-							}
+								nodes {
+									id
+									alt
+									mediaContentType
+									status
+								}
 						}
 						variants(first: 100) {
 							nodes {
@@ -992,7 +999,7 @@ const fetchShopifyProductMedia = async (id) => {
 				... on Product {
 					id
 					media(first: 100) {
-						nodes { id alt mediaContentType }
+						nodes { id alt mediaContentType status }
 					}
 					variants(first: 100) {
 						nodes {
@@ -1008,11 +1015,88 @@ const fetchShopifyProductMedia = async (id) => {
 	return data.node;
 };
 
-const repairShopifyProductMedia = async (product, photo) => {
+const fetchShopifyJob = async (id) => {
+	const data = await shopifyGraphql(
+		`query ShopifyJob($id: ID!) {
+			job(id: $id) { id done }
+		}`,
+		{ id },
+	);
+	return data.job;
+};
+
+const waitForShopifyArtworkMedia = async (
+	product,
+	photo,
+	{
+		fetchProduct = fetchShopifyProductMedia,
+		sleepImpl = (delay) => new Promise((resolvePromise) => setTimeout(resolvePromise, delay)),
+		nowImpl = Date.now,
+		timeoutMs = SHOPIFY_MEDIA_READY_TIMEOUT_MS,
+		pollIntervalMs = SHOPIFY_MEDIA_POLL_INTERVAL_MS,
+	} = {},
+) => {
+	const deadline = nowImpl() + timeoutMs;
 	let observed = product;
-	if (!findArtworkMedia(observed, photo)) {
-		observed = await fetchShopifyProductMedia(product.id);
+	for (;;) {
+		const artworkMedia = findArtworkMedia(observed, photo);
+		if (isShopifyMediaReady(artworkMedia)) return observed;
+		if (nowImpl() >= deadline) {
+			throw new Error(`Timed out waiting for Shopify artwork media on ${product.id} to become READY`);
+		}
+		observed = await fetchProduct(product.id);
+		if (isShopifyMediaReady(findArtworkMedia(observed, photo))) return observed;
+		if (nowImpl() >= deadline) {
+			throw new Error(`Timed out waiting for Shopify artwork media on ${product.id} to become READY`);
+		}
+		await sleepImpl(pollIntervalMs);
 	}
+};
+
+const waitForShopifyJob = async (
+	id,
+	{
+		fetchJob = fetchShopifyJob,
+		sleepImpl = (delay) => new Promise((resolvePromise) => setTimeout(resolvePromise, delay)),
+		nowImpl = Date.now,
+		timeoutMs = SHOPIFY_JOB_TIMEOUT_MS,
+		pollIntervalMs = SHOPIFY_JOB_POLL_INTERVAL_MS,
+	} = {},
+) => {
+	const deadline = nowImpl() + timeoutMs;
+	for (;;) {
+		const job = await fetchJob(id);
+		if (job?.done) return job;
+		if (nowImpl() >= deadline) throw new Error(`Timed out waiting for Shopify job ${id}`);
+		await sleepImpl(pollIntervalMs);
+	}
+};
+
+const waitForShopifyArtworkBindings = async (
+	product,
+	photo,
+	{
+		fetchProduct = fetchShopifyProductMedia,
+		sleepImpl = (delay) => new Promise((resolvePromise) => setTimeout(resolvePromise, delay)),
+		nowImpl = Date.now,
+		timeoutMs = SHOPIFY_MEDIA_READY_TIMEOUT_MS,
+		pollIntervalMs = SHOPIFY_MEDIA_POLL_INTERVAL_MS,
+	} = {},
+) => {
+	const deadline = nowImpl() + timeoutMs;
+	let observed = await fetchProduct(product.id);
+	for (;;) {
+		if (!productNeedsShopifyMediaRepair(observed, photo)) return observed;
+		if (nowImpl() >= deadline) {
+			throw new Error(`Timed out waiting for Shopify artwork variant bindings on ${product.id}`);
+		}
+		await sleepImpl(pollIntervalMs);
+		observed = await fetchProduct(product.id);
+	}
+};
+
+const repairShopifyProductMedia = async (product, photo) => {
+	let observed = await waitForShopifyArtworkMedia(product, photo);
 	const artworkMedia = findArtworkMedia(observed, photo);
 	assert(artworkMedia, `Shopify product ${product.id} did not expose uploaded artwork media`);
 
@@ -1022,6 +1106,7 @@ const repairShopifyProductMedia = async (product, photo) => {
 		const data = await shopifyGraphql(
 			`mutation ReorderArtworkMedia($id: ID!, $moves: [MoveInput!]!) {
 				productReorderMedia(id: $id, moves: $moves) {
+					job { id }
 					mediaUserErrors { field message }
 				}
 			}`,
@@ -1032,6 +1117,13 @@ const repairShopifyProductMedia = async (product, photo) => {
 		);
 		const errors = data.productReorderMedia?.mediaUserErrors || [];
 		if (errors.length) throw new Error(`Shopify media reorder failed for ${product.id}: ${JSON.stringify(errors)}`);
+		if (data.productReorderMedia?.job?.id) await waitForShopifyJob(data.productReorderMedia.job.id);
+		observed = await fetchShopifyProductMedia(product.id);
+		assert.equal(
+			shopifyMediaNodes(observed).findIndex((media) => media.id === artworkMedia.id),
+			0,
+			`Shopify artwork media did not reach position 0 for ${product.id}`,
+		);
 	}
 
 	const variants = buildShopifyVariantMediaUpdates(observed, artworkMedia);
@@ -1046,6 +1138,7 @@ const repairShopifyProductMedia = async (product, photo) => {
 		);
 		const errors = data.productVariantsBulkUpdate?.userErrors || [];
 		if (errors.length) throw new Error(`Shopify variant media update failed for ${product.id}: ${JSON.stringify(errors)}`);
+		observed = await waitForShopifyArtworkBindings(product, photo);
 	}
 	return { artworkMediaId: artworkMedia.id, reordered: artworkPosition > 0, variantsUpdated: variants.length };
 };
@@ -1061,7 +1154,7 @@ const updateShopifyProduct = async (product, desired, status, { photo = null, ..
 					id
 					title
 					status
-					media(first: 100) { nodes { id alt mediaContentType } }
+					media(first: 100) { nodes { id alt mediaContentType status } }
 					variants(first: 100) {
 						nodes {
 							id
@@ -1708,6 +1801,9 @@ export {
 	isShopifyThrottled,
 	shopifyGraphql,
 	shopifyRetryDelayMs,
+	waitForShopifyArtworkBindings,
+	waitForShopifyArtworkMedia,
+	waitForShopifyJob,
 	archivedProductHandle,
 	requestShopifyClientCredentialsToken,
 	referenceLabelFor,

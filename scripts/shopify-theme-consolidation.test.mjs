@@ -7,15 +7,34 @@ const liquid = readFileSync(new URL("../shopify-theme-overrides/ct-product-conso
 const script = liquid.match(/<script>\s*([\s\S]*?)\s*<\/script>/)?.[1];
 assert.ok(script, "theme override must contain an inline script");
 
-const loadApi = (cards = []) => {
+
+const createClassList = (initial = []) => {
+	const values = new Set(initial);
+	return {
+		contains: (name) => values.has(name),
+		toggle(name, force) {
+			const next = force === undefined ? !values.has(name) : force;
+			if (next) values.add(name);
+			else values.delete(name);
+			return next;
+		},
+		add: (name) => values.add(name),
+		remove: (...names) => names.forEach((name) => values.delete(name)),
+		has: (name) => values.has(name),
+	};
+};
+
+const loadApi = (cards = [], mediaContainers = [], printProduct = false) => {
+	const documentElementClassList = createClassList(printProduct ? ["ct-print-product"] : []);
 	const document = {
-		documentElement: {},
+		documentElement: { classList: documentElementClassList },
 		body: {},
 		addEventListener() {},
 		querySelector() {
 			return null;
 		},
 		querySelectorAll(selector) {
+			if (selector.includes("product-media-container--image") || selector.includes("ct-non-artwork-media")) return mediaContainers;
 			return selector === ".ct-print-card" ? cards.filter((card) => card.classList.has("ct-print-card")) : cards;
 		},
 	};
@@ -28,7 +47,7 @@ const loadApi = (cards = []) => {
 	}
 	const testableScript = script.replace(
 		"    enhanceStorefront();\n    document.addEventListener",
-		"    window.__ctTestApi = { artworkKeyFor, baseHandleFor, consolidateProductCards, formatForHandle, normalizedHandle, productHandle };\n    document.addEventListener",
+		"    window.__ctTestApi = { artworkKeyFor, baseHandleFor, consolidateProductCards, filterProductMedia, formatForHandle, normalizedHandle, productHandle };\n    document.addEventListener",
 	);
 	assert.notEqual(testableScript, script, "theme script test hook must stay aligned with the bootstrap");
 	vm.runInNewContext(testableScript, { MutationObserver, URL, decodeURIComponent, document, window });
@@ -97,9 +116,27 @@ test("renders exactly one Fine Art card per artwork within a Horizon scope", () 
 	assert.equal(cards.filter((card) => card.classList.has("ct-print-card")).length, 1);
 });
 
+test("keeps only stable-marker artwork media in the PDP gallery", () => {
+	const makeMedia = (alt) => ({
+		classList: createClassList(["product-media-container--image"]),
+		querySelector: () => ({ alt }),
+		closest: () => null,
+	});
+	const artwork = makeMedia("Claire Thomas artwork: the-natural-world-1");
+	const mockup = makeMedia("Gelato mockup preview");
+	const api = loadApi([], [artwork, mockup], true);
+
+	api.filterProductMedia();
+	assert.equal(artwork.classList.has("ct-artwork-media"), true);
+	assert.equal(artwork.classList.has("ct-non-artwork-media"), false);
+	assert.equal(mockup.classList.has("ct-non-artwork-media"), true);
+});
+
 test("targets Horizon media primitives and leaves zoom-dialog sizing to Horizon", () => {
 	assert.match(liquid, /product-card, product-component\.resource-card__wrapper, \.resource-card__wrapper/);
 	assert.match(liquid, /\.product-media-container--image[^{}]*\.product-media__image/);
 	assert.match(liquid, /object-fit: cover !important/);
+	assert.match(liquid, /ct-non-artwork-media/);
+	assert.match(liquid, /Claire Thomas artwork:/);
 	assert.doesNotMatch(liquid, /dialog-zoomed-gallery[^{}]*\{[^}]*object-fit: contain/);
 });
