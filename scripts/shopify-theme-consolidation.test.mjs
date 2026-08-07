@@ -82,8 +82,12 @@ test("prefers stable artwork tags and supports arbitrary renamed album handles",
 
 test("renders exactly one Fine Art card per artwork within a Horizon scope", () => {
 	const scope = {};
-	const makeCard = (href) => {
-		const item = { hidden: false, parentElement: scope };
+	const makeCard = (href, paginatedListing = false) => {
+		const item = {
+			hidden: false,
+			parentElement: scope,
+			matches: (selector) => paginatedListing && selector === ".product-grid__item",
+		};
 		return {
 			dataset: {},
 			classList: new Set(),
@@ -114,6 +118,35 @@ test("renders exactly one Fine Art card per artwork within a Horizon scope", () 
 	api.consolidateProductCards();
 	assert.deepEqual(cards.map((card) => card.item.hidden), [true, false, true, true]);
 	assert.equal(cards.filter((card) => card.classList.has("ct-print-card")).length, 1);
+});
+
+test("hides non-Fine-Art cards across paginated listing pages", () => {
+	const scope = {};
+	const makeCard = (href, paginatedListing) => {
+		const item = {
+			hidden: false,
+			parentElement: scope,
+			matches: (selector) => paginatedListing && selector === ".product-grid__item",
+		};
+		return {
+			dataset: {},
+			classList: new Set(),
+			parentElement: scope,
+			querySelector: (selector) => selector === 'a[href*="/products/"]' ? { href } : null,
+			querySelectorAll: () => [],
+			getAttribute: () => null,
+			closest: () => item,
+			item,
+		};
+	};
+	const listingCanvas = makeCard("https://shop.test/products/animals-17-canvas-print", true);
+	const predictiveCanvas = makeCard("https://shop.test/products/animals-18-canvas-print", false);
+	const api = loadApi([listingCanvas, predictiveCanvas]);
+
+	api.consolidateProductCards();
+	assert.equal(listingCanvas.item.hidden, true);
+	assert.equal(predictiveCanvas.item.hidden, false);
+	assert.equal(predictiveCanvas.classList.has("ct-print-card"), true);
 });
 
 test("keeps only stable-marker artwork media in the PDP gallery", () => {

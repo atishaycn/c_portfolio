@@ -151,14 +151,22 @@
 
       groupsByScope.forEach((groups) => {
         groups.forEach((entries) => {
-          const chosen =
+          const fineArt =
             entries
               .filter(({ format }) => format.suffix === '-fine-art-print')
-              .sort((left, right) => duplicateRank(left.handle) - duplicateRank(right.handle))[0] ||
-            entries.slice().sort((left, right) => duplicateRank(left.handle) - duplicateRank(right.handle))[0];
+              .sort((left, right) => duplicateRank(left.handle) - duplicateRank(right.handle))[0] || null;
+          const isPaginatedListing = entries.some(({ item }) =>
+            item.matches?.('.product-grid__item'),
+          );
+          const chosen =
+            fineArt ||
+            (isPaginatedListing
+              ? null
+              : entries.slice().sort((left, right) => duplicateRank(left.handle) - duplicateRank(right.handle))[0]);
           entries.forEach((entry) => {
             entry.item.hidden = entry !== chosen;
           });
+          if (!chosen) return;
           chosen.card.classList.add('ct-print-card');
           cleanCardTitle(chosen.card);
         });
