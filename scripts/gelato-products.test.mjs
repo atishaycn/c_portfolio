@@ -21,6 +21,7 @@ import {
 	extraArtworkMediaIds,
 	findStaleProducts,
 	gelato429MaxAttempts,
+	isStalledCreatedProduct,
 	managedProductKey,
 	mergeProductsById,
 	mergeShopifyProductState,
@@ -34,6 +35,8 @@ import {
 	runWithRetryableDeferral,
 	publishingPollIntervalMs,
 	reconcileCreateActions,
+	reconcileCreateBatches,
+	reconcileCreateBatchSize,
 	safelyPublishShopifyProduct,
 	shouldUploadArtworkMedia,
 	waitForShopifyArtworkBindings,
@@ -174,6 +177,60 @@ test("waits for publishing products before requesting more Gelato products", () 
 	assert.deepEqual(reconcileCreateActions({ pending: [], creates }), creates);
 });
 
+test("bounds each reconcile create batch", () => {
+	const creates = Array.from({ length: 30 }, (_, index) => ({ key: `photo-${index}:fine-art` }));
+	assert.deepEqual(reconcileCreateActions({ pending: [], creates }), creates);
+	assert.deepEqual(reconcileCreateBatches({ pending: [], creates }, 3), [
+		creates.slice(0, 3),
+		creates.slice(3, 6),
+		creates.slice(6, 9),
+		creates.slice(9, 12),
+		creates.slice(12, 15),
+		creates.slice(15, 18),
+		creates.slice(18, 21),
+		creates.slice(21, 24),
+		creates.slice(24, 27),
+		creates.slice(27, 30),
+	]);
+	const previous = process.env.GELATO_RECONCILE_CREATE_BATCH;
+	try {
+		delete process.env.GELATO_RECONCILE_CREATE_BATCH;
+		assert.equal(reconcileCreateBatchSize(), 24);
+		process.env.GELATO_RECONCILE_CREATE_BATCH = "6";
+		assert.equal(reconcileCreateBatchSize(), 6);
+		process.env.GELATO_RECONCILE_CREATE_BATCH = "100";
+		assert.equal(reconcileCreateBatchSize(), 24);
+	} finally {
+		if (previous === undefined) delete process.env.GELATO_RECONCILE_CREATE_BATCH;
+		else process.env.GELATO_RECONCILE_CREATE_BATCH = previous;
+	}
+});
+
+test("recovers only aged created products without Shopify mappings", () => {
+	const now = Date.parse("2026-08-07T18:00:00Z");
+	assert.equal(
+		isStalledCreatedProduct(
+			{ status: "created", externalId: null, createdAt: "2026-08-07T15:00:00Z" },
+			now,
+		),
+		true,
+	);
+	assert.equal(
+		isStalledCreatedProduct(
+			{ status: "created", externalId: null, createdAt: "2026-08-07T17:00:01Z" },
+			now,
+		),
+		false,
+	);
+	assert.equal(
+		isStalledCreatedProduct(
+			{ status: "created", externalId: "123", createdAt: "2026-08-07T15:00:00Z" },
+			now,
+		),
+		false,
+	);
+});
+
 test("drains pending products without creating more and requests a retryable continuation", async () => {
 	const key = "photo-1:fine-art";
 	const desired = { handle: "photo-1-fine-art-print", description: "Photo 1", tags: ["photo-id:photo-1"] };
@@ -233,6 +290,81 @@ test("drains pending products without creating more and requests a retryable con
 	assert.deepEqual(apiCalls, [{ path: "/stores/store-1/products/gelato-pending", method: "GET" }]);
 	assert.equal(updates.some((update) => update.status === "DRAFT"), true);
 	assert.equal(repairs.length, 1);
+});
+
+test("processes every create through sequential bounded publishing batches", async () => {
+	const variants = ["8x12", "12x18", "16x24"].map((size) =>
+		normalizeVariant({
+			id: size,
+			title: `${size} - Horizontal`,
+			productUid: `product_hor_${size}-inch`,
+			imagePlaceholders: [{ name: "Artwork" }],
+		}),
+	);
+	const creates = Array.from({ length: 5 }, (_, index) => {
+		const printId = `photo-${index + 1}`;
+		return {
+			key: `${printId}:fine-art`,
+			medium: "fine-art",
+			photo: {
+				printId,
+				series: "album",
+				seriesLabel: "Album",
+				seriesPath: "Album",
+				referenceLabel: String(index + 1),
+				publicId: `album/${index + 1}`,
+				fileUrl: `https://example.com/${index + 1}.jpg`,
+				orientation: "horizontal",
+				aspectGroup: "wide",
+				sizesByMedium: { "fine-art": ["8x12", "12x18", "16x24"] },
+			},
+		};
+	});
+	const plan = {
+		archives: [],
+		blocked: [],
+		creates,
+		pending: [],
+		recoveries: [],
+		unarchives: [],
+		updates: [],
+	};
+	const state = { products: {} };
+	const batchSizes = [];
+	let postCount = 0;
+
+	const result = await applyReconcilePlan({
+		plan,
+		state,
+		storeId: "store-1",
+		templates: { "fine-art": { id: "template-1", variants } },
+		createBatchSize: 2,
+		apiRequestImpl: async (path, options = {}) => {
+			if (options.method === "POST") {
+				postCount += 1;
+				return { id: `gelato-${postCount}`, externalId: null, status: "created" };
+			}
+			const id = path.split("/").at(-1);
+			return { id, externalId: `shopify-${id}`, status: "active" };
+		},
+		updateShopifyProductImpl: async (product) => product,
+		safelyPublishShopifyProductImpl: async (product) => product,
+		waitForProductsImpl: async (_storeId, jobs, currentState, { onActive }) => {
+			batchSizes.push(jobs.length);
+			for (const job of jobs) {
+				const record = currentState.products[job.key];
+				record.externalId = `shopify-${record.id}`;
+				record.status = "active";
+				await onActive({ id: record.id, externalId: record.externalId, status: "active" }, job);
+			}
+		},
+		writeStateImpl() {},
+	});
+
+	assert.deepEqual(batchSizes, [2, 2, 1]);
+	assert.equal(postCount, 5);
+	assert.equal(result.created, 5);
+	assert.equal(Object.values(state.products).every((record) => record.mediaSynced === true), true);
 });
 
 test("requires exactly one active managed product for every catalog key", () => {
@@ -644,6 +776,30 @@ test("allows pending publishing products to wait for Shopify mappings", () => {
 	);
 	assert.equal(activeBeforeMapping.pending.length, 1);
 	assert.equal(activeBeforeMapping.blocked.length, 0);
+});
+
+test("reconcile deletes and recreates a stranded created product", () => {
+	const photo = {
+		printId: "photo-1",
+		series: "album",
+		seriesLabel: "Album",
+		referenceLabel: "1",
+	};
+	const stalled = {
+		id: "stalled-created",
+		externalId: null,
+		status: "created",
+		createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+		tags: ["photo-1", "photo-id:photo-1", "format-fine-art", "claire-thomas", catalogVersionTag],
+	};
+	const plan = buildReconcilePlan([photo], { products: {} }, [stalled], ["fine-art"]);
+	assert.deepEqual(
+		plan.recoveries.map(({ product, reason }) => ({ id: product.id, reason })),
+		[{ id: stalled.id, reason: "stalled-created" }],
+	);
+	assert.equal(plan.creates.length, 1);
+	assert.equal(plan.pending.length, 0);
+	assert.equal(plan.blocked.length, 0);
 });
 
 test("recovers publishing errors by archiving their mapped Shopify product and recreating the stable key", () => {

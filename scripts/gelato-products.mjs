@@ -20,6 +20,7 @@ const API_BASE = "https://ecommerce.gelatoapis.com/v1";
 const DEFAULT_SHOPIFY_API_VERSION = "2026-07";
 const DEFAULT_GELATO_429_MAX_ATTEMPTS = 48;
 const RETRYABLE_RECONCILE_EXIT_CODE = 75;
+const STALLED_CREATED_AGE_MS = 2 * 60 * 60 * 1000;
 const SHOPIFY_ARTWORK_ALT_PREFIX = "Claire Thomas artwork: ";
 const SHOPIFY_MAX_ATTEMPTS = 8;
 const SHOPIFY_MAX_RETRY_DELAY_MS = 5 * 60 * 1000;
@@ -34,6 +35,11 @@ const gelato429MaxAttempts = () => {
 	return Number.isInteger(configured) && configured > 0
 		? configured
 		: DEFAULT_GELATO_429_MAX_ATTEMPTS;
+};
+
+const reconcileCreateBatchSize = () => {
+	const configured = Number(process.env.GELATO_RECONCILE_CREATE_BATCH);
+	return Number.isInteger(configured) && configured > 0 ? Math.min(configured, 24) : 24;
 };
 
 const MEDIA = {
@@ -791,6 +797,12 @@ const archivedProductHandle = (product) => {
 	return `archived-${source.replace(/[^a-z0-9-]/gi, "-").toLowerCase()}`.slice(0, 255);
 };
 
+const isStalledCreatedProduct = (product, now = Date.now()) =>
+	product?.status === "created" &&
+	!productShopifyId(product) &&
+	Number.isFinite(Date.parse(product.createdAt)) &&
+	now - Date.parse(product.createdAt) >= STALLED_CREATED_AGE_MS;
+
 const buildShopifyProductUpdate = (product, desired = null, status = null, { archive = false } = {}) => {
 	const input = { id: productShopifyId(product) };
 	if (archive) {
@@ -862,7 +874,12 @@ const buildReconcilePlan = (
 		for (const failed of matches.filter((product) => product.status === "publishing_error")) {
 			addRecovery(key, failed, desired);
 		}
-		const usableMatches = matches.filter((product) => product.status !== "publishing_error");
+		for (const stalled of matches.filter((product) => isStalledCreatedProduct(product))) {
+			addRecovery(key, stalled, desired, "stalled-created");
+		}
+		const usableMatches = matches.filter(
+			(product) => product.status !== "publishing_error" && !isStalledCreatedProduct(product),
+		);
 		const current = usableMatches.filter((product) => product.tags?.includes(catalogVersionTag));
 		const canonical =
 			current.find(isReadyActiveProduct) ??
@@ -1333,6 +1350,15 @@ const safelyPublishShopifyProduct = async (
 
 const reconcileCreateActions = (plan) => plan.pending.length ? [] : plan.creates;
 
+const reconcileCreateBatches = (plan, batchSize = reconcileCreateBatchSize()) => {
+	const actions = reconcileCreateActions(plan);
+	const batches = [];
+	for (let offset = 0; offset < actions.length; offset += batchSize) {
+		batches.push(actions.slice(offset, offset + batchSize));
+	}
+	return batches;
+};
+
 const applyReconcilePlan = async ({
 	plan,
 	state,
@@ -1344,6 +1370,7 @@ const applyReconcilePlan = async ({
 	updateShopifyProductImpl = updateShopifyProduct,
 	waitForProductsImpl = waitForProducts,
 	writeStateImpl = writeState,
+	createBatchSize = reconcileCreateBatchSize(),
 }) => {
 	assert(!plan.blocked.length, `Reconcile has ${plan.blocked.length} unmappable product actions; inspect the dry-run plan first`);
 	const deferred = new Map();
@@ -1396,62 +1423,64 @@ const applyReconcilePlan = async ({
 		writeStateImpl(state);
 	}, deferred);
 
-	const jobs = [];
-	const createdActions = new Map();
-	const pendingActions = new Map();
-	const createdWithShopifyMapping = new Set();
-	const createsToApply = reconcileCreateActions(plan);
-	for (const action of plan.pending) {
-		state.products[action.key] = {
-			...(state.products[action.key] || {}),
-			id: action.product.id,
-			externalId: action.product.externalId,
-			status: action.product.status,
-			catalogVersion: CATALOG_VERSION,
-			handle: action.desired.handle,
-			description: action.desired.description,
-			tags: action.desired.tags,
-		};
-		writeStateImpl(state);
-		jobs.push({ key: action.key });
-		pendingActions.set(action.key, action);
-	}
-	for (const action of createsToApply) {
-		const key = action.key;
-		const payload = createPayload(templates[action.medium], action.photo, action.medium, visible);
-		const createdProduct = await apiRequestImpl(`/stores/${storeId}/products:create-from-template`, {
-			method: "POST",
-			body: JSON.stringify(payload),
-		});
-		state.products[key] = {
-			id: createdProduct.id,
-			externalId: createdProduct.externalId,
-			status: createdProduct.status,
-			visible,
-			catalogVersion: CATALOG_VERSION,
-			handle: productMetadata(action.photo, action.medium).handle,
-			description: productMetadata(action.photo, action.medium).description,
-			tags: productMetadata(action.photo, action.medium).tags,
-			createdAt: new Date().toISOString(),
-		};
-		writeStateImpl(state);
-		createdActions.set(key, action);
-		if (productShopifyId(createdProduct)) {
-			await runWithRetryableDeferral([action], async () => {
-				await safelyPublishShopifyProductImpl(
-					createdProduct,
-					productMetadata(action.photo, action.medium),
-					{ photo: action.photo },
-				);
-				state.products[key].metadataSynced = true;
-				state.products[key].mediaSynced = true;
-				writeStateImpl(state);
-				createdWithShopifyMapping.add(key);
-			}, deferred);
+	let createdCount = 0;
+	const processPublishingBatch = async ({ pending = [], creates = [] }) => {
+		const jobs = [];
+		const createdActions = new Map();
+		const pendingActions = new Map();
+		const createdWithShopifyMapping = new Set();
+		for (const action of pending) {
+			state.products[action.key] = {
+				...(state.products[action.key] || {}),
+				id: action.product.id,
+				externalId: action.product.externalId,
+				status: action.product.status,
+				catalogVersion: CATALOG_VERSION,
+				handle: action.desired.handle,
+				description: action.desired.description,
+				tags: action.desired.tags,
+			};
+			writeStateImpl(state);
+			jobs.push({ key: action.key });
+			pendingActions.set(action.key, action);
 		}
-		jobs.push({ key });
-	}
-	if (jobs.length) {
+		for (const action of creates) {
+			const key = action.key;
+			const payload = createPayload(templates[action.medium], action.photo, action.medium, visible);
+			const createdProduct = await apiRequestImpl(`/stores/${storeId}/products:create-from-template`, {
+				method: "POST",
+				body: JSON.stringify(payload),
+			});
+			state.products[key] = {
+				id: createdProduct.id,
+				externalId: createdProduct.externalId,
+				status: createdProduct.status,
+				visible,
+				catalogVersion: CATALOG_VERSION,
+				handle: productMetadata(action.photo, action.medium).handle,
+				description: productMetadata(action.photo, action.medium).description,
+				tags: productMetadata(action.photo, action.medium).tags,
+				createdAt: new Date().toISOString(),
+			};
+			writeStateImpl(state);
+			createdActions.set(key, action);
+			createdCount += 1;
+			if (productShopifyId(createdProduct)) {
+				await runWithRetryableDeferral([action], async () => {
+					await safelyPublishShopifyProductImpl(
+						createdProduct,
+						productMetadata(action.photo, action.medium),
+						{ photo: action.photo },
+					);
+					state.products[key].metadataSynced = true;
+					state.products[key].mediaSynced = true;
+					writeStateImpl(state);
+					createdWithShopifyMapping.add(key);
+				}, deferred);
+			}
+			jobs.push({ key });
+		}
+		if (!jobs.length) return;
 		await waitForProductsImpl(storeId, jobs, state, {
 			pollIntervalMs: publishingPollIntervalMs(jobs, state),
 			onActive: async (product, job) => {
@@ -1474,8 +1503,17 @@ const applyReconcilePlan = async ({
 			state.products[job.key].description = desired.description;
 			state.products[job.key].tags = desired.tags;
 			state.products[job.key].metadataUpdatedAt = new Date().toISOString();
-			writeStateImpl(state);
-		}, deferred);
+				writeStateImpl(state);
+			}, deferred);
+	};
+
+	if (plan.pending.length) {
+		await processPublishingBatch({ pending: plan.pending });
+	} else {
+		for (const creates of reconcileCreateBatches(plan, createBatchSize)) {
+			await processPublishingBatch({ creates });
+			if (deferred.size) break;
+		}
 	}
 	if (deferred.size) {
 		const sample = [...deferred.entries()]
@@ -1496,7 +1534,7 @@ const applyReconcilePlan = async ({
 		recovered: plan.recoveries.length,
 		updated: plan.updates.length,
 		unarchived: plan.unarchives.length,
-		created: createsToApply.length,
+		created: createdCount,
 	};
 };
 
@@ -1982,6 +2020,7 @@ export {
 	buildShopifyVariantMediaUpdates,
 	extraArtworkMediaIds,
 	gelato429MaxAttempts,
+	isStalledCreatedProduct,
 	buildCreatedRepairPlan,
 	buildCatalogAudit,
 	cloudinaryUrl,
@@ -2012,6 +2051,8 @@ export {
 	requestShopifyClientCredentialsToken,
 	referenceLabelFor,
 	reconcileCreateActions,
+	reconcileCreateBatches,
+	reconcileCreateBatchSize,
 	selectExistingProduct,
 	selectTemplateVariants,
 };
