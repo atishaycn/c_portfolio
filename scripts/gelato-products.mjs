@@ -8,6 +8,7 @@ import { pathToFileURL } from "node:url";
 const ROOT = resolve(import.meta.dirname, "..");
 const CONTENT_FILE = resolve(ROOT, "content", "portfolio.json");
 const ENV_FILE = resolve(ROOT, ".env.gelato.local");
+const SHOPIFY_ENV_FILE = resolve(ROOT, ".env.shopify.local");
 const MANIFEST_FILE = resolve(ROOT, ".gelato-product-manifest.json");
 const STATE_FILE = resolve(ROOT, ".gelato-product-state.json");
 const STALE_FILE = resolve(ROOT, ".gelato-stale-products.json");
@@ -17,6 +18,7 @@ const DEFAULT_STORE_ID = "6d03ca64-de8a-4764-bc46-8bd014a1b271";
 const CLOUD_NAME = "dpmdkrggj";
 const API_BASE = "https://ecommerce.gelatoapis.com/v1";
 const DEFAULT_SHOPIFY_API_VERSION = "2026-07";
+let shopifyAccessTokenCache = null;
 
 const MEDIA = {
 	"fine-art": {
@@ -74,6 +76,15 @@ const SERIES_LABELS = {
 	india: "India",
 	"shapes-and-shadows": "Shapes & Shadows",
 	protests: "Reportage",
+};
+
+const SHOPIFY_SERIES_HANDLES = {
+	"the-natural-world": "the-natural-world",
+	california: "california",
+	"san-francisco": "san-francisco",
+	india: "india",
+	"shapes-and-shadows": "shapes-shadows",
+	protests: "reportage",
 };
 
 const parseArgs = (argv) => {
@@ -232,6 +243,28 @@ const referenceLabelFor = (printId, series) =>
 		.map((part) => (/^\d+$/.test(part) ? part : `${part.charAt(0).toUpperCase()}${part.slice(1)}`))
 		.join(" ");
 
+const slugify = (value) => String(value || "")
+	.normalize("NFKD")
+	.replace(/[\u0300-\u036f]/g, "")
+	.replace(/&/g, " and ")
+	.toLowerCase()
+	.replace(/[^a-z0-9]+/g, "-")
+	.replace(/^-+|-+$/g, "");
+
+const referenceHandleFor = (printId, series) => {
+	const prefix = `${series}-`;
+	return printId.startsWith(prefix) ? printId.slice(prefix.length) : printId;
+};
+
+const canonicalHandleFor = (photo, medium) => {
+	const seriesHandle = SHOPIFY_SERIES_HANDLES[photo.series] || slugify(photo.series || photo.seriesLabel);
+	const referenceHandle = referenceHandleFor(photo.printId, photo.series);
+	return slugify(`${seriesHandle}-${referenceHandle}-${MEDIA[medium].label}`);
+};
+
+const canonicalFineArtUrlFor = (photo) =>
+	`https://shop.clairethomas.art/products/${canonicalHandleFor(photo, "fine-art")}`;
+
 const buildManifest = (content = readPortfolioContent()) => {
 	const { pathFor } = albumMetadata(content);
 	const photos = content.albums.flatMap((album) =>
@@ -252,6 +285,16 @@ const buildManifest = (content = readPortfolioContent()) => {
 					referenceLabel: referenceLabelFor(printId, album.key || album.id),
 					albumOrder: album.order,
 					photoOrder: item.order,
+					fineArtHandle: canonicalHandleFor({
+						printId,
+						series: album.key || album.id,
+						seriesLabel: album.label || SERIES_LABELS[album.key] || album.key || album.id,
+					}, "fine-art"),
+					fineArtUrl: canonicalFineArtUrlFor({
+						printId,
+						series: album.key || album.id,
+						seriesLabel: album.label || SERIES_LABELS[album.key] || album.key || album.id,
+					}),
 					width: item.width,
 					height: item.height,
 					orientation: orientationFor(item.width, item.height),
@@ -459,6 +502,7 @@ const productMetadata = (photo, medium) => {
 	const collection = photo.seriesPath || photo.seriesLabel;
 	return {
 		title: `${photo.seriesLabel} ${photo.referenceLabel} - ${media.label}`,
+		handle: canonicalHandleFor(photo, medium),
 		description: `${media.description}<p>Collection: ${collection}.${collectionPosition}</p><p>Artwork reference: ${photo.printId}.${position}</p>`,
 		tags: [
 			photo.printId,
@@ -478,6 +522,7 @@ const productMetadata = (photo, medium) => {
 
 const createPayload = (template, photo, medium, visible = false) => {
 	const media = MEDIA[medium];
+	const { handle: _handle, ...metadata } = productMetadata(photo, medium);
 	const variants = selectTemplateVariants(template, photo, medium).map((variant, position) => {
 		assert.equal(variant.imagePlaceholders.length, 1, `${variant.title} must contain exactly one image placeholder`);
 		return {
@@ -495,7 +540,7 @@ const createPayload = (template, photo, medium, visible = false) => {
 
 	return {
 		templateId: template.id,
-		...productMetadata(photo, medium),
+		...metadata,
 		isVisibleInTheOnlineStore: visible,
 		salesChannels: ["web"],
 		variants,
@@ -593,6 +638,7 @@ const sameStringArray = (left, right) =>
 const productNeedsMetadataUpdate = (product, desired) =>
 	product.title !== desired.title ||
 	(product.description ?? product.descriptionHtml) !== desired.description ||
+	product.handle !== desired.handle ||
 	!sameStringArray(product.tags, desired.tags);
 
 const productShopifyId = (product) => {
@@ -601,6 +647,27 @@ const productShopifyId = (product) => {
 	return String(externalId).startsWith("gid://shopify/Product/")
 		? String(externalId)
 		: `gid://shopify/Product/${externalId}`;
+};
+
+const archivedProductHandle = (product) => {
+	const source = String(product.externalId || product.id || "product");
+	return `archived-${source.replace(/[^a-z0-9-]/gi, "-").toLowerCase()}`.slice(0, 255);
+};
+
+const buildShopifyProductUpdate = (product, desired = null, status = null, { archive = false } = {}) => {
+	const input = { id: productShopifyId(product) };
+	if (archive) {
+		input.handle = archivedProductHandle(product);
+		input.redirectNewHandle = false;
+	} else if (desired) {
+		input.title = desired.title;
+		input.descriptionHtml = desired.description;
+		input.tags = desired.tags;
+		input.handle = desired.handle;
+		input.redirectNewHandle = false;
+	}
+	if (status) input.status = status.toUpperCase();
+	return input;
 };
 
 const buildReconcilePlan = (
@@ -640,7 +707,7 @@ const buildReconcilePlan = (
 			plan.blocked.push({ action: "archive", key, productId: product.id, reason: "missing-shopify-external-id" });
 			return;
 		}
-		plan.archives.push({ key, product, reason });
+		plan.archives.push({ key, product, reason, archivedHandle: archivedProductHandle(product) });
 	};
 
 	for (const [key, target] of expected) {
@@ -648,6 +715,16 @@ const buildReconcilePlan = (
 		const current = matches.filter((product) => product.tags?.includes(catalogVersionTag));
 		const canonical = current.find((product) => product.status === "active") ?? current[0];
 		const desired = productMetadata(target.photo, target.medium);
+		const recorded = state.products?.[key] || {};
+		const recordedMetadata = recorded.metadataSynced ? recorded : {};
+		const observed = canonical
+			? {
+				...canonical,
+				handle: canonical.handle ?? recordedMetadata.handle,
+				description: canonical.description ?? recordedMetadata.description,
+				tags: canonical.tags ?? recordedMetadata.tags,
+			}
+			: null;
 		if (!canonical) {
 			const replacement = matches.find((product) => product.status === "active") ?? matches[0];
 			if (replacement) addArchive(key, replacement, "catalog-version-replacement");
@@ -659,8 +736,8 @@ const buildReconcilePlan = (
 				plan.unarchives.push({ key, product: canonical, desired });
 			}
 		} else if (["created", "publishing", "publishing_queued"].includes(canonical.status)) {
-			plan.pending.push({ key, product: canonical });
-			if (productNeedsMetadataUpdate(canonical, desired)) {
+			plan.pending.push({ key, product: canonical, desired });
+			if (productNeedsMetadataUpdate(observed, desired)) {
 				if (!productShopifyId(canonical)) {
 					plan.blocked.push({ action: "update", key, productId: canonical.id, reason: "missing-shopify-external-id" });
 				} else {
@@ -669,7 +746,7 @@ const buildReconcilePlan = (
 			}
 		} else if (canonical.status !== "active") {
 			plan.blocked.push({ action: "inspect", key, productId: canonical.id, reason: `unsupported-status:${canonical.status}` });
-		} else if (productNeedsMetadataUpdate(canonical, desired)) {
+		} else if (productNeedsMetadataUpdate(observed, desired)) {
 			if (!productShopifyId(canonical)) {
 				plan.blocked.push({ action: "update", key, productId: canonical.id, reason: "missing-shopify-external-id" });
 			} else {
@@ -696,11 +773,8 @@ const buildReconcilePlan = (
 };
 
 const shopifyGraphql = async (query, variables) => {
-	const domain = (process.env.SHOPIFY_STORE_DOMAIN || process.env.SHOPIFY_SHOP_DOMAIN || "")
-		.replace(/^https?:\/\//, "")
-		.replace(/\/$/, "");
-	const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
-	assert(domain && token, "SHOPIFY_STORE_DOMAIN and SHOPIFY_ADMIN_ACCESS_TOKEN are required for reconcile mutations");
+	const domain = normalizedShopifyDomain();
+	const token = await getShopifyAdminAccessToken();
 	const version = process.env.SHOPIFY_API_VERSION || DEFAULT_SHOPIFY_API_VERSION;
 	const response = await fetch(`https://${domain}/admin/api/${version}/graphql.json`, {
 		method: "POST",
@@ -718,7 +792,42 @@ const shopifyGraphql = async (query, variables) => {
 	return body.data;
 };
 
-const updateShopifyProduct = async (product, desired, status) => {
+const normalizedShopifyDomain = () => (process.env.SHOPIFY_STORE_DOMAIN || process.env.SHOPIFY_SHOP_DOMAIN || "")
+	.replace(/^https?:\/\//, "")
+	.replace(/\/$/, "");
+
+const requestShopifyClientCredentialsToken = async ({
+	domain = normalizedShopifyDomain(),
+	clientId = process.env.SHOPIFY_CLIENT_ID,
+	clientSecret = process.env.SHOPIFY_CLIENT_SECRET,
+	fetchImpl = fetch,
+} = {}) => {
+	assert(domain && clientId && clientSecret, "Shopify client credentials require store domain, client ID, and client secret");
+	const response = await fetchImpl(`https://${domain}/admin/oauth/access_token`, {
+		method: "POST",
+		headers: { "Content-Type": "application/x-www-form-urlencoded" },
+		body: new URLSearchParams({
+			grant_type: "client_credentials",
+			client_id: clientId,
+			client_secret: clientSecret,
+		}),
+		signal: AbortSignal.timeout(30 * 1000),
+	});
+	if (!response.ok) throw new Error(`Shopify client-credentials request failed with HTTP ${response.status}`);
+	const body = await response.json();
+	assert(body?.access_token, "Shopify client-credentials response did not include an access token");
+	return body.access_token;
+};
+
+const getShopifyAdminAccessToken = async () => {
+	if (process.env.SHOPIFY_ADMIN_ACCESS_TOKEN) return process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+	if (!shopifyAccessTokenCache) {
+		shopifyAccessTokenCache = await requestShopifyClientCredentialsToken();
+	}
+	return shopifyAccessTokenCache;
+};
+
+const updateShopifyProduct = async (product, desired, status, options = {}) => {
 	const id = productShopifyId(product);
 	assert(id, `Product ${product.id} has no Shopify externalId`);
 	const data = await shopifyGraphql(
@@ -729,15 +838,7 @@ const updateShopifyProduct = async (product, desired, status) => {
 			}
 		}`,
 		{
-			product: {
-				id,
-				...(desired ? {
-					title: desired.title,
-					descriptionHtml: desired.description,
-					tags: desired.tags,
-				} : {}),
-				...(status ? { status: status.toUpperCase() } : {}),
-			},
+			product: buildShopifyProductUpdate(product, desired, status, options),
 		},
 	);
 	const result = data.productUpdate;
@@ -750,7 +851,7 @@ const updateShopifyProduct = async (product, desired, status) => {
 const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = true }) => {
 	assert(!plan.blocked.length, `Reconcile has ${plan.blocked.length} unmappable product actions; inspect the dry-run plan first`);
 	for (const action of plan.archives) {
-		await updateShopifyProduct(action.product, null, "ARCHIVED");
+		await updateShopifyProduct(action.product, null, "ARCHIVED", { archive: true });
 		const record = state.products[action.key];
 		if (record?.id === action.product.id) {
 			state.products[action.key] = {
@@ -770,12 +871,19 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 			externalId: action.product.externalId,
 			status: "active",
 			catalogVersion: CATALOG_VERSION,
+			handle: action.desired.handle,
+			description: action.desired.description,
+			tags: action.desired.tags,
+			metadataSynced: true,
 			metadataUpdatedAt: new Date().toISOString(),
 		};
 		writeState(state);
 	}
 
 	const jobs = [];
+	const createdActions = new Map();
+	const createdWithShopifyMapping = new Set();
+	const pendingKeys = new Set();
 	for (const action of plan.pending) {
 		state.products[action.key] = {
 			...(state.products[action.key] || {}),
@@ -783,9 +891,13 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 			externalId: action.product.externalId,
 			status: action.product.status,
 			catalogVersion: CATALOG_VERSION,
+			handle: action.desired.handle,
+			description: action.desired.description,
+			tags: action.desired.tags,
 		};
 		writeState(state);
 		jobs.push({ key: action.key });
+		pendingKeys.add(action.key);
 	}
 	for (const action of plan.creates) {
 		const key = action.key;
@@ -800,17 +912,37 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 			status: createdProduct.status,
 			visible,
 			catalogVersion: CATALOG_VERSION,
+			handle: productMetadata(action.photo, action.medium).handle,
+			description: productMetadata(action.photo, action.medium).description,
+			tags: productMetadata(action.photo, action.medium).tags,
 			createdAt: new Date().toISOString(),
 		};
 		writeState(state);
+		createdActions.set(key, action);
+		if (productShopifyId(createdProduct)) {
+			await updateShopifyProduct(createdProduct, productMetadata(action.photo, action.medium), "ACTIVE");
+			state.products[key].metadataSynced = true;
+			writeState(state);
+			createdWithShopifyMapping.add(key);
+		}
 		jobs.push({ key });
 	}
-	if (jobs.length) await waitForProducts(storeId, jobs, state);
+	if (jobs.length) {
+		await waitForProducts(storeId, jobs, state);
+		for (const job of jobs) {
+			if (pendingKeys.has(job.key) || createdWithShopifyMapping.has(job.key)) continue;
+			const action = createdActions.get(job.key);
+			const product = await apiRequest(`/stores/${storeId}/products/${state.products[job.key].id}`);
+			await updateShopifyProduct(product, productMetadata(action.photo, action.medium), "ACTIVE");
+			state.products[job.key].metadataSynced = true;
+			writeState(state);
+		}
+	}
 	return {
 		archived: plan.archives.length,
 		updated: plan.updates.length,
 		unarchived: plan.unarchives.length,
-		created: jobs.length,
+		created: plan.creates.length,
 	};
 };
 
@@ -1048,6 +1180,7 @@ const writeStaleReport = (staleProducts) => {
 
 const run = async () => {
 	loadEnv(ENV_FILE);
+	loadEnv(SHOPIFY_ENV_FILE);
 	const args = parseArgs(process.argv.slice(2));
 	if (args.help) {
 		printHelp();
@@ -1271,9 +1404,12 @@ export {
 	aspectGroupFor,
 	buildManifest,
 	buildReconcilePlan,
+	buildShopifyProductUpdate,
 	buildCreatedRepairPlan,
 	buildCatalogAudit,
 	cloudinaryUrl,
+	canonicalHandleFor,
+	canonicalFineArtUrlFor,
 	catalogVersionTag,
 	expectedProductKeys,
 	findStaleProducts,
@@ -1282,6 +1418,8 @@ export {
 	normalizeVariant,
 	orientationFor,
 	productMetadata,
+	archivedProductHandle,
+	requestShopifyClientCredentialsToken,
 	referenceLabelFor,
 	selectExistingProduct,
 	selectTemplateVariants,

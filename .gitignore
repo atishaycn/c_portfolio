@@ -19,6 +19,9 @@ Shapes & Shadows/
 .env
 .env.*
 !.env.example
+.portfolio-print-sync-state.json
+.portfolio-print-sync-content.json
+.portfolio-print-sync.lock
 .admin-credentials.local.json
 .gelato-product-manifest.json
 .gelato-product-state.json

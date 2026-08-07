@@ -5,9 +5,12 @@ import {
 	aspectGroupFor,
 	buildManifest,
 	buildReconcilePlan,
+	buildShopifyProductUpdate,
 	buildCatalogAudit,
 	buildCreatedRepairPlan,
 	catalogVersionTag,
+	canonicalFineArtUrlFor,
+	canonicalHandleFor,
 	cloudinaryUrl,
 	expectedProductKeys,
 	findStaleProducts,
@@ -16,6 +19,7 @@ import {
 	normalizeVariant,
 	orientationFor,
 	productMetadata,
+	archivedProductHandle,
 	referenceLabelFor,
 	selectExistingProduct,
 	selectTemplateVariants,
@@ -345,4 +349,27 @@ test("does not match products by mutable title and blocks archive without Shopif
 	assert.equal(plan.archives.length, 0);
 	assert.deepEqual(plan.blocked, [{ action: "archive", key: "removed-photo:fine-art", productId: staleWithoutExternalId.id, reason: "missing-shopify-external-id" }]);
 	assert.equal(catalogVersionTag, "catalog-edge-to-edge-v1");
+});
+
+test("archives old handles before replacement and exposes the canonical Fine Art URL", () => {
+	const photo = {
+		printId: "the-natural-world-3",
+		series: "the-natural-world",
+		seriesLabel: "the natural world",
+		referenceLabel: "3",
+	};
+	const canonicalHandle = canonicalHandleFor(photo, "fine-art");
+	assert.equal(canonicalHandle, "the-natural-world-3-fine-art-print");
+	assert.equal(canonicalFineArtUrlFor(photo), `https://shop.clairethomas.art/products/${canonicalHandle}`);
+	const oldProduct = { id: "gelato-old", externalId: "53830433439928", status: "active", handle: canonicalHandle };
+	const archiveUpdate = buildShopifyProductUpdate(oldProduct, null, "ARCHIVED", { archive: true });
+	assert.equal(archivedProductHandle(oldProduct), "archived-53830433439928");
+	assert.deepEqual(archiveUpdate, {
+		id: "gid://shopify/Product/53830433439928",
+		handle: "archived-53830433439928",
+		redirectNewHandle: false,
+		status: "ARCHIVED",
+	});
+	assert.notEqual(archiveUpdate.handle, oldProduct.handle);
+	assert.equal(buildShopifyProductUpdate(oldProduct, productMetadata(photo, "fine-art"), "ACTIVE").handle, canonicalHandle);
 });
