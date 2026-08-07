@@ -37,7 +37,7 @@ GELATO_FRAMED_TEMPLATE_ID=
 GELATO_CANVAS_TEMPLATE_ID=
 
 # Shopify Admin API: put these in ignored .env.shopify.local, not source control.
-SHOPIFY_STORE_DOMAIN=shop.clairethomas.art
+SHOPIFY_STORE_DOMAIN=esf4bj-wk.myshopify.com
 SHOPIFY_ADMIN_ACCESS_TOKEN=
 SHOPIFY_CLIENT_ID=
 SHOPIFY_CLIENT_SECRET=
@@ -75,6 +75,13 @@ The script writes `.gelato-product-state.json` after each product. Re-running re
 Archiving is explicit and reversible: reconcile sends Shopify `productUpdate(status: ARCHIVED)` for disabled, stale, duplicate, or superseded products; it never calls a delete endpoint. Missing Shopify mappings block execution for review. The edge-to-edge catalog version archives old `meet` products before creating replacements.
 
 The poller fetches the public CMS revision, writes a pending marker before reconcile, and advances `lastSuccessfulRevision` only after the child reconcile exits successfully. It uses an exclusive lock to prevent overlapping LaunchAgent invocations. If `SHOPIFY_ADMIN_ACCESS_TOKEN` is absent, reconcile requests a 24-hour Shopify Dev Dashboard client-credentials token from `/admin/oauth/access_token`; tokens and secrets are never logged or written to state.
+
+Copy each credential in Shopify, then capture it without printing it:
+
+```bash
+node scripts/capture-shopify-credential.mjs --client-id
+node scripts/capture-shopify-credential.mjs --client-secret
+```
 
 Each product receives a deterministic canonical handle and Fine Art URL in `.gelato-product-manifest.json`. Before replacing or archiving a product, reconcile changes its Shopify handle to `archived-<stable-id>` with `redirectNewHandle: false`, preventing `-1` collisions. New Gelato products are then updated to their canonical handle, metadata, and `ACTIVE` status once Shopify mapping is available.
 

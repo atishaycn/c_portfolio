@@ -22,11 +22,13 @@ Shapes & Shadows/
 .portfolio-print-sync-state.json
 .portfolio-print-sync-content.json
 .portfolio-print-sync.lock
+.playwright-cli/
 .admin-credentials.local.json
 .gelato-product-manifest.json
 .gelato-product-state.json
 .gelato-stale-products.json
 .gelato-catalog-audit.json
+.gelato-reconcile-plan.json
 .gelato-catalog-resume.log
 .gelato-catalog-resume.pid
 .vercel

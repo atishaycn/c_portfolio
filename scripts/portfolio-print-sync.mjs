@@ -71,23 +71,37 @@ const writeJsonAtomic = (file, value) => {
 };
 
 const acquireLock = (file) => {
-	let descriptor;
-	try {
-		descriptor = openSync(file, "wx", 0o600);
-		writeFileSync(descriptor, `${process.pid}\n`);
-		closeSync(descriptor);
-	} catch (error) {
-		if (descriptor !== undefined) closeSync(descriptor);
-		if (error.code === "EEXIST") return null;
-		throw error;
-	}
-	return () => {
+	for (let attempt = 0; attempt < 2; attempt += 1) {
+		let descriptor;
 		try {
-			unlinkSync(file);
+			descriptor = openSync(file, "wx", 0o600);
+			writeFileSync(descriptor, `${process.pid}\n`);
+			closeSync(descriptor);
+			return () => {
+				try {
+					unlinkSync(file);
+				} catch (error) {
+					if (error.code !== "ENOENT") throw error;
+				}
+			};
 		} catch (error) {
-			if (error.code !== "ENOENT") throw error;
+			if (descriptor !== undefined) closeSync(descriptor);
+			if (error.code !== "EEXIST") throw error;
+			const ownerPid = Number.parseInt(readFileSync(file, "utf8"), 10);
+			let ownerIsAlive = Number.isInteger(ownerPid) && ownerPid > 0;
+			if (ownerIsAlive) {
+				try {
+					process.kill(ownerPid, 0);
+				} catch (ownerError) {
+					if (ownerError.code === "ESRCH") ownerIsAlive = false;
+					else if (ownerError.code !== "EPERM") throw ownerError;
+				}
+			}
+			if (ownerIsAlive || attempt === 1) return null;
+			unlinkSync(file);
 		}
-	};
+	}
+	return null;
 };
 
 const fetchCmsContent = async (url, fetchImpl = fetch) => {

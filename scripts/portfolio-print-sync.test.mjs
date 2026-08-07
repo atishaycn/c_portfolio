@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -92,6 +92,18 @@ test("lock prevents overlapping sync runs", async () => {
 	try {
 		const release = acquireLock(paths.lockFile);
 		assert.equal((await runOnce({ ...paths, fetchImpl: async () => responseFor(189) })).status, "locked");
+		release();
+	} finally {
+		rmSync(paths.directory, { recursive: true, force: true });
+	}
+});
+
+test("stale lock is recovered after a crashed sync process", () => {
+	const paths = tempPaths();
+	try {
+		writeFileSync(paths.lockFile, "999999999\n");
+		const release = acquireLock(paths.lockFile);
+		assert.equal(typeof release, "function");
 		release();
 	} finally {
 		rmSync(paths.directory, { recursive: true, force: true });
