@@ -672,6 +672,33 @@ test("polls Shopify media until the stable artwork marker is READY", async () =>
 	assert.equal(sleeps, 1);
 });
 
+test("classifies Shopify asynchronous timeouts as retryable reconcile failures", async () => {
+	const photo = { printId: "photo-1" };
+	const processing = {
+		id: "gid://shopify/Product/1",
+		shopifyMedia: { nodes: [{ id: "artwork", alt: artworkMediaAltFor(photo), status: "PROCESSING" }] },
+		shopifyVariants: { nodes: [{ id: "variant-1", media: { nodes: [] } }] },
+	};
+	const expectRetryable = async (operation) => {
+		await assert.rejects(operation, (error) => error.retryableReconcile === true);
+	};
+
+	await expectRetryable(() => waitForShopifyArtworkMedia(processing, photo, {
+		nowImpl: () => 0,
+		timeoutMs: 0,
+	}));
+	await expectRetryable(() => waitForShopifyJob("gid://shopify/Job/1", {
+		fetchJob: async () => ({ id: "gid://shopify/Job/1", done: false }),
+		nowImpl: () => 0,
+		timeoutMs: 0,
+	}));
+	await expectRetryable(() => waitForShopifyArtworkBindings(processing, photo, {
+		fetchProduct: async () => processing,
+		nowImpl: () => 0,
+		timeoutMs: 0,
+	}));
+});
+
 test("polls asynchronous Shopify reorder jobs to completion", async () => {
 	let fetches = 0;
 	let sleeps = 0;

@@ -1033,6 +1033,12 @@ const fetchShopifyJob = async (id) => {
 	return data.job;
 };
 
+const retryableReconcileError = (message) => {
+	const error = new Error(message);
+	error.retryableReconcile = true;
+	return error;
+};
+
 const waitForShopifyArtworkMedia = async (
 	product,
 	photo,
@@ -1050,12 +1056,16 @@ const waitForShopifyArtworkMedia = async (
 		const artworkMedia = findArtworkMedia(observed, photo);
 		if (isShopifyMediaReady(artworkMedia)) return observed;
 		if (nowImpl() >= deadline) {
-			throw new Error(`Timed out waiting for Shopify artwork media on ${product.id} to become READY`);
+			throw retryableReconcileError(
+				`Timed out waiting for Shopify artwork media on ${product.id} to become READY`,
+			);
 		}
 		observed = await fetchProduct(product.id);
 		if (isShopifyMediaReady(findArtworkMedia(observed, photo))) return observed;
 		if (nowImpl() >= deadline) {
-			throw new Error(`Timed out waiting for Shopify artwork media on ${product.id} to become READY`);
+			throw retryableReconcileError(
+				`Timed out waiting for Shopify artwork media on ${product.id} to become READY`,
+			);
 		}
 		await sleepImpl(pollIntervalMs);
 	}
@@ -1075,7 +1085,9 @@ const waitForShopifyJob = async (
 	for (;;) {
 		const job = await fetchJob(id);
 		if (job?.done) return job;
-		if (nowImpl() >= deadline) throw new Error(`Timed out waiting for Shopify job ${id}`);
+		if (nowImpl() >= deadline) {
+			throw retryableReconcileError(`Timed out waiting for Shopify job ${id}`);
+		}
 		await sleepImpl(pollIntervalMs);
 	}
 };
@@ -1096,7 +1108,9 @@ const waitForShopifyArtworkBindings = async (
 	for (;;) {
 		if (!productNeedsShopifyMediaRepair(observed, photo)) return observed;
 		if (nowImpl() >= deadline) {
-			throw new Error(`Timed out waiting for Shopify artwork variant bindings on ${product.id}`);
+			throw retryableReconcileError(
+				`Timed out waiting for Shopify artwork variant bindings on ${product.id}`,
+			);
 		}
 		await sleepImpl(pollIntervalMs);
 		observed = await fetchProduct(product.id);
