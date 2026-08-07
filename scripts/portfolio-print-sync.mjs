@@ -121,7 +121,11 @@ const runReconcile = ({ snapshotFile, execute }) => {
 	if (execute) args.push("--execute");
 	const result = spawnSync(process.execPath, args, { cwd: ROOT, stdio: "inherit" });
 	if (result.error) throw result.error;
-	if (result.status !== 0) throw new Error(`reconcile exited with code ${result.status ?? "unknown"}`);
+	if (result.status !== 0) {
+		const error = new Error(`reconcile exited with code ${result.status ?? "unknown"}`);
+		error.exitCode = result.status ?? 1;
+		throw error;
+	}
 };
 
 const runOnce = async ({
@@ -190,9 +194,9 @@ const main = async () => {
 };
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-	main().catch(() => {
+	main().catch((error) => {
 		console.error("Portfolio print sync failed; the CMS revision remains pending.");
-		process.exitCode = 1;
+		process.exitCode = error.exitCode ?? 1;
 	});
 }
 

@@ -2,6 +2,11 @@ name: Portfolio shop sync
 
 on:
   workflow_dispatch:
+    inputs:
+      continuation:
+        description: "Bounded retry continuation number"
+        required: false
+        default: "0"
 
 concurrency:
   group: portfolio-shop-sync
@@ -11,6 +16,8 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    outputs:
+      retryable: ${{ steps.reconcile.outputs.retryable }}
     permissions:
       contents: read
     env:
@@ -32,6 +39,38 @@ jobs:
       - name: Verify synchronization code
         run: npm run check
       - name: Reconcile portfolio and print shop
-        run: node scripts/portfolio-print-sync.mjs --execute
+        id: reconcile
+        run: |
+          set +e
+          timeout --signal=TERM --kill-after=30s 330m node scripts/portfolio-print-sync.mjs --execute
+          status=$?
+          if [ "$status" -eq 75 ] || [ "$status" -eq 124 ]; then
+            echo "retryable=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "retryable=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit "$status"
       - name: Strict catalog audit
         run: node scripts/gelato-products.mjs --strict-audit --content-url "$PORTFOLIO_CONTENT_URL"
+
+  continuation:
+    if: ${{ always() && needs.sync.result == 'failure' && needs.sync.outputs.retryable == 'true' && fromJSON(inputs.continuation) < 5 }}
+    needs: sync
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Continue the button-triggered sync after a bounded failure
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const current = Number(context.payload.inputs?.continuation ?? "0");
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: "portfolio-shop-sync.yml",
+              ref: context.ref.replace(/^refs\/heads\//, ""),
+              inputs: { continuation: String(current + 1) },
+            });

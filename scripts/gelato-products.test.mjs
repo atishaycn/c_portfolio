@@ -451,6 +451,35 @@ test("allows pending publishing products to wait for Shopify mappings", () => {
 	assert.equal(activeBeforeMapping.blocked.length, 0);
 });
 
+test("recovers publishing errors by archiving their mapped Shopify product and recreating the stable key", () => {
+	const photo = {
+		printId: "the-natural-world-1",
+		series: "the-natural-world",
+		seriesLabel: "The Natural World",
+		referenceLabel: "1",
+		photoOrder: 0,
+	};
+	const failed = {
+		id: "900193f2-ff1b-4bb0-9fb4-cec539e87e18",
+		externalId: "10512702898360",
+		status: "publishing_error",
+		publishingErrorCode: "GENERAL_ERROR",
+		shopifyStatus: "active",
+		tags: ["the-natural-world-1", "photo-id:the-natural-world-1", "format-fine-art", "claire-thomas", catalogVersionTag],
+	};
+	const plan = buildReconcilePlan(
+		[photo],
+		{ products: { "the-natural-world-1:fine-art": { id: failed.id } } },
+		[failed],
+		["fine-art"],
+	);
+	assert.deepEqual(plan.recoveries.map(({ product }) => product.id), [failed.id]);
+	assert.equal(plan.recoveries[0].desired.handle, "the-natural-world-1-fine-art-print");
+	assert.equal(plan.creates.length, 1);
+	assert.equal(plan.pending.length, 0);
+	assert.equal(plan.blocked.length, 0);
+});
+
 test("archives old handles before replacement and exposes the canonical Fine Art URL", () => {
 	const photo = {
 		printId: "the-natural-world-3",

@@ -18,6 +18,7 @@ const DEFAULT_STORE_ID = "6d03ca64-de8a-4764-bc46-8bd014a1b271";
 const CLOUD_NAME = "dpmdkrggj";
 const API_BASE = "https://ecommerce.gelatoapis.com/v1";
 const DEFAULT_SHOPIFY_API_VERSION = "2026-07";
+const RETRYABLE_RECONCILE_EXIT_CODE = 75;
 let shopifyAccessTokenCache = null;
 
 const MEDIA = {
@@ -353,6 +354,7 @@ const apiRequest = async (path, options = {}) => {
 		if (!retryable || attempt + 1 >= maxAttempts) {
 			const error = new Error(`Gelato ${response.status}: ${JSON.stringify(body)}`);
 			error.status = response.status;
+			if (response.status === 429) error.retryableReconcile = true;
 			throw error;
 		}
 		const retryAfterSeconds = Number(response.headers.get("retry-after"));
@@ -592,7 +594,11 @@ const waitForProducts = async (
 		}
 		writeState(state);
 		console.log(`Publishing: ${queuedJobs.length - pending.size}/${queuedJobs.length} complete.`);
-		if (errors.length) throw new Error(`Publishing failed:\n${errors.join("\n")}`);
+		if (errors.length) {
+			const error = new Error(`Publishing failed:\n${errors.join("\n")}`);
+			error.retryableReconcile = true;
+			throw error;
+		}
 		if (pending.size < previousPendingSize) {
 			lastProgressAt = Date.now();
 			previousPendingSize = pending.size;
@@ -601,7 +607,9 @@ const waitForProducts = async (
 	}
 	if (pending.size) {
 		const reason = Date.now() >= deadline ? "Timed out" : "Publishing stalled";
-		throw new Error(`${reason} waiting for ${pending.size} Gelato products`);
+		const error = new Error(`${reason} waiting for ${pending.size} Gelato products`);
+		error.retryableReconcile = true;
+		throw error;
 	}
 	return completedProducts;
 };
@@ -704,11 +712,20 @@ const buildReconcilePlan = (
 		unarchives: [],
 		pending: [],
 		archives: [],
+		recoveries: [],
 		blocked: [],
 		unchanged: [],
 	};
+	const addRecovery = (key, product, desired = null, reason = "publishing-error") => {
+		if (plan.recoveries.some((entry) => entry.product.id === product.id)) return;
+		plan.recoveries.push({ key, product, desired, reason });
+	};
 	const addArchive = (key, product, reason) => {
 		if (isArchivedProduct(product)) return;
+		if (product.status === "publishing_error") {
+			addRecovery(key, product, null, reason);
+			return;
+		}
 		if (plan.archives.some((entry) => entry.product.id === product.id) || plan.blocked.some((entry) => entry.productId === product.id)) return;
 		if (!productShopifyId(product)) {
 			plan.blocked.push({ action: "archive", key, productId: product.id, reason: "missing-shopify-external-id" });
@@ -719,12 +736,16 @@ const buildReconcilePlan = (
 
 	for (const [key, target] of expected) {
 		const matches = groups.get(key);
-		const current = matches.filter((product) => product.tags?.includes(catalogVersionTag));
+		const desired = productMetadata(target.photo, target.medium);
+		for (const failed of matches.filter((product) => product.status === "publishing_error")) {
+			addRecovery(key, failed, desired);
+		}
+		const usableMatches = matches.filter((product) => product.status !== "publishing_error");
+		const current = usableMatches.filter((product) => product.tags?.includes(catalogVersionTag));
 		const canonical =
 			current.find(isReadyActiveProduct) ??
 			current.find((product) => product.status === "active") ??
 			current[0];
-		const desired = productMetadata(target.photo, target.medium);
 		const recorded = state.products?.[key] || {};
 		const recordedMetadata = recorded.metadataSynced ? recorded : {};
 		const observed = canonical
@@ -740,7 +761,7 @@ const buildReconcilePlan = (
 			}
 			: null;
 		if (!canonical) {
-			const replacement = matches.find((product) => product.status === "active") ?? matches[0];
+			const replacement = usableMatches.find((product) => product.status === "active") ?? usableMatches[0];
 			if (replacement) addArchive(key, replacement, "catalog-version-replacement");
 			plan.creates.push({ key, photo: target.photo, medium: target.medium, replacementId: replacement?.id ?? null });
 		} else if (isArchivedProduct(canonical)) {
@@ -765,7 +786,7 @@ const buildReconcilePlan = (
 		} else {
 			plan.unchanged.push(key);
 		}
-		for (const duplicate of matches) {
+		for (const duplicate of usableMatches) {
 			if (duplicate.id !== canonical?.id) addArchive(key, duplicate, "duplicate-managed-product");
 		}
 	}
@@ -920,6 +941,24 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 			writeState(state);
 		}
 	}
+	for (const action of plan.recoveries) {
+		const shopifyStatus = String(action.product.shopifyStatus || "").toLowerCase();
+		if (productShopifyId(action.product) && !["archived", "deleted", "missing"].includes(shopifyStatus)) {
+			await updateShopifyProduct(action.product, null, "ARCHIVED", { archive: true });
+		}
+		await apiRequest(`/stores/${storeId}/products/${action.product.id}`, { method: "DELETE" });
+		const record = state.products[action.key];
+		if (record?.id === action.product.id) {
+			state.products[action.key] = {
+				...record,
+				id: null,
+				externalId: null,
+				status: "deleted_for_recovery",
+				recoveredAt: new Date().toISOString(),
+			};
+			writeState(state);
+		}
+	}
 	for (const action of [...plan.updates, ...plan.unarchives]) {
 		const status = plan.unarchives.includes(action) ? "ACTIVE" : null;
 		await updateShopifyProduct(action.product, action.desired, status);
@@ -1004,6 +1043,7 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 	}
 	return {
 		archived: plan.archives.length,
+		recovered: plan.recoveries.length,
 		updated: plan.updates.length,
 		unarchived: plan.unarchives.length,
 		created: plan.creates.length,
@@ -1333,6 +1373,7 @@ const run = async () => {
 			unarchives: plan.unarchives.length,
 			pending: plan.pending.length,
 			archives: plan.archives.length,
+			recoveries: plan.recoveries.length,
 			blocked: plan.blocked.length,
 			unchanged: plan.unchanged.length,
 			plan: RECONCILE_PLAN_FILE,
@@ -1351,7 +1392,7 @@ const run = async () => {
 			templates,
 			visible: true,
 		});
-		console.log(`Reconcile complete: ${result.created} created, ${result.updated} updated, ${result.unarchived} unarchived, ${result.archived} archived.`);
+		console.log(`Reconcile complete: ${result.created} created, ${result.updated} updated, ${result.unarchived} unarchived, ${result.archived} archived, ${result.recovered} failed products recovered.`);
 		return;
 	}
 	if (args.audit) {
@@ -1463,7 +1504,7 @@ const run = async () => {
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
 	run().catch((error) => {
 		console.error(error.message);
-		process.exitCode = 1;
+		process.exitCode = error.retryableReconcile ? RETRYABLE_RECONCILE_EXIT_CODE : 1;
 	});
 }
 
