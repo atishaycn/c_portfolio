@@ -1118,9 +1118,13 @@ const waitForShopifyArtworkBindings = async (
 };
 
 const repairShopifyProductMedia = async (product, photo) => {
-	let observed = await waitForShopifyArtworkMedia(product, photo);
-	const artworkMedia = findArtworkMedia(observed, photo);
-	assert(artworkMedia, `Shopify product ${product.id} did not expose uploaded artwork media`);
+	let observed = await fetchShopifyProductMedia(product.id);
+	let artworkMedia = findArtworkMedia(observed, photo);
+	if (!isShopifyMediaReady(artworkMedia)) {
+		throw retryableReconcileError(
+			`Shopify artwork media is still processing on ${product.id}`,
+		);
+	}
 
 	const mediaNodes = shopifyMediaNodes(observed);
 	const artworkPosition = mediaNodes.findIndex((media) => media.id === artworkMedia.id);
@@ -1139,13 +1143,11 @@ const repairShopifyProductMedia = async (product, photo) => {
 		);
 		const errors = data.productReorderMedia?.mediaUserErrors || [];
 		if (errors.length) throw new Error(`Shopify media reorder failed for ${product.id}: ${JSON.stringify(errors)}`);
-		if (data.productReorderMedia?.job?.id) await waitForShopifyJob(data.productReorderMedia.job.id);
 		observed = await fetchShopifyProductMedia(product.id);
-		assert.equal(
-			shopifyMediaNodes(observed).findIndex((media) => media.id === artworkMedia.id),
-			0,
-			`Shopify artwork media did not reach position 0 for ${product.id}`,
-		);
+		artworkMedia = findArtworkMedia(observed, photo);
+		if (shopifyMediaNodes(observed).findIndex((media) => media.id === artworkMedia?.id) !== 0) {
+			throw retryableReconcileError(`Shopify artwork media reorder is still pending on ${product.id}`);
+		}
 	}
 
 	const variants = buildShopifyVariantMediaUpdates(observed, artworkMedia);
@@ -1160,9 +1162,26 @@ const repairShopifyProductMedia = async (product, photo) => {
 		);
 		const errors = data.productVariantsBulkUpdate?.userErrors || [];
 		if (errors.length) throw new Error(`Shopify variant media update failed for ${product.id}: ${JSON.stringify(errors)}`);
-		observed = await waitForShopifyArtworkBindings(product, photo);
+		observed = await fetchShopifyProductMedia(product.id);
+		if (productNeedsShopifyMediaRepair(observed, photo)) {
+			throw retryableReconcileError(`Shopify artwork variant bindings are still pending on ${product.id}`);
+		}
 	}
 	return { artworkMediaId: artworkMedia.id, reordered: artworkPosition > 0, variantsUpdated: variants.length };
+};
+
+const runWithRetryableDeferral = async (actions, handler, deferred = new Map()) => {
+	for (const action of actions) {
+		const key = action.key ?? action;
+		try {
+			await handler(action);
+			deferred.delete(key);
+		} catch (error) {
+			if (!error.retryableReconcile) throw error;
+			deferred.set(key, error);
+		}
+	}
+	return deferred;
 };
 
 const updateShopifyProduct = async (product, desired, status, { photo = null, ...options } = {}) => {
@@ -1202,6 +1221,7 @@ const updateShopifyProduct = async (product, desired, status, { photo = null, ..
 
 const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = true }) => {
 	assert(!plan.blocked.length, `Reconcile has ${plan.blocked.length} unmappable product actions; inspect the dry-run plan first`);
+	const deferred = new Map();
 	for (const action of plan.archives) {
 		await updateShopifyProduct(action.product, null, "ARCHIVED", { archive: true });
 		const record = state.products[action.key];
@@ -1232,7 +1252,7 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 			writeState(state);
 		}
 	}
-	for (const action of [...plan.updates, ...plan.unarchives]) {
+	await runWithRetryableDeferral([...plan.updates, ...plan.unarchives], async (action) => {
 		const status = plan.unarchives.includes(action) ? "ACTIVE" : null;
 		await updateShopifyProduct(action.product, action.desired, status, { photo: action.photo });
 		state.products[action.key] = {
@@ -1250,7 +1270,7 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 			mediaUpdatedAt: new Date().toISOString(),
 		};
 		writeState(state);
-	}
+	}, deferred);
 
 	const jobs = [];
 	const createdActions = new Map();
@@ -1292,20 +1312,27 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 		writeState(state);
 		createdActions.set(key, action);
 		if (productShopifyId(createdProduct)) {
-			await updateShopifyProduct(createdProduct, productMetadata(action.photo, action.medium), "ACTIVE", { photo: action.photo });
-			state.products[key].metadataSynced = true;
-			state.products[key].mediaSynced = true;
-			writeState(state);
-			createdWithShopifyMapping.add(key);
+			await runWithRetryableDeferral([action], async () => {
+				await updateShopifyProduct(
+					createdProduct,
+					productMetadata(action.photo, action.medium),
+					"ACTIVE",
+					{ photo: action.photo },
+				);
+				state.products[key].metadataSynced = true;
+				state.products[key].mediaSynced = true;
+				writeState(state);
+				createdWithShopifyMapping.add(key);
+			}, deferred);
 		}
 		jobs.push({ key });
 	}
 	if (jobs.length) {
 		await waitForProducts(storeId, jobs, state);
-		for (const job of jobs) {
-			if (createdWithShopifyMapping.has(job.key)) continue;
+		await runWithRetryableDeferral(jobs, async (job) => {
+			if (createdWithShopifyMapping.has(job.key)) return;
 			const action = createdActions.get(job.key) ?? pendingActions.get(job.key);
-			if (!action) continue;
+			if (!action) return;
 			const product = await apiRequest(`/stores/${storeId}/products/${state.products[job.key].id}`);
 			const desired = action.desired ?? productMetadata(action.photo, action.medium);
 			await updateShopifyProduct(product, desired, "ACTIVE", { photo: action.photo });
@@ -1316,7 +1343,16 @@ const applyReconcilePlan = async ({ plan, state, storeId, templates, visible = t
 			state.products[job.key].tags = desired.tags;
 			state.products[job.key].metadataUpdatedAt = new Date().toISOString();
 			writeState(state);
-		}
+		}, deferred);
+	}
+	if (deferred.size) {
+		const sample = [...deferred.entries()]
+			.slice(0, 10)
+			.map(([key, error]) => `${key}: ${error.message}`)
+			.join("\n");
+		throw retryableReconcileError(
+			`Deferred ${deferred.size} asynchronous Shopify media repairs for the next continuation:\n${sample}`,
+		);
 	}
 	return {
 		archived: plan.archives.length,
@@ -1824,6 +1860,7 @@ export {
 	isShopifyThrottled,
 	shopifyGraphql,
 	shopifyRetryDelayMs,
+	runWithRetryableDeferral,
 	waitForShopifyArtworkBindings,
 	waitForShopifyArtworkMedia,
 	waitForShopifyJob,

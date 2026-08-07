@@ -28,6 +28,7 @@ import {
 	isShopifyThrottled,
 	shopifyGraphql,
 	shopifyRetryDelayMs,
+	runWithRetryableDeferral,
 	waitForShopifyArtworkBindings,
 	waitForShopifyArtworkMedia,
 	waitForShopifyJob,
@@ -697,6 +698,30 @@ test("classifies Shopify asynchronous timeouts as retryable reconcile failures",
 		nowImpl: () => 0,
 		timeoutMs: 0,
 	}));
+});
+
+test("defers retryable media actions without blocking later products", async () => {
+	const deferred = new Map();
+	const visited = [];
+	const retryable = Object.assign(new Error("still processing"), { retryableReconcile: true });
+
+	await runWithRetryableDeferral(
+		[{ key: "one" }, { key: "two" }],
+		async (action) => {
+			visited.push(action.key);
+			if (action.key === "one") throw retryable;
+		},
+		deferred,
+	);
+	assert.deepEqual(visited, ["one", "two"]);
+	assert.deepEqual([...deferred.keys()], ["one"]);
+
+	await runWithRetryableDeferral([{ key: "one" }], async () => {}, deferred);
+	assert.equal(deferred.size, 0);
+	await assert.rejects(
+		() => runWithRetryableDeferral([{ key: "fatal" }], async () => { throw new Error("fatal"); }),
+		/fatal/,
+	);
 });
 
 test("polls asynchronous Shopify reorder jobs to completion", async () => {
