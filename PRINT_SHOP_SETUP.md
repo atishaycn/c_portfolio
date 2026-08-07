@@ -63,7 +63,7 @@ node scripts/gelato-products.mjs --reconcile --execute --content-file /path/to/c
 # Report products for photographs removed from the portfolio.
 node scripts/gelato-products.mjs --audit
 
-# LaunchAgent-friendly one-shot poller; dry-run by default.
+# One-shot sync runner used by the admin-triggered workflow; dry-run by default.
 node scripts/portfolio-print-sync.mjs
 
 # Explicit production reconcile after credentials/templates are configured.
@@ -74,7 +74,7 @@ The script writes `.gelato-product-state.json` after each product. Re-running re
 
 Archiving is explicit and reversible: reconcile sends Shopify `productUpdate(status: ARCHIVED)` for disabled, stale, duplicate, or superseded products; it never calls a delete endpoint. Missing Shopify mappings block execution for review. The edge-to-edge catalog version archives old `meet` products before creating replacements.
 
-The poller fetches the public CMS revision, writes a pending marker before reconcile, and advances `lastSuccessfulRevision` only after the child reconcile exits successfully. It uses an exclusive lock to prevent overlapping LaunchAgent invocations. If `SHOPIFY_ADMIN_ACCESS_TOKEN` is absent, reconcile requests a 24-hour Shopify Dev Dashboard client-credentials token from `/admin/oauth/access_token`; tokens and secrets are never logged or written to state.
+The runner fetches the public CMS revision, writes a pending marker before reconcile, and advances `lastSuccessfulRevision` only after the child reconcile exits successfully. It uses an exclusive lock to prevent overlapping manual workflow invocations. If `SHOPIFY_ADMIN_ACCESS_TOKEN` is absent, reconcile requests a 24-hour Shopify Dev Dashboard client-credentials token from `/admin/oauth/access_token`; tokens and secrets are never logged or written to state.
 
 The administrator’s **Sync shop** button saves pending content first, then calls the authenticated `/api/admin/shop-sync` endpoint. That endpoint dispatches `.github/workflows/portfolio-shop-sync.yml`; it does not run on a timer. Configure `GITHUB_SHOP_SYNC_TOKEN` in Vercel with Actions write access to `atishaycn/c_portfolio`, and configure the Gelato/Shopify values used by the workflow as GitHub Actions secrets.
 

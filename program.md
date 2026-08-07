@@ -20,7 +20,7 @@ Photography portfolio for Claire Thomas with a small authenticated content manag
 - `Place/`, `The Natural World/`, `Protests/`, `Shapes & Shadows/`, `Commissioned Work/`: image assets. Treat as content, not app logic.
 - `scripts/`: utility scripts for Cloudinary upload workflows.
 - `scripts/gelato-products.mjs`: CMS-authoritative dry-run/reconcile, template validation, stale-product audit, and resumable product creation for Gelato + Shopify.
-- `scripts/portfolio-print-sync.mjs`: bounded public-CMS poller for LaunchAgent; it locks, persists pending/successful CMS revisions, and invokes reconcile only when needed.
+- `scripts/portfolio-print-sync.mjs`: bounded one-shot public-CMS sync runner; it locks, persists pending/successful CMS revisions, and invokes reconcile only when needed.
 - `api/admin/shop-sync.js`: authenticated, CSRF-protected one-time GitHub Actions dispatcher used by the admin **Sync shop** button.
 - `.github/workflows/portfolio-shop-sync.yml`: serialized, manually dispatched catalog reconcile plus strict audit; there is no recurring catalog timer.
 - Missing remote products are recreated even when an obsolete Gelato ID remains in local state.
