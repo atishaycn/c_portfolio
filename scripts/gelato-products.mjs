@@ -1229,7 +1229,7 @@ const findStaleProducts = (state, existingProducts, photos) => {
 			id: product.id,
 			externalId: product.externalId,
 			status: product.status,
-			shopifyStatus: product.shopifyStatus,
+			...(product.shopifyStatus ? { shopifyStatus: product.shopifyStatus } : {}),
 			title: product.title,
 			source: staleByKey.has(key) ? "state+gelato" : "gelato",
 		});
