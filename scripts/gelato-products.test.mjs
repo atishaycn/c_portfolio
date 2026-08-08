@@ -24,6 +24,8 @@ import {
 	isStalledCreatedProduct,
 	hasRetiredShopifyProduct,
 	managedProductKey,
+	managedIdentityTags,
+	hasExactManagedIdentity,
 	mergeProductsById,
 	mergeShopifyProductState,
 	normalizeVariant,
@@ -33,6 +35,8 @@ import {
 	isShopifyThrottled,
 	shopifyGraphql,
 	shopifyRetryDelayMs,
+	updateShopifyProduct,
+	recoverCanonicalHandleBlocker,
 	runWithRetryableDeferral,
 	publishingPollIntervalMs,
 	reconcileCreateActions,
@@ -946,6 +950,155 @@ test("archives old handles before replacement and exposes the canonical Fine Art
 	assert.equal(buildShopifyProductUpdate(oldProduct, productMetadata(photo, "fine-art"), "ACTIVE").handle, canonicalHandle);
 });
 
+const canonicalHandleFixture = () => {
+	const desired = {
+		title: "Animals 17 - Fine Art Print",
+		handle: "animals-17-fine-art-print",
+		description: "Photo",
+		tags: [
+			"photo-id:animals-17",
+			"format-fine-art",
+			catalogVersionTag,
+			"claire-thomas",
+			"album-animals",
+		],
+	};
+	const blocker = {
+		id: "gid://shopify/Product/999",
+		status: "DRAFT",
+		handle: desired.handle,
+		tags: [...desired.tags],
+	};
+	return {
+		product: { id: "gelato-current", externalId: "101" },
+		desired,
+		blocker,
+	};
+};
+
+test("archives an exact managed orphan Draft before assigning its canonical handle", async () => {
+	const { product, desired, blocker } = canonicalHandleFixture();
+	const mutations = [];
+	let handleOwner = blocker;
+	const result = await updateShopifyProduct(product, desired, "DRAFT", {
+		shopifyGraphqlImpl: async (query, variables) => {
+			if (query.includes("CanonicalHandleProduct")) {
+				return { products: { nodes: handleOwner ? [handleOwner] : [] } };
+			}
+			mutations.push(variables.product);
+			if (query.includes("ArchiveCanonicalHandleBlocker")) {
+				handleOwner = null;
+				return { productUpdate: { product: { ...blocker, status: "ARCHIVED" }, userErrors: [] } };
+			}
+			return {
+				productUpdate: {
+					product: { id: "gid://shopify/Product/101", status: "DRAFT" },
+					userErrors: [],
+				},
+			};
+		},
+	});
+
+	assert.equal(result.id, "gid://shopify/Product/101");
+	assert.deepEqual(mutations, [
+		{
+			id: blocker.id,
+			handle: "archived-gid---shopify-product-999",
+			redirectNewHandle: false,
+			status: "ARCHIVED",
+		},
+		{
+			id: "gid://shopify/Product/101",
+			title: desired.title,
+			descriptionHtml: desired.description,
+			tags: desired.tags,
+			handle: desired.handle,
+			redirectNewHandle: false,
+			status: "DRAFT",
+		},
+	]);
+});
+
+test("refuses to mutate active or differently tagged canonical-handle blockers", async () => {
+	const { product, desired, blocker } = canonicalHandleFixture();
+	assert.deepEqual(managedIdentityTags(desired.tags), [
+		"catalog-edge-to-edge-v1",
+		"claire-thomas",
+		"format-fine-art",
+		"photo-id:animals-17",
+	]);
+	assert.equal(hasExactManagedIdentity(blocker, desired), true);
+	for (const protectedBlocker of [
+		{ ...blocker, status: "ACTIVE" },
+		{ ...blocker, tags: blocker.tags.map((tag) => tag === "photo-id:animals-17" ? "photo-id:animals-18" : tag) },
+		{ ...blocker, tags: blocker.tags.filter((tag) => tag !== catalogVersionTag) },
+	]) {
+		let mutationCount = 0;
+		await assert.rejects(
+			updateShopifyProduct(product, desired, "DRAFT", {
+				shopifyGraphqlImpl: async (query) => {
+					if (query.includes("CanonicalHandleProduct")) {
+						return { products: { nodes: [protectedBlocker] } };
+					}
+					mutationCount += 1;
+					throw new Error("must not mutate protected blocker");
+				},
+			}),
+			/refusing to modify it/,
+		);
+		assert.equal(mutationCount, 0);
+	}
+});
+
+test("retries canonical assignment once after a handle-taken race", async () => {
+	const { product, desired, blocker } = canonicalHandleFixture();
+	let queryCount = 0;
+	let reconcileMutations = 0;
+	let archiveMutations = 0;
+	await assert.rejects(
+		updateShopifyProduct(product, desired, "DRAFT", {
+			shopifyGraphqlImpl: async (query) => {
+				if (query.includes("CanonicalHandleProduct")) {
+					queryCount += 1;
+					return { products: { nodes: queryCount === 1 ? [] : [blocker] } };
+				}
+				if (query.includes("ArchiveCanonicalHandleBlocker")) {
+					archiveMutations += 1;
+					return { productUpdate: { product: { ...blocker, status: "ARCHIVED" }, userErrors: [] } };
+				}
+				reconcileMutations += 1;
+				return {
+					productUpdate: {
+						product: null,
+						userErrors: [{ field: ["product", "handle"], message: "Handle has already been taken" }],
+					},
+				};
+			},
+		}),
+		/Shopify product update failed/,
+	);
+	assert.equal(queryCount, 2);
+	assert.equal(archiveMutations, 1);
+	assert.equal(reconcileMutations, 2);
+});
+
+test("canonical orphan recovery is restart-idempotent and never archives twice", async () => {
+	const { product, desired, blocker } = canonicalHandleFixture();
+	let handleOwner = blocker;
+	let archiveMutations = 0;
+	const shopifyGraphqlImpl = async (query) => {
+		if (query.includes("CanonicalHandleProduct")) {
+			return { products: { nodes: handleOwner ? [handleOwner] : [] } };
+		}
+		archiveMutations += 1;
+		handleOwner = null;
+		return { productUpdate: { product: { ...blocker, status: "ARCHIVED" }, userErrors: [] } };
+	};
+	assert.equal(await recoverCanonicalHandleBlocker(product, desired, { shopifyGraphqlImpl }), true);
+	assert.equal(await recoverCanonicalHandleBlocker(product, desired, { shopifyGraphqlImpl }), false);
+	assert.equal(archiveMutations, 1);
+});
+
 test("plans a deterministic full-bleed artwork media repair for every Shopify variant", () => {
 	const photo = {
 		printId: "the-natural-world-1",
@@ -1076,7 +1229,7 @@ test("quarantines each published Gelato product before waiting for the rest", as
 		[
 			"gelato-second",
 			[
-				{ id: "gelato-second", status: "publishing" },
+				{ id: "gelato-second", status: "active" },
 				{ id: "gelato-second", externalId: "102", status: "active" },
 			],
 		],

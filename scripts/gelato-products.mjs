@@ -648,7 +648,7 @@ const waitForProducts = async (
 				status: product.status,
 				updatedAt: new Date().toISOString(),
 			};
-			if (product.status === "active") {
+			if (product.status === "active" && productShopifyId(product)) {
 				if (onActive) await onActive(product, job);
 				state.products[job.key].activeAt = new Date().toISOString();
 				completedProducts.push(product);
@@ -1315,41 +1315,142 @@ const publishingPollIntervalMs = (jobs, state) =>
 		? 5 * 1000
 		: 30 * 1000;
 
-const updateShopifyProduct = async (product, desired, status, { photo = null, ...options } = {}) => {
-	const id = productShopifyId(product);
-	assert(id, `Product ${product.id} has no Shopify externalId`);
-	const existingShopifyProduct = photo ? await fetchShopifyProductMedia(id) : null;
-	const media = shouldUploadArtworkMedia(existingShopifyProduct, photo)
-		? [artworkMediaInput(photo)]
-		: undefined;
-	const data = await shopifyGraphql(
-		`mutation ReconcileProduct($product: ProductUpdateInput!, $media: [CreateMediaInput!]) {
-			productUpdate(product: $product, media: $media) {
-				product {
-					id
-					title
-					status
-					media(first: 100) { nodes { id alt mediaContentType status } }
-					variants(first: 100) {
-						nodes {
-							id
-							media(first: 10) { nodes { id } }
-						}
-					}
-				}
+const managedIdentityTags = (tags) => {
+	const normalized = (Array.isArray(tags) ? tags : []).map((tag) => String(tag).toLowerCase());
+	return normalized
+		.filter(
+			(tag) =>
+				tag === "claire-thomas" ||
+				tag.startsWith("photo-id:") ||
+				tag.startsWith("format-") ||
+				tag.startsWith("catalog-"),
+		)
+		.sort();
+};
+
+const hasExactManagedIdentity = (product, desired) => {
+	const expected = managedIdentityTags(desired?.tags);
+	const expectedKindsAreComplete =
+		expected.includes("claire-thomas") &&
+		expected.filter((tag) => tag.startsWith("photo-id:")).length === 1 &&
+		expected.filter((tag) => tag.startsWith("format-")).length === 1 &&
+		expected.filter((tag) => tag.startsWith("catalog-")).length === 1;
+	return expectedKindsAreComplete && JSON.stringify(managedIdentityTags(product?.tags)) === JSON.stringify(expected);
+};
+
+const fetchShopifyProductByHandle = async (handle, shopifyGraphqlImpl = shopifyGraphql) => {
+	const data = await shopifyGraphqlImpl(
+		`query CanonicalHandleProduct($query: String!) {
+			products(first: 10, query: $query) {
+				nodes { id status handle tags }
+			}
+		}`,
+		{ query: `handle:${handle}` },
+	);
+	return (data.products?.nodes || []).find((product) => product.handle === handle) || null;
+};
+
+const recoverCanonicalHandleBlocker = async (
+	product,
+	desired,
+	{ shopifyGraphqlImpl = shopifyGraphql } = {},
+) => {
+	if (!desired?.handle) return false;
+	const currentId = productShopifyId(product);
+	const blocker = await fetchShopifyProductByHandle(desired.handle, shopifyGraphqlImpl);
+	if (!blocker || blocker.id === currentId) return false;
+	if (String(blocker.status).toUpperCase() !== "DRAFT" || !hasExactManagedIdentity(blocker, desired)) {
+		throw new Error(
+			`Canonical Shopify handle ${desired.handle} is owned by protected product ${blocker.id}; refusing to modify it`,
+		);
+	}
+	const data = await shopifyGraphqlImpl(
+		`mutation ArchiveCanonicalHandleBlocker($product: ProductUpdateInput!) {
+			productUpdate(product: $product) {
+				product { id status handle }
 				userErrors { field message }
 			}
 		}`,
 		{
-			product: buildShopifyProductUpdate(product, desired, status, options),
-			...(media ? { media } : {}),
+			product: buildShopifyProductUpdate(
+				{ externalId: blocker.id },
+				null,
+				"ARCHIVED",
+				{ archive: true },
+			),
 		},
 	);
-	const result = data.productUpdate;
+	const errors = data.productUpdate?.userErrors || [];
+	if (errors.length) {
+		throw new Error(`Shopify orphan draft archive failed for ${blocker.id}: ${JSON.stringify(errors)}`);
+	}
+	return true;
+};
+
+const isHandleTakenUserError = (errors) =>
+	errors.some((error) => {
+		const field = Array.isArray(error?.field) ? error.field.join(".") : String(error?.field || "");
+		const message = String(error?.message || "");
+		return (/handle/i.test(field) || /handle/i.test(message)) && /(already|taken|in use|exists)/i.test(message);
+	});
+
+const updateShopifyProduct = async (
+	product,
+	desired,
+	status,
+	{
+		photo = null,
+		shopifyGraphqlImpl = shopifyGraphql,
+		fetchShopifyProductMediaImpl = fetchShopifyProductMedia,
+		repairShopifyProductMediaImpl = repairShopifyProductMedia,
+		...options
+	} = {},
+) => {
+	const id = productShopifyId(product);
+	assert(id, `Product ${product.id} has no Shopify externalId`);
+	const existingShopifyProduct = photo ? await fetchShopifyProductMediaImpl(id) : null;
+	const media = shouldUploadArtworkMedia(existingShopifyProduct, photo)
+		? [artworkMediaInput(photo)]
+		: undefined;
+	if (desired?.handle) {
+		await recoverCanonicalHandleBlocker(product, desired, { shopifyGraphqlImpl });
+	}
+	const mutate = () => shopifyGraphqlImpl(
+			`mutation ReconcileProduct($product: ProductUpdateInput!, $media: [CreateMediaInput!]) {
+				productUpdate(product: $product, media: $media) {
+					product {
+						id
+						title
+						status
+						media(first: 100) { nodes { id alt mediaContentType status } }
+						variants(first: 100) {
+							nodes {
+								id
+								media(first: 10) { nodes { id } }
+							}
+						}
+					}
+					userErrors { field message }
+				}
+			}`,
+			{
+				product: buildShopifyProductUpdate(product, desired, status, options),
+				...(media ? { media } : {}),
+			},
+		);
+	let data = await mutate();
+	let result = data.productUpdate;
+	if (result.userErrors?.length && desired?.handle && isHandleTakenUserError(result.userErrors)) {
+		const recovered = await recoverCanonicalHandleBlocker(product, desired, { shopifyGraphqlImpl });
+		if (recovered) {
+			data = await mutate();
+			result = data.productUpdate;
+		}
+	}
 	if (result.userErrors?.length) {
 		throw new Error(`Shopify product update failed for ${id}: ${JSON.stringify(result.userErrors)}`);
 	}
-	if (photo) await repairShopifyProductMedia(result.product, photo);
+	if (photo) await repairShopifyProductMediaImpl(result.product, photo);
 	return result.product;
 };
 
@@ -2064,6 +2165,8 @@ export {
 	expectedProductKeys,
 	findStaleProducts,
 	managedProductKey,
+	managedIdentityTags,
+	hasExactManagedIdentity,
 	mergeProductsById,
 	mergeShopifyProductState,
 	normalizeVariant,
@@ -2073,6 +2176,8 @@ export {
 	isShopifyThrottled,
 	shopifyGraphql,
 	shopifyRetryDelayMs,
+	updateShopifyProduct,
+	recoverCanonicalHandleBlocker,
 	runWithRetryableDeferral,
 	publishingPollIntervalMs,
 	safelyPublishShopifyProduct,
