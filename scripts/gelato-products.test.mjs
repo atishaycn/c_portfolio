@@ -26,6 +26,12 @@ import {
 	managedProductKey,
 	managedIdentityTags,
 	hasExactManagedIdentity,
+	assertCanonicalHandleAvailableForCreate,
+	createGelatoProductFromTemplate,
+	archiveMappedShopifyProductBeforeGelatoDelete,
+	isFreshCreateReservation,
+	repairCreatedProducts,
+	listExistingProducts,
 	mergeProductsById,
 	mergeShopifyProductState,
 	normalizeVariant,
@@ -116,6 +122,45 @@ test("defers a non-JSON successful Gelato POST without replaying it", async () =
 		(error) => error.retryableReconcile === true && error.status === 200,
 	);
 	assert.equal(calls, 1);
+});
+
+test("defers a JSON Gelato POST 5xx without replaying it", async () => {
+	let calls = 0;
+	await assert.rejects(
+		apiRequest("/stores/store-1/products:create-from-template", { method: "POST" }, {
+			fetchImpl: async () => {
+				calls += 1;
+				return response({
+					status: 502,
+					body: JSON.stringify({ code: "INTERNAL_SERVER_ERROR" }),
+					contentType: "application/json",
+				});
+			},
+			sleepImpl: async () => {},
+		}),
+		(error) => error.retryableReconcile === true && error.status === 502,
+	);
+	assert.equal(calls, 1);
+});
+
+test("defers non-JSON and network-failed Gelato POSTs without replaying", async () => {
+	for (const failure of [
+		() => response({ status: 502, body: "<html>gateway</html>" }),
+		() => { throw new Error("connection reset"); },
+	]) {
+		let calls = 0;
+		await assert.rejects(
+			apiRequest("/stores/store-1/products:create-from-template", { method: "POST" }, {
+				fetchImpl: async () => {
+					calls += 1;
+					return failure();
+				},
+				sleepImpl: async () => {},
+			}),
+			(error) => error.retryableReconcile === true,
+		);
+		assert.equal(calls, 1);
+	}
 });
 
 test("retries an empty successful Gelato GET response", async () => {
@@ -344,6 +389,7 @@ test("processes every create through sequential bounded publishing batches", asy
 		storeId: "store-1",
 		templates: { "fine-art": { id: "template-1", variants } },
 		createBatchSize: 2,
+		assertCanonicalHandleAvailableForCreateImpl: async () => {},
 		apiRequestImpl: async (path, options = {}) => {
 			if (options.method === "POST") {
 				postCount += 1;
@@ -1099,6 +1145,212 @@ test("canonical orphan recovery is restart-idempotent and never archives twice",
 	assert.equal(archiveMutations, 1);
 });
 
+test("Gelato inventory discovery merges ascending and descending pagination", async () => {
+	const products = Array.from({ length: 201 }, (_, index) => ({ id: `product-${index + 1}` }));
+	const requests = [];
+	const apiRequestImpl = async (path) => {
+		requests.push(path);
+		const url = new URL(path, "https://example.test");
+		const offset = Number(url.searchParams.get("offset"));
+		const order = url.searchParams.get("order");
+		const orderBy = url.searchParams.get("orderBy");
+		const ordered = order === "asc" ? products : [...products].reverse();
+		const page = ordered.slice(offset, offset + 100);
+		if (orderBy === "createdAt" && order === "asc" && offset === 100) page[0] = ordered[99];
+		return { products: page };
+	};
+	const discovered = await listExistingProducts("store", [], 1, apiRequestImpl);
+	assert.equal(discovered.length, 201);
+	assert(requests.some((path) => path.includes("order=asc")));
+	assert(requests.some((path) => path.includes("order=desc")));
+	assert(requests.some((path) => path.includes("orderBy=updatedAt")));
+});
+
+test("Gelato inventory discovery defers while snapshot IDs are changing", async () => {
+	let requestCount = 0;
+	await assert.rejects(
+		listExistingProducts("store", [], 2, async () => {
+			const round = Math.floor(requestCount / 4);
+			requestCount += 1;
+			return {
+				products: Array.from({ length: round + 1 }, (_, index) => ({ id: `product-${index}` })),
+			};
+		}),
+		(error) => error.retryableReconcile === true && /inventory changed/.test(error.message),
+	);
+});
+
+test("pre-create guard retries managed inventory omissions and rejects protected handles", async () => {
+	const { desired, blocker } = canonicalHandleFixture();
+	await assert.rejects(
+		assertCanonicalHandleAvailableForCreate(desired, {
+			shopifyGraphqlImpl: async () => ({ products: { nodes: [blocker] } }),
+		}),
+		(error) => error.retryableReconcile === true && /refresh Gelato inventory/.test(error.message),
+	);
+	await assert.rejects(
+		assertCanonicalHandleAvailableForCreate(desired, {
+			shopifyGraphqlImpl: async () => ({
+				products: { nodes: [{ ...blocker, tags: ["unmanaged"] }] },
+			}),
+		}),
+		(error) => !error.retryableReconcile && /refusing to create a duplicate/.test(error.message),
+	);
+	await assert.doesNotReject(
+		assertCanonicalHandleAvailableForCreate(desired, {
+			shopifyGraphqlImpl: async () => ({ products: { nodes: [] } }),
+		}),
+	);
+});
+
+test("every create-from-template request is guarded before POST", async () => {
+	let postCount = 0;
+	await assert.rejects(
+		createGelatoProductFromTemplate({
+			storeId: "store",
+			payload: { templateId: "template" },
+			desired: { handle: "photo-1-fine-art-print" },
+			apiRequestImpl: async () => {
+				postCount += 1;
+				return { id: "unexpected" };
+			},
+			assertCanonicalHandleAvailableForCreateImpl: async () => {
+				const error = new Error("inventory omission");
+				error.retryableReconcile = true;
+				throw error;
+			},
+		}),
+		(error) => error.retryableReconcile === true,
+	);
+	assert.equal(postCount, 0);
+	await assert.rejects(
+		createGelatoProductFromTemplate({
+			storeId: "store",
+			payload: { templateId: "template" },
+			desired: { handle: "photo-1-fine-art-print" },
+			reservationRecord: {
+				status: "create_reserved",
+				createAttemptedAt: new Date().toISOString(),
+			},
+			apiRequestImpl: async () => {
+				postCount += 1;
+			},
+		}),
+		(error) => error.retryableReconcile === true && /recent create attempt/.test(error.message),
+	);
+	assert.equal(postCount, 0);
+});
+
+test("an ambiguous create reservation survives restart and suppresses a second POST", async () => {
+	const photo = {
+		printId: "photo-1",
+		albumId: "album",
+		series: "album",
+		seriesLabel: "Album",
+		seriesPath: "Album",
+		referenceLabel: "1",
+	};
+	const desired = productMetadata(photo, "fine-art");
+	const state = { products: {} };
+	let postCount = 0;
+	await assert.rejects(
+		createGelatoProductFromTemplate({
+			storeId: "store",
+			payload: { templateId: "template" },
+			desired,
+			assertCanonicalHandleAvailableForCreateImpl: async () => {},
+			reserveCreateImpl: async () => {
+				state.products["photo-1:fine-art"] = {
+					status: "create_reserved",
+					createAttemptedAt: new Date().toISOString(),
+				};
+			},
+			apiRequestImpl: async () => {
+				postCount += 1;
+				const error = new Error("ambiguous success");
+				error.retryableReconcile = true;
+				throw error;
+			},
+		}),
+		(error) => error.retryableReconcile === true,
+	);
+	assert.equal(isFreshCreateReservation(state.products["photo-1:fine-art"]), true);
+	const plan = buildReconcilePlan([photo], state, [], ["fine-art"]);
+	assert.equal(plan.creates.length, 0);
+	assert.deepEqual(plan.reservations.map(({ key }) => key), ["photo-1:fine-art"]);
+	await assert.rejects(
+		applyReconcilePlan({
+			plan,
+			state,
+			storeId: "store",
+			templates: {},
+			apiRequestImpl: async () => {
+				postCount += 1;
+			},
+		}),
+		(error) => error.retryableReconcile === true && /recent create attempts/.test(error.message),
+	);
+	assert.equal(postCount, 1);
+});
+
+test("repair archives a mapped Shopify Draft before deleting its Gelato product", async () => {
+	const photo = {
+		printId: "photo-1",
+		series: "album",
+		seriesLabel: "Album",
+		seriesPath: "Album",
+		referenceLabel: "1",
+		orientation: "horizontal",
+		aspectGroup: "wide",
+		sizesByMedium: { "fine-art": ["8x12", "12x18", "16x24"] },
+		fileUrl: "https://example.com/photo.jpg",
+	};
+	const product = {
+		id: "gelato-created",
+		externalId: "shopify-draft",
+		status: "created",
+		shopifyStatus: "draft",
+		tags: ["photo-id:photo-1", "format-fine-art", catalogVersionTag, "claire-thomas"],
+	};
+	const sequence = [];
+	const state = { products: { "photo-1:fine-art": { id: product.id } } };
+	const variants = ["8x12", "12x18", "16x24"].map((size) => normalizeVariant({
+		id: size,
+		title: `${size} - Horizontal`,
+		productUid: `product_hor_${size}-inch`,
+		imagePlaceholders: [{ name: "Artwork" }],
+	}));
+	const result = await repairCreatedProducts({
+		storeId: "store",
+		state,
+		photos: [photo],
+		selectedMedia: ["fine-art"],
+		templates: { "fine-art": { id: "template", variants } },
+		existingProducts: [product],
+		batchPhotoCount: 1,
+		updateShopifyProductImpl: async (_product, _desired, status, options) => {
+			sequence.push(`shopify-${status.toLowerCase()}-${options.archive}`);
+		},
+		apiRequestImpl: async (_path, options) => {
+			sequence.push(`gelato-${options.method.toLowerCase()}`);
+		},
+		createGelatoProductFromTemplateImpl: async ({ reserveCreateImpl }) => {
+			await reserveCreateImpl();
+			sequence.push("gelato-post");
+			return { id: "gelato-new", externalId: "shopify-new", status: "active" };
+		},
+		waitForProductsImpl: async () => [{
+			id: "gelato-new",
+			externalId: "shopify-new",
+			status: "active",
+			tags: ["photo-id:photo-1", "format-fine-art", catalogVersionTag, "claire-thomas"],
+		}],
+		writeStateImpl() {},
+	});
+	assert.deepEqual(sequence.slice(0, 2), ["shopify-archived-true", "gelato-delete"]);
+	assert.equal(result.deletedCount, 1);
+});
+
 test("plans a deterministic full-bleed artwork media repair for every Shopify variant", () => {
 	const photo = {
 		printId: "the-natural-world-1",
@@ -1241,6 +1493,7 @@ test("quarantines each published Gelato product before waiting for the rest", as
 		state,
 		{
 			pollIntervalMs: 0,
+			writeStateImpl() {},
 			onActive: async (product, job) => quarantined.push([job.key, product.externalId]),
 			apiRequestImpl: async (path) => {
 				const productId = path.split("/").at(-1);

@@ -29,6 +29,15 @@ test("workflow continues only explicit retryable reconcile exits", () => {
 	assert.match(workflow, /if \[ "\$status" -eq 75 \]; then/);
 	assert.doesNotMatch(workflow, /\$status" -eq 124/);
 	assert.match(workflow, /fromJSON\(inputs\.continuation\) < 5/);
+	assert.match(workflow, /actions\/cache\/restore@v4/);
+	assert.match(workflow, /actions\/cache\/save@v4/);
+	assert.match(workflow, /\.gelato-product-state\.json/);
+	assert.match(workflow, /key: portfolio-shop-state-\$\{\{ github\.run_id \}\}/);
+	assert(
+		workflow.indexOf("name: Verify synchronization code") <
+			workflow.indexOf("name: Restore restart-safe catalog state"),
+		"tests must finish before cached reservation state is restored",
+	);
 });
 
 test("Shopify client credentials requests a token without logging credentials", async () => {

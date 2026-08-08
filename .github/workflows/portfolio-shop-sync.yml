@@ -39,6 +39,15 @@ jobs:
           node-version: 22
       - name: Verify synchronization code
         run: npm run check
+      - name: Restore restart-safe catalog state
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .gelato-product-state.json
+            .portfolio-print-sync-state.json
+          key: portfolio-shop-state-${{ github.run_id }}
+          restore-keys: |
+            portfolio-shop-state-
       - name: Reconcile portfolio and print shop
         id: reconcile
         run: |
@@ -52,6 +61,14 @@ jobs:
           fi
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
           exit "$status"
+      - name: Persist restart-safe catalog state
+        if: ${{ always() }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .gelato-product-state.json
+            .portfolio-print-sync-state.json
+          key: portfolio-shop-state-${{ github.run_id }}
       - name: Strict catalog audit
         run: node scripts/gelato-products.mjs --strict-audit --content-url "$PORTFOLIO_CONTENT_URL"
 

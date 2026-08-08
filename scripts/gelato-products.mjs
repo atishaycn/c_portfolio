@@ -360,7 +360,11 @@ const apiRequest = async (
 			});
 		} catch (error) {
 			const retryableNetworkRequest = method === "GET" || method === "DELETE";
-			if (!retryableNetworkRequest || attempt + 1 >= 7) throw error;
+			if (!retryableNetworkRequest) {
+				error.retryableReconcile = true;
+				throw error;
+			}
+			if (attempt + 1 >= 7) throw error;
 			const retryDelay = Math.min(30 * 1000, 1000 * 2 ** attempt);
 			console.warn(
 				`Gelato ${method} network retry in ${Math.ceil(retryDelay / 1000)}s ` +
@@ -387,7 +391,9 @@ const apiRequest = async (
 			const responseRetryable = response.status === 429 || response.status >= 500;
 			const requestRetryable = method === "GET" || method === "DELETE";
 			const maxAttempts = response.status === 429 ? gelato429MaxAttempts() : 7;
-			const canRetryNow = (responseRetryable || requestRetryable) && attempt + 1 < maxAttempts;
+			const mayReplay = method !== "POST" || response.status === 429;
+			const canRetryNow =
+				(responseRetryable || requestRetryable) && mayReplay && attempt + 1 < maxAttempts;
 			if (canRetryNow) {
 				const retryAfterSeconds = Number(response.headers.get("retry-after"));
 				const retryDelay = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
@@ -412,7 +418,8 @@ const apiRequest = async (
 
 		const retryable = response.status === 429 || response.status >= 500;
 		const maxAttempts = response.status === 429 ? gelato429MaxAttempts() : 7;
-		if (!retryable || attempt + 1 >= maxAttempts) {
+		const mayReplay = method !== "POST" || response.status === 429;
+		if (!retryable || !mayReplay || attempt + 1 >= maxAttempts) {
 			const error = new Error(`Gelato ${response.status}: ${JSON.stringify(body)}`);
 			error.status = response.status;
 			if (retryable) error.retryableReconcile = true;
@@ -511,19 +518,40 @@ const writeState = (state) => {
 const mergeProductsById = (...productLists) =>
 	[...new Map(productLists.flat().map((product) => [product.id, product])).values()];
 
-const listExistingProducts = async (storeId, knownIds = [], sweepCount = 3) => {
+const listExistingProducts = async (storeId, knownIds = [], sweepCount = 3, apiRequestImpl = apiRequest) => {
 	let products = [];
-	for (let sweep = 0; sweep < sweepCount; sweep += 1) {
-		for (let offset = 0; ; offset += 100) {
-			const page = await apiRequest(`/stores/${storeId}/products?offset=${offset}&limit=100&order=desc&orderBy=createdAt`);
-			products = mergeProductsById(products, page.products);
-			if (page.products.length < 100) break;
+	let previousIds = null;
+	let converged = false;
+	for (let sweep = 0; sweep < Math.max(2, sweepCount); sweep += 1) {
+		let snapshot = [];
+		for (const orderBy of ["createdAt", "updatedAt"]) {
+			for (const order of ["asc", "desc"]) {
+				for (let offset = 0; ; offset += 100) {
+					const page = await apiRequestImpl(
+						`/stores/${storeId}/products?offset=${offset}&limit=100&order=${order}&orderBy=${orderBy}`,
+					);
+					snapshot = mergeProductsById(snapshot, page.products);
+					if (page.products.length < 100) break;
+				}
+			}
 		}
+		const ids = [...snapshot.map((product) => product.id)].sort();
+		products = snapshot;
+		if (previousIds && JSON.stringify(ids) === JSON.stringify(previousIds)) {
+			converged = true;
+			break;
+		}
+		previousIds = ids;
+	}
+	if (!converged) {
+		const error = new Error("Gelato inventory changed during pagination; retry after it becomes quiescent");
+		error.retryableReconcile = true;
+		throw error;
 	}
 	for (const id of new Set(knownIds.filter(Boolean))) {
 		if (products.some((product) => product.id === id)) continue;
 		try {
-			const product = await apiRequest(`/stores/${storeId}/products/${id}`);
+			const product = await apiRequestImpl(`/stores/${storeId}/products/${id}`);
 			if (product?.id) products = mergeProductsById(products, [product]);
 		} catch (error) {
 			if (error.status !== 404) throw error;
@@ -533,6 +561,11 @@ const listExistingProducts = async (storeId, knownIds = [], sweepCount = 3) => {
 };
 
 const productKey = (printId, medium) => `${printId}:${medium}`;
+const CREATE_RESERVATION_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+const isFreshCreateReservation = (record, now = Date.now()) =>
+	record?.status === "create_reserved" &&
+	Number.isFinite(Date.parse(record.createAttemptedAt)) &&
+	now - Date.parse(record.createAttemptedAt) < CREATE_RESERVATION_MAX_AGE_MS;
 const splitProductKey = (key) => {
 	const separator = key.lastIndexOf(":");
 	return {
@@ -620,6 +653,7 @@ const waitForProducts = async (
 		stallTimeoutMs = 60 * 60 * 1000,
 		onActive = null,
 		apiRequestImpl = apiRequest,
+		writeStateImpl = writeState,
 	} = {},
 ) => {
 	const pending = new Map(queuedJobs.map((job) => [state.products[job.key].id, job]));
@@ -658,7 +692,7 @@ const waitForProducts = async (
 				pending.delete(productId);
 			}
 		}
-		writeState(state);
+		writeStateImpl(state);
 		console.log(`Publishing: ${queuedJobs.length - pending.size}/${queuedJobs.length} complete.`);
 		if (errors.length) {
 			const error = new Error(`Publishing failed:\n${errors.join("\n")}`);
@@ -859,6 +893,7 @@ const buildReconcilePlan = (
 		updates: [],
 		unarchives: [],
 		pending: [],
+		reservations: [],
 		archives: [],
 		recoveries: [],
 		blocked: [],
@@ -916,7 +951,11 @@ const buildReconcilePlan = (
 		if (!canonical) {
 			const replacement = usableMatches.find((product) => product.status === "active") ?? usableMatches[0];
 			if (replacement) addArchive(key, replacement, "catalog-version-replacement");
-			plan.creates.push({ key, photo: target.photo, medium: target.medium, replacementId: replacement?.id ?? null });
+			if (isFreshCreateReservation(recorded)) {
+				plan.reservations.push({ key, createAttemptedAt: recorded.createAttemptedAt });
+			} else {
+				plan.creates.push({ key, photo: target.photo, medium: target.medium, replacementId: replacement?.id ?? null });
+			}
 		} else if (
 			isArchivedProduct(canonical) ||
 			String(canonical.shopifyStatus || "").toLowerCase() === "draft"
@@ -1387,6 +1426,46 @@ const recoverCanonicalHandleBlocker = async (
 	return true;
 };
 
+const assertCanonicalHandleAvailableForCreate = async (
+	desired,
+	{ shopifyGraphqlImpl = shopifyGraphql } = {},
+) => {
+	const blocker = await fetchShopifyProductByHandle(desired.handle, shopifyGraphqlImpl);
+	if (!blocker) return;
+	if (hasExactManagedIdentity(blocker, desired)) {
+		const error = new Error(
+			`Canonical Shopify handle ${desired.handle} already has managed product ${blocker.id}; refresh Gelato inventory before creating`,
+		);
+		error.retryableReconcile = true;
+		throw error;
+	}
+	throw new Error(
+		`Canonical Shopify handle ${desired.handle} is owned by protected product ${blocker.id}; refusing to create a duplicate`,
+	);
+};
+
+const createGelatoProductFromTemplate = async ({
+	storeId,
+	payload,
+	desired,
+	apiRequestImpl = apiRequest,
+	assertCanonicalHandleAvailableForCreateImpl = assertCanonicalHandleAvailableForCreate,
+	reserveCreateImpl = async () => {},
+	reservationRecord = null,
+}) => {
+	if (isFreshCreateReservation(reservationRecord)) {
+		const error = new Error("Deferred a recent create attempt until Gelato inventory exposes it");
+		error.retryableReconcile = true;
+		throw error;
+	}
+	await assertCanonicalHandleAvailableForCreateImpl(desired);
+	await reserveCreateImpl();
+	return apiRequestImpl(`/stores/${storeId}/products:create-from-template`, {
+		method: "POST",
+		body: JSON.stringify(payload),
+	});
+};
+
 const isHandleTakenUserError = (errors) =>
 	errors.some((error) => {
 		const field = Array.isArray(error?.field) ? error.field.join(".") : String(error?.field || "");
@@ -1463,7 +1542,8 @@ const safelyPublishShopifyProduct = async (
 	return updateProduct(product, desired, "ACTIVE");
 };
 
-const reconcileCreateActions = (plan) => plan.pending.length ? [] : plan.creates;
+const reconcileCreateActions = (plan) =>
+	plan.pending.length || plan.reservations?.length ? [] : plan.creates;
 
 const reconcileCreateBatches = (plan, batchSize = reconcileCreateBatchSize()) => {
 	const actions = reconcileCreateActions(plan);
@@ -1485,10 +1565,18 @@ const applyReconcilePlan = async ({
 	updateShopifyProductImpl = updateShopifyProduct,
 	waitForProductsImpl = waitForProducts,
 	writeStateImpl = writeState,
+	assertCanonicalHandleAvailableForCreateImpl = assertCanonicalHandleAvailableForCreate,
 	createBatchSize = reconcileCreateBatchSize(),
 	purgeBatchSize = 4,
 }) => {
 	assert(!plan.blocked.length, `Reconcile has ${plan.blocked.length} unmappable product actions; inspect the dry-run plan first`);
+	if (plan.reservations?.length) {
+		const error = new Error(
+			`Deferred ${plan.reservations.length} recent create attempts until Gelato inventory exposes them`,
+		);
+		error.retryableReconcile = true;
+		throw error;
+	}
 	const deferred = new Map();
 	const purgeActions = plan.purges || [];
 	for (let offset = 0; offset < purgeActions.length; offset += purgeBatchSize) {
@@ -1578,10 +1666,25 @@ const applyReconcilePlan = async ({
 		}
 		for (const action of creates) {
 			const key = action.key;
+			const desired = productMetadata(action.photo, action.medium);
 			const payload = createPayload(templates[action.medium], action.photo, action.medium, visible);
-			const createdProduct = await apiRequestImpl(`/stores/${storeId}/products:create-from-template`, {
-				method: "POST",
-				body: JSON.stringify(payload),
+			const createdProduct = await createGelatoProductFromTemplate({
+				storeId,
+				payload,
+				desired,
+				apiRequestImpl,
+				assertCanonicalHandleAvailableForCreateImpl,
+				reservationRecord: state.products[key],
+				reserveCreateImpl: async () => {
+					state.products[key] = {
+						...(state.products[key] || {}),
+						status: "create_reserved",
+						createAttemptedAt: new Date().toISOString(),
+						handle: desired.handle,
+						tags: desired.tags,
+					};
+					writeStateImpl(state);
+				},
 			});
 			state.products[key] = {
 				id: createdProduct.id,
@@ -1589,9 +1692,9 @@ const applyReconcilePlan = async ({
 				status: createdProduct.status,
 				visible,
 				catalogVersion: CATALOG_VERSION,
-				handle: productMetadata(action.photo, action.medium).handle,
-				description: productMetadata(action.photo, action.medium).description,
-				tags: productMetadata(action.photo, action.medium).tags,
+				handle: desired.handle,
+				description: desired.description,
+				tags: desired.tags,
 				createdAt: new Date().toISOString(),
 			};
 			writeStateImpl(state);
@@ -1601,7 +1704,7 @@ const applyReconcilePlan = async ({
 				await runWithRetryableDeferral([action], async () => {
 					await safelyPublishShopifyProductImpl(
 						createdProduct,
-						productMetadata(action.photo, action.medium),
+						desired,
 						{ photo: action.photo },
 					);
 					state.products[key].metadataSynced = true;
@@ -1758,6 +1861,17 @@ const buildCreatedRepairPlan = (photos, selectedMedia, existingProducts) => {
 	};
 };
 
+const archiveMappedShopifyProductBeforeGelatoDelete = async (
+	product,
+	updateShopifyProductImpl = updateShopifyProduct,
+) => {
+	if (!productShopifyId(product)) return false;
+	const status = String(product.shopifyStatus || "").toLowerCase();
+	if (["archived", "deleted", "missing"].includes(status)) return false;
+	await updateShopifyProductImpl(product, null, "ARCHIVED", { archive: true });
+	return true;
+};
+
 const repairCreatedProducts = async ({
 	storeId,
 	state,
@@ -1766,6 +1880,11 @@ const repairCreatedProducts = async ({
 	templates,
 	existingProducts,
 	batchPhotoCount,
+	updateShopifyProductImpl = updateShopifyProduct,
+	apiRequestImpl = apiRequest,
+	writeStateImpl = writeState,
+	createGelatoProductFromTemplateImpl = createGelatoProductFromTemplate,
+	waitForProductsImpl = waitForProducts,
 }) => {
 	let products = existingProducts;
 	let deletedCount = 0;
@@ -1791,7 +1910,8 @@ const repairCreatedProducts = async ({
 	if (strandedQueuedProducts.length) {
 		console.log(`Clearing ${strandedQueuedProducts.length} stranded queued products before repair.`);
 		for (const { product, key } of strandedQueuedProducts) {
-			await apiRequest(`/stores/${storeId}/products/${product.id}`, { method: "DELETE" });
+			await archiveMappedShopifyProductBeforeGelatoDelete(product, updateShopifyProductImpl);
+			await apiRequestImpl(`/stores/${storeId}/products/${product.id}`, { method: "DELETE" });
 			queuedCleanupCount += 1;
 			if (state.products[key]?.id === product.id) {
 				state.products[key] = {
@@ -1802,7 +1922,7 @@ const repairCreatedProducts = async ({
 					deletedForRepairAt: new Date().toISOString(),
 				};
 			}
-			writeState(state);
+			writeStateImpl(state);
 		}
 		const queuedIds = new Set(strandedQueuedProducts.map(({ product }) => product.id));
 		products = products.filter((product) => !queuedIds.has(product.id));
@@ -1824,7 +1944,8 @@ const repairCreatedProducts = async ({
 		);
 
 		for (const { product, key } of productsToDelete) {
-			await apiRequest(`/stores/${storeId}/products/${product.id}`, { method: "DELETE" });
+			await archiveMappedShopifyProductBeforeGelatoDelete(product, updateShopifyProductImpl);
+			await apiRequestImpl(`/stores/${storeId}/products/${product.id}`, { method: "DELETE" });
 			deletedCount += 1;
 			if (state.products[key]?.id === product.id) {
 				state.products[key] = {
@@ -1835,7 +1956,7 @@ const repairCreatedProducts = async ({
 					deletedForRepairAt: new Date().toISOString(),
 				};
 			}
-			writeState(state);
+			writeStateImpl(state);
 		}
 		const deletedIds = new Set(productsToDelete.map(({ product }) => product.id));
 		products = products.filter((product) => !deletedIds.has(product.id));
@@ -1852,10 +1973,23 @@ const repairCreatedProducts = async ({
 			for (const medium of selectedMedia) {
 				const key = productKey(photo.printId, medium);
 				if (activeKeys.has(key)) continue;
+				const desired = productMetadata(photo, medium);
 				const payload = createPayload(templates[medium], photo, medium, true);
-				const createdProduct = await apiRequest(`/stores/${storeId}/products:create-from-template`, {
-					method: "POST",
-					body: JSON.stringify(payload),
+				const createdProduct = await createGelatoProductFromTemplateImpl({
+					storeId,
+					payload,
+					desired,
+					reservationRecord: state.products[key],
+					reserveCreateImpl: async () => {
+						state.products[key] = {
+							...(state.products[key] || {}),
+							status: "create_reserved",
+							createAttemptedAt: new Date().toISOString(),
+							handle: desired.handle,
+							tags: desired.tags,
+						};
+						writeStateImpl(state);
+					},
 				});
 				state.products[key] = {
 					id: createdProduct.id,
@@ -1865,14 +1999,14 @@ const repairCreatedProducts = async ({
 					createdAt: new Date().toISOString(),
 					repairBatch: batchNumber,
 				};
-				writeState(state);
+				writeStateImpl(state);
 				jobs.push({ key });
 				createdCount += 1;
 			}
 		}
 
 		if (jobs.length) {
-			const completedProducts = await waitForProducts(storeId, jobs, state);
+			const completedProducts = await waitForProductsImpl(storeId, jobs, state);
 			products = mergeProductsById(products, completedProducts);
 		}
 		const refreshedPlan = buildCreatedRepairPlan(photos, selectedMedia, products);
@@ -2005,6 +2139,7 @@ const run = async () => {
 			updates: plan.updates.length,
 			unarchives: plan.unarchives.length,
 			pending: plan.pending.length,
+			reservations: plan.reservations.length,
 			archives: plan.archives.length,
 			recoveries: plan.recoveries.length,
 			blocked: plan.blocked.length,
@@ -2112,10 +2247,23 @@ const run = async () => {
 	const worker = async () => {
 		while (nextJob < jobs.length) {
 			const job = jobs[nextJob++];
+			const desired = productMetadata(job.photo, job.medium);
 			const payload = createPayload(templates[job.medium], job.photo, job.medium, args.visible);
-			const createdProduct = await apiRequest(`/stores/${storeId}/products:create-from-template`, {
-				method: "POST",
-				body: JSON.stringify(payload),
+			const createdProduct = await createGelatoProductFromTemplate({
+				storeId,
+				payload,
+				desired,
+				reservationRecord: state.products[job.key],
+				reserveCreateImpl: async () => {
+					state.products[job.key] = {
+						...(state.products[job.key] || {}),
+						status: "create_reserved",
+						createAttemptedAt: new Date().toISOString(),
+						handle: desired.handle,
+						tags: desired.tags,
+					};
+					writeState(state);
+				},
 			});
 			state.products[job.key] = {
 				id: createdProduct.id,
@@ -2167,6 +2315,12 @@ export {
 	managedProductKey,
 	managedIdentityTags,
 	hasExactManagedIdentity,
+	assertCanonicalHandleAvailableForCreate,
+	createGelatoProductFromTemplate,
+	archiveMappedShopifyProductBeforeGelatoDelete,
+	isFreshCreateReservation,
+	repairCreatedProducts,
+	listExistingProducts,
 	mergeProductsById,
 	mergeShopifyProductState,
 	normalizeVariant,
