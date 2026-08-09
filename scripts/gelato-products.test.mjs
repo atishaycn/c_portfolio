@@ -1065,7 +1065,40 @@ test("archives an exact managed orphan Draft before assigning its canonical hand
 	]);
 });
 
-test("refuses to mutate active or differently tagged canonical-handle blockers", async () => {
+test("archives an exact empty unbound active orphan before assigning its canonical handle", async () => {
+	const { product, desired, blocker } = canonicalHandleFixture();
+	const activeOrphan = {
+		...blocker,
+		status: "ACTIVE",
+		media: { nodes: [] },
+		variants: {
+			nodes: [
+				{ id: "gid://shopify/ProductVariant/1", media: { nodes: [] } },
+				{ id: "gid://shopify/ProductVariant/2", media: { nodes: [] } },
+			],
+			pageInfo: { hasNextPage: false },
+		},
+	};
+	const mutations = [];
+	const shopifyGraphqlImpl = async (query, variables) => {
+		if (query.includes("CanonicalHandleProduct")) {
+			return { products: { nodes: [activeOrphan] } };
+		}
+		mutations.push(variables.product);
+		return { productUpdate: { product: { ...activeOrphan, status: "ARCHIVED" }, userErrors: [] } };
+	};
+	assert.equal(await recoverCanonicalHandleBlocker(product, desired, { shopifyGraphqlImpl }), true);
+	assert.deepEqual(mutations, [
+		{
+			id: activeOrphan.id,
+			handle: "archived-gid---shopify-product-999",
+			redirectNewHandle: false,
+			status: "ARCHIVED",
+		},
+	]);
+});
+
+test("refuses to mutate usable active or differently tagged canonical-handle blockers", async () => {
 	const { product, desired, blocker } = canonicalHandleFixture();
 	assert.deepEqual(managedIdentityTags(desired.tags), [
 		"catalog-edge-to-edge-v1",
@@ -1075,7 +1108,30 @@ test("refuses to mutate active or differently tagged canonical-handle blockers",
 	]);
 	assert.equal(hasExactManagedIdentity(blocker, desired), true);
 	for (const protectedBlocker of [
-		{ ...blocker, status: "ACTIVE" },
+		{
+			...blocker,
+			status: "ACTIVE",
+			media: { nodes: [{ id: "gid://shopify/MediaImage/1" }] },
+			variants: { nodes: [{ id: "gid://shopify/ProductVariant/1", media: { nodes: [] } }] },
+		},
+		{
+			...blocker,
+			status: "ACTIVE",
+			media: { nodes: [] },
+			variants: {
+				nodes: [{ id: "gid://shopify/ProductVariant/1", media: { nodes: [] } }],
+				pageInfo: { hasNextPage: true },
+			},
+		},
+		{
+			...blocker,
+			status: "ACTIVE",
+			media: { nodes: [] },
+			variants: {
+				nodes: [{ id: "gid://shopify/ProductVariant/1", media: { nodes: [{ id: "gid://shopify/MediaImage/1" }] } }],
+				pageInfo: { hasNextPage: false },
+			},
+		},
 		{ ...blocker, tags: blocker.tags.map((tag) => tag === "photo-id:animals-17" ? "photo-id:animals-18" : tag) },
 		{ ...blocker, tags: blocker.tags.filter((tag) => tag !== catalogVersionTag) },
 	]) {

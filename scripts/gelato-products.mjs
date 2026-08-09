@@ -1381,12 +1381,30 @@ const fetchShopifyProductByHandle = async (handle, shopifyGraphqlImpl = shopifyG
 	const data = await shopifyGraphqlImpl(
 		`query CanonicalHandleProduct($query: String!) {
 			products(first: 10, query: $query) {
-				nodes { id status handle tags }
+				nodes {
+					id status handle tags
+					media(first: 10) { nodes { id } }
+					variants(first: 100) {
+						nodes { id media(first: 10) { nodes { id } } }
+						pageInfo { hasNextPage }
+					}
+				}
 			}
 		}`,
 		{ query: `handle:${handle}` },
 	);
 	return (data.products?.nodes || []).find((product) => product.handle === handle) || null;
+};
+
+const isEmptyUnboundShopifyOrphan = (product) => {
+	const variants = shopifyVariantNodes(product);
+	return (
+		String(product?.status).toUpperCase() === "ACTIVE" &&
+		shopifyMediaNodes(product).length === 0 &&
+		product?.variants?.pageInfo?.hasNextPage === false &&
+		variants.length > 0 &&
+		variants.every((variant) => (variant.media?.nodes ?? variant.media ?? []).length === 0)
+	);
 };
 
 const recoverCanonicalHandleBlocker = async (
@@ -1398,7 +1416,9 @@ const recoverCanonicalHandleBlocker = async (
 	const currentId = productShopifyId(product);
 	const blocker = await fetchShopifyProductByHandle(desired.handle, shopifyGraphqlImpl);
 	if (!blocker || blocker.id === currentId) return false;
-	if (String(blocker.status).toUpperCase() !== "DRAFT" || !hasExactManagedIdentity(blocker, desired)) {
+	const recoverableStatus =
+		String(blocker.status).toUpperCase() === "DRAFT" || isEmptyUnboundShopifyOrphan(blocker);
+	if (!recoverableStatus || !hasExactManagedIdentity(blocker, desired)) {
 		throw new Error(
 			`Canonical Shopify handle ${desired.handle} is owned by protected product ${blocker.id}; refusing to modify it`,
 		);
