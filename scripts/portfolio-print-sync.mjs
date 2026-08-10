@@ -20,6 +20,7 @@ const GELATO_SCRIPT = resolve(ROOT, "scripts", "gelato-products.mjs");
 const STATE_FILE = resolve(ROOT, ".portfolio-print-sync-state.json");
 const SNAPSHOT_FILE = resolve(ROOT, ".portfolio-print-sync-content.json");
 const LOCK_FILE = resolve(ROOT, ".portfolio-print-sync.lock");
+const CATALOG_SYNC_VERSION = "online-store-publication-v1";
 
 const parseArgs = (argv) => {
 	const args = {
@@ -57,6 +58,7 @@ const readState = (file) => {
 			version: 1,
 			lastSuccessfulRevision: null,
 			lastSuccessfulMode: null,
+			lastSuccessfulCatalogSyncVersion: null,
 			pendingRevision: null,
 			pendingMode: null,
 		};
@@ -146,7 +148,11 @@ const runOnce = async ({
 		const content = await fetchCmsContent(cmsUrl, fetchImpl);
 		const revision = String(content.revision);
 		const mode = execute ? "execute" : "dry-run";
-		if (String(state.lastSuccessfulRevision) === revision && state.lastSuccessfulMode === mode) {
+		if (
+			String(state.lastSuccessfulRevision) === revision &&
+			state.lastSuccessfulMode === mode &&
+			state.lastSuccessfulCatalogSyncVersion === CATALOG_SYNC_VERSION
+		) {
 			return { status: "skipped", revision, mode };
 		}
 		pendingRevision = revision;
@@ -164,6 +170,7 @@ const runOnce = async ({
 			...state,
 			lastSuccessfulRevision: revision,
 			lastSuccessfulMode: mode,
+			lastSuccessfulCatalogSyncVersion: CATALOG_SYNC_VERSION,
 			lastSuccessfulAt: now(),
 			pendingRevision: null,
 			pendingMode: null,
@@ -200,4 +207,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
 	});
 }
 
-export { acquireLock, fetchCmsContent, readState, runOnce, writeJsonAtomic };
+export { acquireLock, CATALOG_SYNC_VERSION, fetchCmsContent, readState, runOnce, writeJsonAtomic };

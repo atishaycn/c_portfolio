@@ -44,6 +44,8 @@ SHOPIFY_CLIENT_SECRET=
 SHOPIFY_API_VERSION=2026-07
 ```
 
+The Shopify app must have `read_products`, `write_products`, `read_publications`, and `write_publications`. The last two let reconcile confirm and publish each repaired product to the Online Store.
+
 Then run:
 
 ```bash
@@ -87,7 +89,7 @@ The strict audit must report `mediaRepairKeys: 0` and `unpublishedProducts: 0`. 
 
 Archiving is explicit and reversible: reconcile sends Shopify `productUpdate(status: ARCHIVED)` for disabled, stale, duplicate, or superseded products; it never calls a delete endpoint. Missing Shopify mappings block execution for review. The edge-to-edge catalog version archives old `meet` products before creating replacements.
 
-The runner fetches the public CMS revision, writes a pending marker before reconcile, and advances `lastSuccessfulRevision` only after the child reconcile exits successfully. It uses an exclusive lock to prevent overlapping manual workflow invocations. If `SHOPIFY_ADMIN_ACCESS_TOKEN` is absent, reconcile requests a 24-hour Shopify Dev Dashboard client-credentials token from `/admin/oauth/access_token`; tokens and secrets are never logged or written to state.
+The runner fetches the public CMS revision, writes a pending marker before reconcile, and advances `lastSuccessfulRevision` only after the child reconcile exits successfully. It also records the catalog-sync contract version, so a release that changes reconciliation requirements (such as Online Store publication) reruns once even when the CMS revision is unchanged. It uses an exclusive lock to prevent overlapping manual workflow invocations. If `SHOPIFY_ADMIN_ACCESS_TOKEN` is absent, reconcile requests a 24-hour Shopify Dev Dashboard client-credentials token from `/admin/oauth/access_token`; tokens and secrets are never logged or written to state.
 
 The administrator’s **Sync shop** button saves pending content first, then calls the authenticated `/api/admin/shop-sync` endpoint. That endpoint dispatches `.github/workflows/portfolio-shop-sync.yml`; it does not run on a timer. Configure `GITHUB_SHOP_SYNC_TOKEN` in Vercel with Actions write access to `atishaycn/c_portfolio`, and configure the Gelato/Shopify values used by the workflow as GitHub Actions secrets.
 

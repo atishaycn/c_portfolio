@@ -5,7 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 
 import { requestShopifyClientCredentialsToken } from "./gelato-products.mjs";
-import { acquireLock, runOnce } from "./portfolio-print-sync.mjs";
+import { acquireLock, CATALOG_SYNC_VERSION, runOnce } from "./portfolio-print-sync.mjs";
 
 const tempPaths = () => {
 	const directory = mkdtempSync(join(tmpdir(), "portfolio-print-sync-"));
@@ -74,6 +74,31 @@ test("marks a successful revision and skips only the same successful mode", asyn
 		assert.equal((await runOnce(options)).status, "skipped");
 		assert.equal((await runOnce({ ...options, execute: true })).status, "completed");
 		assert.equal(runs, 2);
+	} finally {
+		rmSync(paths.directory, { recursive: true, force: true });
+	}
+});
+
+test("reruns an unchanged CMS revision when the catalog sync contract changes", async () => {
+	const paths = tempPaths();
+	try {
+		writeFileSync(paths.stateFile, JSON.stringify({
+			version: 1,
+			lastSuccessfulRevision: "187",
+			lastSuccessfulMode: "execute",
+			lastSuccessfulCatalogSyncVersion: "older-contract",
+		}));
+		let runs = 0;
+		const result = await runOnce({
+			...paths,
+			execute: true,
+			fetchImpl: async () => responseFor(187),
+			runner: async () => { runs += 1; },
+		});
+		assert.equal(result.status, "completed");
+		assert.equal(runs, 1);
+		const state = JSON.parse(readFileSync(paths.stateFile, "utf8"));
+		assert.equal(state.lastSuccessfulCatalogSyncVersion, CATALOG_SYNC_VERSION);
 	} finally {
 		rmSync(paths.directory, { recursive: true, force: true });
 	}
