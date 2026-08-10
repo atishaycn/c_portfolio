@@ -29,6 +29,7 @@ const SHOPIFY_MEDIA_POLL_INTERVAL_MS = 2 * 1000;
 const SHOPIFY_JOB_TIMEOUT_MS = 10 * 60 * 1000;
 const SHOPIFY_JOB_POLL_INTERVAL_MS = 2 * 1000;
 let shopifyAccessTokenCache = null;
+let onlineStorePublicationIdCache = null;
 
 const gelato429MaxAttempts = () => {
 	const configured = Number.parseInt(process.env.GELATO_429_MAX_ATTEMPTS || "", 10);
@@ -972,7 +973,11 @@ const buildReconcilePlan = (
 			plan.pending.push({ key, product: canonical, photo: target.photo, desired });
 		} else if (canonical.status !== "active") {
 			plan.blocked.push({ action: "inspect", key, productId: canonical.id, reason: `unsupported-status:${canonical.status}` });
-		} else if (productNeedsMetadataUpdate(observed, desired) || productNeedsShopifyMediaRepair(observed, target.photo)) {
+		} else if (
+			productNeedsMetadataUpdate(observed, desired) ||
+			productNeedsShopifyMediaRepair(observed, target.photo) ||
+			canonical.shopifyOnlineStorePublished === false
+		) {
 			if (!productShopifyId(canonical)) {
 				plan.blocked.push({ action: "update", key, productId: canonical.id, reason: "missing-shopify-external-id" });
 			} else {
@@ -1059,6 +1064,7 @@ const mergeShopifyProductState = (products, shopifyProducts) => {
 		return {
 			...product,
 			shopifyStatus: String(shopifyProduct.status || "").toLowerCase(),
+			shopifyOnlineStorePublished: Boolean(shopifyProduct.onlineStoreUrl),
 			shopifyTitle: shopifyProduct.title,
 			shopifyHandle: shopifyProduct.handle,
 			shopifyDescription: shopifyProduct.descriptionHtml,
@@ -1078,9 +1084,11 @@ const enrichProductsWithShopifyState = async (products) => {
 			`query CatalogProductState($ids: [ID!]!) {
 				nodes(ids: $ids) {
 					... on Product {
-						id
-						status
-						title
+							id
+							status
+							publishedAt
+							onlineStoreUrl
+							title
 						handle
 						descriptionHtml
 						tags
@@ -1553,13 +1561,54 @@ const updateShopifyProduct = async (
 	return result.product;
 };
 
+const onlineStorePublicationId = async ({ shopifyGraphqlImpl = shopifyGraphql } = {}) => {
+	if (onlineStorePublicationIdCache) return onlineStorePublicationIdCache;
+	const data = await shopifyGraphqlImpl(
+		`query OnlineStorePublication {
+			publications(first: 100) { nodes { id name } }
+		}`,
+		{},
+	);
+	const publication = (data.publications?.nodes || []).find(
+		(entry) => String(entry.name || "").trim().toLowerCase() === "online store",
+	);
+	assert(publication?.id, "Shopify Online Store publication was not found");
+	onlineStorePublicationIdCache = publication.id;
+	return onlineStorePublicationIdCache;
+};
+
+const publishShopifyProductToOnlineStore = async (
+	product,
+	{ shopifyGraphqlImpl = shopifyGraphql, getPublicationId = onlineStorePublicationId } = {},
+) => {
+	const id = productShopifyId(product) || product?.id;
+	assert(id, "Cannot publish Shopify product without an ID");
+	const publicationId = await getPublicationId({ shopifyGraphqlImpl });
+	const data = await shopifyGraphqlImpl(
+		`mutation PublishProductToOnlineStore($id: ID!, $input: [PublicationInput!]!) {
+			publishablePublish(id: $id, input: $input) {
+				publishable { ... on Product { id } }
+				userErrors { field message }
+			}
+		}`,
+		{ id, input: [{ publicationId }] },
+	);
+	const errors = data.publishablePublish?.userErrors || [];
+	if (errors.length) {
+		throw new Error(`Shopify Online Store publication failed for ${id}: ${JSON.stringify(errors)}`);
+	}
+	return data.publishablePublish?.publishable;
+};
+
 const safelyPublishShopifyProduct = async (
 	product,
 	desired,
-	{ photo, updateProduct = updateShopifyProduct } = {},
+	{ photo, updateProduct = updateShopifyProduct, publishProduct = publishShopifyProductToOnlineStore } = {},
 ) => {
 	await updateProduct(product, desired, "DRAFT", { photo });
-	return updateProduct(product, desired, "ACTIVE");
+	const active = await updateProduct(product, desired, "ACTIVE");
+	await publishProduct(active);
+	return active;
 };
 
 const reconcileCreateActions = (plan) =>
@@ -1816,6 +1865,7 @@ const buildCatalogAudit = (photos, existingProducts, selectedMedia = Object.keys
 	const duplicateActiveKeys = [];
 	const nonActiveProducts = [];
 	const mediaRepairKeys = [];
+	const unpublishedProducts = [];
 	const photosById = new Map(photos.map((photo) => [photo.printId, photo]));
 	for (const [key, products] of groups) {
 		const active = products.filter(isReadyActiveProduct);
@@ -1825,6 +1875,7 @@ const buildCatalogAudit = (photos, existingProducts, selectedMedia = Object.keys
 		const { printId } = splitProductKey(key);
 		const photo = photosById.get(printId);
 		for (const product of active) {
+			if (product.shopifyOnlineStorePublished === false) unpublishedProducts.push({ key, productId: product.id });
 			if (photo?.fileUrl && Object.hasOwn(product, "shopifyMedia") && productNeedsShopifyMediaRepair(product, photo)) {
 				mediaRepairKeys.push(key);
 			}
@@ -1839,6 +1890,7 @@ const buildCatalogAudit = (photos, existingProducts, selectedMedia = Object.keys
 		duplicateActiveKeys,
 		nonActiveProducts,
 		mediaRepairKeys,
+		unpublishedProducts,
 		staleProducts,
 		unmanagedProducts,
 		clean:
@@ -1846,6 +1898,7 @@ const buildCatalogAudit = (photos, existingProducts, selectedMedia = Object.keys
 			duplicateActiveKeys.length === 0 &&
 			nonActiveProducts.length === 0 &&
 			mediaRepairKeys.length === 0 &&
+			unpublishedProducts.length === 0 &&
 			staleProducts.length === 0 &&
 			unmanagedProducts.length === 0,
 	};
@@ -2350,6 +2403,8 @@ export {
 	isShopifyThrottled,
 	shopifyGraphql,
 	shopifyRetryDelayMs,
+	onlineStorePublicationId,
+	publishShopifyProductToOnlineStore,
 	updateShopifyProduct,
 	recoverCanonicalHandleBlocker,
 	runWithRetryableDeferral,

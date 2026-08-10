@@ -41,6 +41,7 @@ import {
 	isShopifyThrottled,
 	shopifyGraphql,
 	shopifyRetryDelayMs,
+	publishShopifyProductToOnlineStore,
 	updateShopifyProduct,
 	recoverCanonicalHandleBlocker,
 	runWithRetryableDeferral,
@@ -461,10 +462,17 @@ test("uses Shopify status to ignore archived Gelato records on fresh runners", (
 	];
 	const enriched = mergeShopifyProductState(products, [
 		{ id: "gid://shopify/Product/101", status: "ARCHIVED", handle: "archived-101", tags: products[0].tags },
-		{ id: "gid://shopify/Product/102", status: "ACTIVE", handle: "photo-1-fine-art-print", tags: products[1].tags },
+		{
+			id: "gid://shopify/Product/102",
+			status: "ACTIVE",
+			handle: "photo-1-fine-art-print",
+			tags: products[1].tags,
+			onlineStoreUrl: "https://shop.test/products/photo-1-fine-art-print",
+		},
 	]);
 	assert.equal(enriched[0].shopifyStatus, "archived");
 	assert.equal(enriched[1].shopifyStatus, "active");
+	assert.equal(enriched[1].shopifyOnlineStorePublished, true);
 	const audit = buildCatalogAudit([{ printId: "photo-1" }], enriched, ["fine-art"]);
 	assert.equal(audit.clean, true);
 	assert.equal(audit.uniqueRemoteProducts, 1);
@@ -1522,12 +1530,64 @@ test("keeps Shopify products hidden until artwork repair succeeds", async () => 
 	await safelyPublishShopifyProduct(
 		{ id: "gelato-1", externalId: "101" },
 		{ title: "Photo 1" },
-		{ photo: { printId: "photo-1" }, updateProduct },
+		{
+			photo: { printId: "photo-1" },
+			updateProduct,
+			publishProduct: async (product) => calls.push({ published: product.id }),
+		},
 	);
 	assert.deepEqual(calls, [
 		{ status: "DRAFT", hasPhoto: true },
 		{ status: "ACTIVE", hasPhoto: false },
+		{ published: "gid://shopify/Product/101" },
 	]);
+});
+
+test("reconciles and audits active products missing from the Online Store", () => {
+	const photo = {
+		printId: "photo-online-store",
+		fileUrl: "https://res.cloudinary.com/dpmdkrggj/image/upload/photo-online-store.jpg",
+		series: "album",
+		seriesLabel: "Album",
+		seriesPath: "Album",
+		referenceLabel: "1",
+		photoOrder: 0,
+	};
+	const desired = productMetadata(photo, "fine-art");
+	const product = {
+		id: "gelato-online-store",
+		externalId: "101",
+		status: "active",
+		shopifyStatus: "active",
+		shopifyOnlineStorePublished: false,
+		...desired,
+		shopifyMedia: { nodes: [{ id: "artwork", alt: artworkMediaAltFor(photo), status: "READY" }] },
+		shopifyVariants: { nodes: [{ id: "variant-1", media: { nodes: [{ id: "artwork" }] } }] },
+	};
+	const plan = buildReconcilePlan([photo], { products: {} }, [product], ["fine-art"]);
+	assert.deepEqual(plan.updates.map(({ key }) => key), ["photo-online-store:fine-art"]);
+	const audit = buildCatalogAudit([photo], [product], ["fine-art"]);
+	assert.equal(audit.clean, false);
+	assert.deepEqual(audit.unpublishedProducts, [{ key: "photo-online-store:fine-art", productId: "gelato-online-store" }]);
+});
+
+test("publishes an active Shopify product to the Online Store publication", async () => {
+	const calls = [];
+	await publishShopifyProductToOnlineStore(
+		{ id: "gid://shopify/Product/101" },
+		{
+			getPublicationId: async () => "gid://shopify/Publication/1",
+			shopifyGraphqlImpl: async (query, variables) => {
+				calls.push({ query, variables });
+				return { publishablePublish: { publishable: { id: "gid://shopify/Product/101" }, userErrors: [] } };
+			},
+		},
+	);
+	assert.equal(calls.length, 1);
+	assert.deepEqual(calls[0].variables, {
+		id: "gid://shopify/Product/101",
+		input: [{ publicationId: "gid://shopify/Publication/1" }],
+	});
 });
 
 test("quarantines each published Gelato product before waiting for the rest", async () => {
