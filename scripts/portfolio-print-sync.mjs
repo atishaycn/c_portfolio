@@ -118,16 +118,21 @@ const fetchCmsContent = async (url, fetchImpl = fetch) => {
 	return content;
 };
 
-const runReconcile = ({ snapshotFile, execute }) => {
-	const args = [GELATO_SCRIPT, "--reconcile", "--content-file", snapshotFile];
-	if (execute) args.push("--execute");
-	const result = spawnSync(process.execPath, args, { cwd: ROOT, stdio: "inherit" });
+const runChild = (args, spawnImpl = spawnSync) => {
+	const result = spawnImpl(process.execPath, args, { cwd: ROOT, stdio: "inherit" });
 	if (result.error) throw result.error;
 	if (result.status !== 0) {
-		const error = new Error(`reconcile exited with code ${result.status ?? "unknown"}`);
+		const error = new Error(`catalog command exited with code ${result.status ?? "unknown"}`);
 		error.exitCode = result.status ?? 1;
 		throw error;
 	}
+};
+
+const runReconcile = ({ snapshotFile, execute, spawnImpl = spawnSync }) => {
+	const args = [GELATO_SCRIPT, "--reconcile", "--content-file", snapshotFile];
+	if (execute) args.push("--execute");
+	runChild(args, spawnImpl);
+	if (execute) runChild([GELATO_SCRIPT, "--strict-audit", "--content-file", snapshotFile], spawnImpl);
 };
 
 const runOnce = async ({
@@ -207,4 +212,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
 	});
 }
 
-export { acquireLock, CATALOG_SYNC_VERSION, fetchCmsContent, readState, runOnce, writeJsonAtomic };
+export { acquireLock, CATALOG_SYNC_VERSION, fetchCmsContent, readState, runOnce, runReconcile, writeJsonAtomic };

@@ -5,7 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 
 import { requestShopifyClientCredentialsToken } from "./gelato-products.mjs";
-import { acquireLock, CATALOG_SYNC_VERSION, runOnce } from "./portfolio-print-sync.mjs";
+import { acquireLock, CATALOG_SYNC_VERSION, runOnce, runReconcile } from "./portfolio-print-sync.mjs";
 
 const tempPaths = () => {
 	const directory = mkdtempSync(join(tmpdir(), "portfolio-print-sync-"));
@@ -102,6 +102,23 @@ test("reruns an unchanged CMS revision when the catalog sync contract changes", 
 	} finally {
 		rmSync(paths.directory, { recursive: true, force: true });
 	}
+});
+
+test("executes strict audit before marking an execute sync successful", () => {
+	const calls = [];
+	runReconcile({
+		snapshotFile: "/tmp/live-content.json",
+		execute: true,
+		spawnImpl: (_command, args) => {
+			calls.push(args);
+			return { status: 0 };
+		},
+	});
+	assert.equal(calls.length, 2);
+	assert.deepEqual(calls.map((args) => args.slice(1)), [
+		["--reconcile", "--content-file", "/tmp/live-content.json", "--execute"],
+		["--strict-audit", "--content-file", "/tmp/live-content.json"],
+	]);
 });
 
 test("failed reconcile leaves the revision pending and retries it", async () => {
