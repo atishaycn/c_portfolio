@@ -36,6 +36,19 @@ const SHOPIFY_SERIES_HANDLES = {
 	protests: "reportage",
 };
 
+const navLabelOverrides = {
+	protests: "events",
+	"commissioned-work": "portraits",
+};
+
+const navOrderOverrides = {
+	protests: -1,
+	"the-natural-world": 0,
+	"commissioned-work": 1,
+	place: 2,
+	"shapes-and-shadows": 3,
+};
+
 const buildCloudinaryUrl = (publicId, options = {}) => {
 	if (!cloudinaryConfig.enabled || !cloudinaryConfig.cloudName || !publicId) return "";
 	const encodedSegments = publicId.split("/").map(encodeURIComponent).join("/");
@@ -448,7 +461,7 @@ let galleryPages = [
 	},
 	{
 		key: "protests",
-		label: "reportage",
+		label: "events",
 		path: "./protests.html",
 		items: [
 			...createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }).map((item, index) => ({
@@ -462,7 +475,7 @@ let galleryPages = [
 	},
 	{
 		key: "commissioned-work",
-		label: "commissioned work",
+		label: "portraits",
 		path: "./commissioned-work.html",
 		items: commissionedWorkSpecs.map(([file, width, height], index) => ({
 			id: `commissioned-work-${index + 1}`,
@@ -477,8 +490,9 @@ let galleryPages = [
 ];
 
 let portfolioLinks = [
+	{ label: "events", path: "./protests.html", key: "protests" },
 	{ label: "the natural world", path: "./index.html", key: "the-natural-world" },
-	{ label: "commissioned work", path: "./commissioned-work.html", key: "commissioned-work" },
+	{ label: "portraits", path: "./commissioned-work.html", key: "commissioned-work" },
 	{
 		label: "place",
 		key: "place",
@@ -494,7 +508,6 @@ let portfolioLinks = [
 		],
 	},
 	{ label: "shapes & shadows", path: "./shapes-and-shadows.html", key: "shapes-and-shadows" },
-	{ label: "reportage", path: "./protests.html", key: "protests" },
 ];
 
 const secondaryLinks = [
@@ -531,7 +544,7 @@ const applyCmsContent = (content) => {
 	}
 	for (const album of albums) {
 		nodes.set(album.id, {
-			label: album.label,
+			label: navLabelOverrides[album.key] || album.label,
 			key: album.key,
 			path: album.path,
 			order: album.order,
@@ -539,6 +552,9 @@ const applyCmsContent = (content) => {
 			preserveCase: album.preserveCase,
 			children: [],
 		});
+	}
+	for (const node of nodes.values()) {
+		if (Object.hasOwn(navOrderOverrides, node.key)) node.order = navOrderOverrides[node.key];
 	}
 	for (const node of nodes.values()) {
 		if (node.parentId && nodes.has(node.parentId)) {
@@ -717,9 +733,10 @@ const renderAbout = () => `
 			<img src="${resolveImageUrl({ image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" }, { width: 1200 })}" srcset="${imageSrcSet({ image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" })}" sizes="(max-width: 1100px) 100vw, 520px" data-local-src="${localImageUrl("./fqs 2025-12-19 161703.086.jpg")}" alt="Claire Thomas portrait" width="3024" height="4536" loading="eager" fetchpriority="high" decoding="async" />
 		</div>
 		<div class="about-copy">
-			<p>I am a San Francisco based freelance photographer.</p>
-			<p>I am available for a wide range of photographic services. Please get in touch at the email below! I look forward to working with you.</p>
-			<p>For inquiries:<br /><a href="mailto:contact@clairethomas.art?subject=Inquiry">contact@clairethomas.art</a></p>
+			<p>Hi! I’m Claire. I’m a San Francisco based event photographer. I’ve loved being behind a camera since I first picked up my mom’s DSLR at age 14. When I’m not shooting events, I’m out capturing beauty as it unfolds through nature and street photography.</p>
+			<p>With every project, I bring a candid documentary approach, an easygoing energy, and a dedication to ensuring your vision is realized.</p>
+			<p>If you’d like to work with me, please get in touch at the email below!</p>
+			<p><a href="mailto:contact@clairethomas.art?subject=Inquiry">contact@clairethomas.art</a></p>
 		</div>
 	</section>
 `;
@@ -794,8 +811,10 @@ app.innerHTML = `
 				<nav class="sidebar-nav" aria-label="Portfolio navigation">
 					<ul class="nav-list folder-list">
 						<li class="folder-link active-folder">
-							<span>portfolio</span>
-							<div class="subnav">${renderSidebarNav(portfolioLinks, true)}</div>
+							<details class="portfolio-folder" open>
+								<summary>portfolio</summary>
+								<div class="subnav">${renderSidebarNav(portfolioLinks, true)}</div>
+							</details>
 						</li>
 					</ul>
 					${renderSidebarNav(secondaryLinks)}
@@ -803,6 +822,9 @@ app.innerHTML = `
 				<footer class="sidebar-footer">
 					<a href="mailto:contact@clairethomas.art?subject=Inquiry" aria-label="Email">Email</a>
 					<a href="https://clarityincatastrophe.substack.com/" aria-label="Writing" target="_blank" rel="noreferrer">Writing</a>
+					<a class="social-link" href="https://www.instagram.com/cet.samoht/" aria-label="Instagram" target="_blank" rel="noreferrer">
+						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+					</a>
 				</footer>
 			</div>
 		</aside>

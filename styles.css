@@ -105,6 +105,7 @@ input {
 }
 
 .folder-link > span,
+.portfolio-folder > summary,
 .sidebar-folder > summary,
 .nav-list a,
 .subnav-list a,
@@ -121,6 +122,25 @@ input {
 .sidebar-folder > summary {
 	cursor: pointer;
 	list-style: none;
+}
+
+.portfolio-folder > summary {
+	cursor: pointer;
+	list-style: none;
+}
+
+.portfolio-folder > summary::-webkit-details-marker {
+	display: none;
+}
+
+.portfolio-folder > summary::after {
+	content: "−";
+	margin-left: 8px;
+	font-size: 11px;
+}
+
+.portfolio-folder:not([open]) > summary::after {
+	content: "+";
 }
 
 .summary-with-link,
@@ -193,6 +213,17 @@ input {
 	color: #777;
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
+}
+
+.social-link {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+}
+
+.social-link svg {
+	width: 14px;
+	height: 14px;
 }
 
 .content-area {
