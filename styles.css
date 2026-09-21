@@ -73,10 +73,17 @@ input {
 
 .site-header h1 {
 	margin: 0;
-	font-size: 26px;
-	font-weight: 400;
-	letter-spacing: 0.32em;
-	text-transform: uppercase;
+}
+
+.site-header h1 a {
+	display: block;
+}
+
+.site-logo {
+	display: block;
+	width: 150px;
+	max-width: 100%;
+	height: auto;
 }
 
 .sidebar-nav {

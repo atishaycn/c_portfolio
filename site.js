@@ -1,4 +1,5 @@
 const siteTitle = "CLAIRE THOMAS";
+const siteLogoPath = "./assets/claire-thomas-logo.png";
 
 const escapeHtml = (value) =>
 	String(value ?? "")
@@ -788,7 +789,7 @@ app.innerHTML = `
 		<aside class="sidebar">
 			<div class="sidebar-inner">
 				<header class="site-header">
-					<h1><a href="./index.html">${siteTitle}</a></h1>
+					<h1><a href="./index.html"><img class="site-logo" src="${siteLogoPath}" alt="${siteTitle}" /></a></h1>
 				</header>
 				<nav class="sidebar-nav" aria-label="Portfolio navigation">
 					<ul class="nav-list folder-list">
