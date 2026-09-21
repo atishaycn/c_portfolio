@@ -58,7 +58,7 @@ input {
 .sidebar {
 	width: 360px;
 	flex: 0 0 360px;
-	border-right: 1px solid #ececec;
+	border-right: 0;
 	background: #fff;
 }
 
