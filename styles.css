@@ -56,8 +56,8 @@ input {
 }
 
 .sidebar {
-	width: 282px;
-	flex: 0 0 282px;
+	width: 360px;
+	flex: 0 0 360px;
 	border-right: 1px solid #ececec;
 	background: #fff;
 }
@@ -81,7 +81,7 @@ input {
 
 .site-logo {
 	display: block;
-	width: 150px;
+	width: 300px;
 	max-width: 100%;
 	height: auto;
 }
