@@ -18,6 +18,14 @@ const cloudinaryConfig = {
 	placeholderWidth: 80,
 };
 
+// Google Drive is an opt-in per-image source. Keep Cloudinary configured so
+// existing items continue working while Drive files are uploaded and mapped.
+const googleDriveConfig = {
+	enabled: true,
+	thumbnailUrl: "https://drive.google.com/thumbnail",
+	maxWidth: 2400,
+};
+
 const printShopConfig = {
 	shopUrl: "https://shop.clairethomas.art/collections/all",
 	email: "contact@clairethomas.art",
@@ -60,9 +68,24 @@ const buildCloudinaryUrl = (publicId, options = {}) => {
 	return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transforms.join(",")}/${encodedSegments}`;
 };
 
+const buildGoogleDriveUrl = (fileId, options = {}) => {
+	const id = String(fileId ?? "").trim();
+	if (!googleDriveConfig.enabled || !/^[a-zA-Z0-9_-]+$/.test(id)) return "";
+	const requestedWidth = Number(options.width) || googleDriveConfig.maxWidth;
+	const width = Math.min(googleDriveConfig.maxWidth, Math.max(80, Math.round(requestedWidth)));
+	return `${googleDriveConfig.thumbnailUrl}?id=${encodeURIComponent(id)}&sz=w${width}`;
+};
+
+const driveImageUrl = (itemOrPath, options = {}) =>
+	typeof itemOrPath === "object" && itemOrPath
+		? buildGoogleDriveUrl(itemOrPath.driveFileId, options)
+		: "";
+
 const resolveImageUrl = (itemOrPath, options = {}) => {
 	if (!itemOrPath) return itemOrPath;
 	if (typeof itemOrPath === "string") return encodeURI(itemOrPath);
+	const driveUrl = driveImageUrl(itemOrPath, options);
+	if (driveUrl) return driveUrl;
 	if (itemOrPath.publicId) return buildCloudinaryUrl(itemOrPath.publicId, options);
 	return encodeURI(itemOrPath.image);
 };
@@ -71,6 +94,14 @@ const localImageUrl = (itemOrPath) => {
 	if (!itemOrPath) return itemOrPath;
 	if (typeof itemOrPath === "string") return encodeURI(itemOrPath);
 	return itemOrPath.image ? encodeURI(itemOrPath.image) : "";
+};
+
+const fallbackImageUrl = (itemOrPath) => {
+	if (!itemOrPath) return "";
+	if (typeof itemOrPath === "string") return localImageUrl(itemOrPath);
+	if (itemOrPath.image) return localImageUrl(itemOrPath);
+	if (itemOrPath.publicId) return buildCloudinaryUrl(itemOrPath.publicId);
+	return "";
 };
 
 const createGalleryItems = (prefix, specs) =>
@@ -574,7 +605,7 @@ const applyCmsContent = (content) => {
 applyCmsContent(window.__PORTFOLIO_CONTENT__);
 
 const placeholderUrl = (item) => {
-	if (item.publicId) {
+	if (item.driveFileId || item.publicId) {
 		return resolveImageUrl(item, {
 			width: cloudinaryConfig.placeholderWidth,
 			quality: 20,
@@ -634,7 +665,7 @@ const printOrderUrl = (item, page) => {
 };
 const responsiveWidths = [400, 800, 1200, 1600, 2400];
 const imageSrcSet = (item, widths = responsiveWidths) => {
-	if (!item?.publicId) return "";
+	if (!item?.publicId && !item?.driveFileId) return "";
 	return widths.map((width) => `${resolveImageUrl(item, { width })} ${width}w`).join(", ");
 };
 const galleryImageSizes = "(max-width: 820px) 100vw, (max-width: 1400px) 50vw, 33vw";
@@ -682,8 +713,8 @@ const renderGallery = (page) => `
 					${page.items
 						.map((item, index) => {
 							const imageSrc = placeholderUrl(item);
-							const highResSrc = item.publicId || item.image ? galleryImageUrl(item) : placeholderUrl(item);
-							const highResSrcSet = item.publicId ? imageSrcSet(item) : "";
+							const highResSrc = item.publicId || item.image || item.driveFileId ? galleryImageUrl(item) : placeholderUrl(item);
+							const highResSrcSet = item.publicId || item.driveFileId ? imageSrcSet(item) : "";
 							const hasCaption = item.title || item.location;
 							const eager = index < 4;
 							return `
@@ -695,7 +726,7 @@ const renderGallery = (page) => `
 										data-gallery-index="${index}"
 										aria-label="Open image ${index + 1} from ${escapeHtml(page.label)}"
 									>
-										<img class="progressive-image" src="${imageSrc}" data-high-src="${highResSrc}" data-high-srcset="${highResSrcSet}" data-sizes="${galleryImageSizes}" data-local-src="${localImageUrl(item)}" alt="${escapeHtml(item.title || page.label)}" width="${item.width}" height="${item.height}" loading="${eager ? "eager" : "lazy"}" fetchpriority="${eager ? "high" : "low"}" decoding="async" />
+									<img class="progressive-image" src="${imageSrc}" data-high-src="${highResSrc}" data-high-srcset="${highResSrcSet}" data-sizes="${galleryImageSizes}" data-local-src="${fallbackImageUrl(item)}" alt="${escapeHtml(item.title || page.label)}" width="${item.width}" height="${item.height}" loading="${eager ? "eager" : "lazy"}" fetchpriority="${eager ? "high" : "low"}" decoding="async" />
 									</button>
 									${
 										hasCaption

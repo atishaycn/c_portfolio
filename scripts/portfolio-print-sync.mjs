@@ -20,7 +20,7 @@ const GELATO_SCRIPT = resolve(ROOT, "scripts", "gelato-products.mjs");
 const STATE_FILE = resolve(ROOT, ".portfolio-print-sync-state.json");
 const SNAPSHOT_FILE = resolve(ROOT, ".portfolio-print-sync-content.json");
 const LOCK_FILE = resolve(ROOT, ".portfolio-print-sync.lock");
-const CATALOG_SYNC_VERSION = "online-store-publication-v1";
+const CATALOG_SYNC_VERSION = "fine-art-mockup-v2";
 
 const parseArgs = (argv) => {
 	const args = {

@@ -17,6 +17,11 @@ const cleanKey = (value) =>
 		.replace(/-+/g, "-")
 		.replace(/^-|-$/g, "");
 
+const cleanDriveFileId = (value) => {
+	const id = cleanText(value, 200);
+	return /^[a-zA-Z0-9_-]+$/.test(id) ? id : "";
+};
+
 const validateContent = (candidate) => {
 	if (!candidate || !Array.isArray(candidate.albums) || !Array.isArray(candidate.groups)) {
 		const error = new Error("Content must include albums and groups");
@@ -64,6 +69,7 @@ const validateContent = (candidate) => {
 			? album.items.map((item, itemIndex) => {
 					const itemId = cleanText(item.id, 140);
 					const publicId = cleanText(item.publicId, 240);
+					const driveFileId = cleanDriveFileId(item.driveFileId);
 					if (
 						!itemId ||
 						!publicId ||
@@ -79,6 +85,7 @@ const validateContent = (candidate) => {
 					return {
 						id: itemId,
 						publicId,
+						...(driveFileId ? { driveFileId } : {}),
 						title: cleanText(item.title, 2_000),
 						location: cleanText(item.location, 500),
 						width: Math.max(1, Math.round(Number(item.width) || 1)),
@@ -136,9 +143,10 @@ const validateContent = (candidate) => {
 		? candidate.trash.slice(0, 1_000).map((entry) => ({
 				albumId: cleanKey(entry.albumId),
 				deletedAt: cleanText(entry.deletedAt, 64),
-				item: {
-					id: cleanText(entry.item?.id, 140),
-					publicId: cleanText(entry.item?.publicId, 240),
+					item: {
+						id: cleanText(entry.item?.id, 140),
+						publicId: cleanText(entry.item?.publicId, 240),
+						driveFileId: cleanDriveFileId(entry.item?.driveFileId),
 					title: cleanText(entry.item?.title, 2_000),
 					location: cleanText(entry.item?.location, 500),
 					width: Math.max(1, Math.round(Number(entry.item?.width) || 1)),

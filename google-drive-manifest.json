@@ -1,0 +1,1743 @@
+{
+  "version": 5,
+  "generatedAt": "2026-08-27T19:28:53.374Z",
+  "source": {
+    "folderId": "1j_p4uDzt0QPy18iu5K9uKnkoYVphUzaD",
+    "folderUrl": "https://drive.google.com/drive/folders/1j_p4uDzt0QPy18iu5K9uKnkoYVphUzaD",
+    "status": "active",
+    "mappingMethod": "Cloudinary pixel match to local source, then exact Drive path",
+    "mappedItems": 246,
+    "printEnabledMapped": 176,
+    "cmsRevision": 187,
+    "verification": "Cloudinary 256px thumbnails matched to local image fingerprints with exact dimensions; each selected local path resolved to its Drive file ID.",
+    "maxMatchDistance": 29,
+    "ambiguousContentMatches": 33,
+    "cloudinaryAccountReenabled": true
+  },
+  "items": {
+    "the-natural-world-2": "1DzxZL_bA3puza7LocTXyzfZSLbGhAesy",
+    "the-natural-world-4": "1bXhfL_0OFRvc5WrDen98pT-en_znBAs7",
+    "the-natural-world-6": "1ChPqNlZYrKLRJGAQQRlBQe-SpAyJ9PZl",
+    "the-natural-world-8159a1be-ec8b-417e-926e-1fd3de25498e": "17AQ0XWdokj6S81d292CAZkL4Jh-Oe5Zt",
+    "the-natural-world-10": "1Q8pYUP2uZ8FLnwEw7pX4VM235G4evevZ",
+    "the-natural-world-1": "1G8ocCub2ZcSeOccTRKsjQ3Zn-611-eas",
+    "the-natural-world-8": "1VpSW-56HF49INqEZZlNu3oU4WEYuTnYB",
+    "the-natural-world-11": "1edJIjr23UAVl7kHNokHZGCPVwLFQqr_h",
+    "the-natural-world-21": "1oo6-0bA2W2PZHIUCbHsXguN-sPDnWvUG",
+    "the-natural-world-12": "17fUl3VejgZnUPnUfEkuzeYtBopIhjGs6",
+    "the-natural-world-c8aa594f-c479-48e3-9592-0f8e0fcbb27d": "1dTIco-nKD5Wk2XEkzrLqPaw5wvb8jILD",
+    "the-natural-world-14": "1-8Z3tII50_y7TIi3uNj-1O9Iv0Kzhygr",
+    "the-natural-world-15": "1ZnU-1sbsF9-cefSf3ZhyyIgcSKQSx_UC",
+    "the-natural-world-7": "1IKARaNuNPkxBEEEyMhGodFFnlPCNNits",
+    "the-natural-world-ddff9075-dabd-4b24-aa28-895da96ed76f": "1K5IqQYHpe_05091Cfz6P8Cc7bXLjIn01",
+    "the-natural-world-18": "1bew1z7D3J9rq4OyHYOd4Co8DIfBiF1ie",
+    "the-natural-world-eb395539-71fd-4083-adeb-75055ecd5f14": "1Y5SJEjNT7yn9Ta0IaOQCVL8KCOgFy2S8",
+    "the-natural-world-16": "1AJhDuxH5wgGIJbfZ479vQWCA5Q6GE2Hu",
+    "the-natural-world-8fea1d6a-3033-4ac7-85e9-2cf7cea085b0": "1Ynwmcxb48SU1W82PcpjuFSGB6NCH5S2W",
+    "the-natural-world-084d2c60-c3d2-41d6-86b5-bdb68b5e3a40": "1OW5JuN-iWGeAJmhhkvv2go15GPUnMBHo",
+    "the-natural-world-0389b96e-d9ed-408d-abf7-c81ad60b9f75": "1x4uGkZpBhBYQVJpIuraA5hMzPEnA2VDI",
+    "the-natural-world-5dfec68d-69db-4339-acaa-1ec73f141075": "1LNvfMR6Tg-QVMpxZCvL_tVTV6R-RTibm",
+    "the-natural-world-7958f68a-43a1-47a9-85b3-1e40478e65dc": "1XMRQAU8qzxpI3huymanYWBsoJWvupfMt",
+    "the-natural-world-19": "1brSQ5BnWdfOTVfP-Qnzpv8ZKGtFuz8C0",
+    "the-natural-world-25": "1LnRU_muZrRSOkqP2l06mvzxwzptaO3zN",
+    "the-natural-world-29": "1MQtW-t4DevCVQAoIBNQtbrsF8dO79CXo",
+    "the-natural-world-32": "1WNvxSf3GmxG9nj7PdmCSZhYnYFI0czHh",
+    "the-natural-world-d666ea7d-9b96-45fe-bca3-08a90344fd09": "13kenVjyuZUlDKQfnX0MhAItwBToxwJfT",
+    "the-natural-world-7dae8d35-c941-4c18-a05d-520b687cbb3a": "16o72T3lLcAVLgCpMGJhKltR8drPq9MjL",
+    "the-natural-world-aa7b6f80-ac33-49f9-bd94-49a2a2d49d38": "15z7HsTKkotSWEd6jcDYk4nf0dyLOVnjZ",
+    "the-natural-world-4ab1a8e2-d8ef-44a0-9aef-b4a3a7ba68a5": "1XobAaoDC6_9dPDlKCRog86mYHzE7v7m-",
+    "the-natural-world-0e65e18a-3c10-493d-89fc-3683e378b939": "1Jz8_yRCefFCh1JTcjNw7lyZSpoUiSRqg",
+    "the-natural-world-23": "1Y3gEpLznF3XRlSs1KxuvsymYDCZUd8le",
+    "the-natural-world-460f6ac5-21d4-4114-972a-54595bb05081": "10lHz-ba80HHaMAIW6c9goBQd1eiNKP_x",
+    "the-natural-world-61a73130-d2ea-4ed1-acb2-634ce9ebcd66": "11XT90gBVyux0xJkegaIKdTBPabfwFEJ2",
+    "the-natural-world-a350c9a9-a6ec-479e-a725-9dee7e7e890a": "1AF6-QJXEzTvTlBG5yxZP06cheKDhCavT",
+    "the-natural-world-26": "1y8KDKsKB9PB29jTBnm7zIOFZKoOSxah6",
+    "the-natural-world-bc775c20-e346-4e46-b1fe-ed32992b9a9a": "1tk_j29v3ppLcnfMcIbuTAhs0sXJmuEtR",
+    "california-1": "1XFoVvFips8LEOm4LNP2q72qvVVkw9Kgd",
+    "california-3": "1kHO8q6227bYhzfZ7n1NeY1wjlXS3Wqx8",
+    "california-4": "1pAJr2Njus8AFbyAzyV3Y4At8YW19oBWp",
+    "california-8": "1j_38SUZGKVX1dHOT9-D9LmszCSbGCPJB",
+    "california-5": "1fPMHadEOQE2pNzeOvPIZ25vFxz3PBRt7",
+    "california-27": "1lqofAQCCS2IafyrdRxP83imw5y1RyKEq",
+    "california-7": "1vOHOa7wcJQDJZtQMDMNvfq5--EMTxUAh",
+    "california-12": "1KKLWaKwvSxX512-SB84JxpUntJbOHRW1",
+    "california-11": "1FeU2McEzD6zR5J5jdq6TlgPjD6EixNnZ",
+    "california-15": "1D_IqGDt2DtvngncEwiHUiSFYAZBPJpKd",
+    "california-30": "14nEj3zRZhgj2wse4aSPwHW9wHu9Zalg1",
+    "california-16": "15OZEhOHqRi_sWsndZkrixYrtyrQXR1SG",
+    "california-17": "1QxeKupK1nTQJiGmbUNBsLOFibtNMIPNj",
+    "california-18": "1Xk7yyyJp_s5N4HPBGOFrtbjP9ywruIW1",
+    "california-19": "10-rGZrP-_59yb9mdeqyjG6bDQ0KxmS9j",
+    "california-29": "1ianlOb5AoxSExoHMp-Lj1AmOE1mAYok0",
+    "california-20": "1Oi0SQLXF6ZR6WFnASPpVfdknqbJHEBHk",
+    "california-24": "1mP9AeUyo6uO_6fBkrtP9L-jh8PorL8Au",
+    "california-28": "1lQPuEYvIsKEiBjTxc-eLHPnIqMrmPcUO",
+    "california-25": "19iYjyrkf98muz81yFCwuibvTLPcO0XfV",
+    "california-26": "1piOEBhUTyC63venCzT6aK9I9Noq1nyLQ",
+    "california-31": "1vuuEWXRMYOygfZAZkRhxiv7AeYaSyJas",
+    "california-32": "1YKkliQn55-zHwIKoq-VDttrjtm0xApIS",
+    "san-francisco-42": "1rNRNbo1o06H2Ulg4kycZdOMblRbB3JhB",
+    "san-francisco-25": "1OA-Z6hfVH-PyKUu0grc33pev42YMrfv3",
+    "san-francisco-27": "1U8apUyu_tZJ22asYCiK2dlZr6tCdI5b3",
+    "san-francisco-28": "1pYJQFZ85M2iOVQEB3C32dlm8a3NJyk3w",
+    "san-francisco-43": "14XgnREVrP2k1zc61o0Es70hlc-GfICxu",
+    "san-francisco-14": "15AbdRRG_SryHq6JBYwjZDkcOlpRtooHb",
+    "san-francisco-44": "1AXHRkKCkwMKlqhZhfNVYMBtZTenJ4Z9J",
+    "san-francisco-46": "1w2NELjzVSomuSqHyJl26_ynh2Mg_zu_Y",
+    "san-francisco-47": "18hfIVdTuPpzsWDTuuHMK0vK-7HxFukFc",
+    "san-francisco-55": "1BLzwgAdBX_dqyS2mEWgfCi-Ab72yXIyR",
+    "san-francisco-56": "1n_HJ0GI643YAAm69tL2tbj8WselNX_j3",
+    "san-francisco-83": "113nxxVj4vMWT13-F3UDEEMBCrMmUQvaP",
+    "san-francisco-63": "1zCePK2u73SBji957oXR1EeA_WnWzPgJT",
+    "san-francisco-67": "1x9e-b9eGosU2aTWdUDXJ6CHrvuzWkD4c",
+    "san-francisco-62": "1tosT_mU3xy_1ZAzqNDilBa0LXqFkV-_Z",
+    "san-francisco-68": "1ZAQbOkm4QKmOP2ZWqZZjCGg9CSoCTNQw",
+    "san-francisco-73": "1OYKVDxIdJ9VKnTFNjSGqlZpXmJc-UIbM",
+    "san-francisco-69": "1l-GvkeSO9vCidbavPTbABdS5Chi6rxGO",
+    "san-francisco-74": "1bmQ0teCjkA7RRPYy4zA1TF3pt007IfC0",
+    "san-francisco-79": "1cdYc7yFrSOP6Z4Bz7yWTocx2T0p-J9Vv",
+    "san-francisco-78": "1wKGicnEPT0krjcSqkxPkDLQJJXROhTtG",
+    "san-francisco-91": "1k9VJ46MyXZkgd-IS7zN-l63YmAgAAHOj",
+    "san-francisco-114": "1OLHzTlBNGLqZogQGzNn4jf1k3AmT2e0Y",
+    "san-francisco-86": "1gaaUeohBpPu1LqG2R56FAd90sIij8shW",
+    "san-francisco-77": "1s_UQQoeizyTK0uv8DdQ3ECxPnKaecnVR",
+    "san-francisco-93": "1ns5HKTsLGdlXG5vq46lizdkzap25Ctd0",
+    "san-francisco-70": "1W87ZjQD1kXEaqshfM3dvLhvyzyQucInE",
+    "san-francisco-80": "1Tzd9Z-LZgRebXpyVc8bc4O_uUm_Y0rK7",
+    "san-francisco-107": "1HgQzILBc0auE0ovJmMpTk1G1pfS1oV6k",
+    "san-francisco-121": "1qzv0jputn_OU5X15wO2_YVVsI-EAKCr5",
+    "san-francisco-125": "1YfTsmbRE-gqaB7BHD-9YCB6O50ZIhMEF",
+    "san-francisco-100": "1d4HeRL6QnDSWCHjpNRW0C7SS6cDttgAj",
+    "san-francisco-98": "18VOn5WluDrRoIbvkjVrXuGN0pC_-9Ul7",
+    "san-francisco-108": "1f4Mcw5YbPc9gy9SUKJdBf9ZOhvhwjUAL",
+    "san-francisco-124": "15GfY50X885aL5b88EO13CIeEu5LmogKv",
+    "san-francisco-110": "1274h5pv9HijeHrxpRLfB3GS1_bghdz_H",
+    "san-francisco-111": "18QWBrocSJBTxO7GLqaklD9WZSPipkZo1",
+    "san-francisco-112": "1SwtNOUYIw5ZtZ9aHy2E74qKaH_CKBt7i",
+    "san-francisco-85": "1qdMm_nA63RIUgbwWoebmx3OzZe5KUW63",
+    "san-francisco-131": "1PR1gmSfjXJMIecaAvMePA03rG0Z_lCdl",
+    "san-francisco-115": "1ekNDlgIcyE3Rycuu8zSqrFS6DVE4_Wwt",
+    "san-francisco-128": "1XDHpFZOkTD-4NeJRdCAR0-uWW1ndfCCw",
+    "san-francisco-139": "1lxYy9qsDUXMCQu8cVBziZStKwafpoblh",
+    "san-francisco-109": "1ouJEz-I8ip6WKkAc128i4kErfhGz7X4f",
+    "san-francisco-135": "1zNCKaggjAO7eXoZXipx8I7bnqNKwzpT5",
+    "india-1": "1dLpzceu8NxlTVa0JXEk1X950PcaTzjcH",
+    "india-7": "1clmh9JUu__BCyDc6vw0dYeCGAXELCK1c",
+    "india-29": "1VvrvZyzbdtxi6fjvKa8_dFlOQU8kCEDL",
+    "india-5": "1_fgb3d14zbUULxcPY9p58bd5kdWlKcwL",
+    "india-4": "1t_3qJG2oRwdNvgAMx9aVpc2vNNFJbkGh",
+    "india-32": "1avc3DUtVzVOTqtLqaXJ8xMnTpxZ9YPsj",
+    "india-8": "1O_EpQdemaYa37g9h5vttLIeOEYIodtQp",
+    "india-30": "15FIEYlPAY2F4q1Hvmhxewpo59ipXbl0p",
+    "india-2": "1NenGX5SCHG6ow0QHzieHE_7inYMj3mf-",
+    "india-12": "1YJK3rrLfNj1CEXvEQndfdbYTX0_Kqs7X",
+    "india-24": "1dVyU7hJVFzuAq5cgimAgmLqAdc1fZFu7",
+    "india-34": "12PHBGfHRRjlUEkHZeUgNC4cMHY66zhlJ",
+    "india-6": "1xnKq9dvVbGAKFEFhf6xUqANRn8wopuzm",
+    "india-14": "19Lcq7Fa_kyGHLTQGSAUA5rgB3BVlrg3Y",
+    "india-3": "1rudvG1qVPJEyb7gWcBmkhmgHFSwVRkK4",
+    "india-33": "1Z5iBXyULQJY7mASDqLDfChDAMrCD-iJr",
+    "shapes-and-shadows-1": "1j2SmBwDG0lQGxWbHS5aUOm_kIIT-mzJC",
+    "shapes-and-shadows-2": "151A_cAz3oTRQ0nDtApqq4RXF96sgGDI9",
+    "shapes-and-shadows-3": "1tEsQo8oGuJVkHVhVZ-xQ6Cw0HH56NFO0",
+    "shapes-and-shadows-5": "1FA-bqdU_3LQv3pLuTvoLwuhNRlG2EWLL",
+    "shapes-and-shadows-2d5fea86-ac8e-49da-9dfd-942ac03a9052": "1xmvUp7CwE476nI8ZhYan7dJF_y3whQJ4",
+    "shapes-and-shadows-6": "1q73-Uxoceqf642wmAs4Do7YdnAbfs4zq",
+    "shapes-and-shadows-9": "13CDU_PZe0J-_NJRPMoBzndJUI23Kv50D",
+    "shapes-and-shadows-13": "1iA3V3zrtGqSpeMtfMRWrvJD2D89eSKH6",
+    "shapes-and-shadows-7": "1nN1ZmqTzrpDlSa09a1HCvSEhxU7ABIas",
+    "shapes-and-shadows-cbb6c311-c9d3-405c-8a8e-f8c467aa2ae1": "1z40ZSYg-XGm0D3f7xee9-pxvCJd66q2w",
+    "shapes-and-shadows-11": "178zCiCy5GQ8E4N9uET6LYacE-kBWTAsC",
+    "shapes-and-shadows-51824052-9ca6-4468-a25b-ed0fab793e96": "1R1hFjDLhyHzodgTpW8vVAzfyRDyiKHhA",
+    "shapes-and-shadows-14": "1dHxBJKu8IdMGLFYYJI1UK5ylMoA57Cu-",
+    "shapes-and-shadows-94c9ea39-5acc-4118-94e1-591665e77dca": "1n7RJw3jjZJdnYme_MmIH8JC8b3jj5tge",
+    "shapes-and-shadows-bde4b5b5-a277-4723-a4d9-f753cd58eb57": "1zIZQU9kJ4RMuZ6Y9kjzcxRsU1_tyGwBQ",
+    "shapes-and-shadows-12": "1oxJuU_-ycqDDc3yaFyvopIj2sLIbNp_a",
+    "shapes-and-shadows-15": "15yHyFyQVPwoa7AmhB6fN9ERTfNlBBR7a",
+    "shapes-and-shadows-16": "1wWhIrl2gGlpHdDIRuBhN3of69e-nsCBW",
+    "shapes-and-shadows-17": "1xBUwuUguHpQxXF67A3d60TVKshcT168T",
+    "shapes-and-shadows-38e6598e-5ed1-40c6-afe6-eac40745f5cc": "1kchoq1RXJgWreM6UFb--AHzb5YNNcENp",
+    "shapes-and-shadows-c5bafdfc-82f9-4b88-b1f3-e1649144dee6": "1GaAC7ofPU6f5btRBwOh60RwGaC_nB0pB",
+    "protests-1": "1gFTt6pNbD86Bal_XDkbTJjqqzzrnSpRE",
+    "protests-2": "1BmQCsLzYWtRsTi8vLWtJ9jJtANVyZzL4",
+    "protests-3": "1IBPRyx-rMr-Ms-KATqikEop0pwc7fu-D",
+    "protests-12": "1cqiXRfPqh0vnlEyBV3WEqhZBqKsCzXih",
+    "protests-4": "1rTtXOn15UX5_q1UgYp4LV3LrvHrwHzYz",
+    "protests-san-francisco-38": "1LMxFdyVGqspxus4aotKCQc3wfFZe4T4D",
+    "protests-5": "1g7K9KKvqpg9SuMDVvRjm5SPIrUnor_H1",
+    "protests-san-francisco-22": "16A4XZzuaVrhbaqR8Lyj4imRVyyBThgy7",
+    "protests-6": "1SN9iUZ8u4bpy6aGUxWNFR3yI6ERDv3XO",
+    "protests-7": "1o1mcydWBITCIMXVPPbuju76R5-t0iKji",
+    "protests-san-francisco-118": "1FyCezMoRGOsUuTTP6loUL4F9lRObVN0_",
+    "protests-8": "1qHTe0F3VXgk8j1PQsgEmmrMHPVNP5I5Y",
+    "protests-9": "17-6akVs6JQPk6idHbEPeUDSoYGhasN_r",
+    "protests-10": "1NeHXK7tumWF5peamR27r73Ni8kf9hU2X",
+    "protests-13": "1c34lAMM0VqQNh5vsFM7sQZtZJ9AA2GPe",
+    "protests-san-francisco-116": "1xGBNgWcS8kYtMd9q9CMIpVOkdtMPneF3",
+    "protests-17": "1wcw00mrGTZFg2VEapQWw10Eg-kfKyZSD",
+    "protests-14": "1gGwVP6gdvN9pJR025tsLfirUKOob9qzm",
+    "protests-11": "1ZYPTEY8Ui6yLrgh-1Ozlt8lYy4SaanGO",
+    "protests-15": "1Wul8YQJU8zI4WqX6E2xEhV08FutOrDm2",
+    "protests-16": "1aLbiY2fNfiNLNIwu9bfRK9_97gnTxNhd",
+    "protests-18": "1LUgSW_6mMATmU1v6OmF-ww8oQ4IBLntb",
+    "protests-san-francisco-21": "1eEQfprUZpw8Zz-eh_D8_i5xfCTHR8YBQ",
+    "protests-20": "1C_QBG_az5LRB10KkLJrdYw0G8b7NOGIJ",
+    "protests-san-francisco-20": "1TbtK-r04SZYfQr5C2K0OXN0Di0aTOXia",
+    "protests-21": "1KiA5z9JluXWb7yM6Bc-uytkpTSajrzVU",
+    "protests-22": "1RnJlE_fYJCt7DkdeelkP_0Nr3iNH5ljT",
+    "protests-san-francisco-19": "134LcoER8ZzO9AWAvgP286VVfqVNznyvm",
+    "protests-23": "1jqNXBXRtbrGSucZSC8GPNvVkqyFPjiY2",
+    "protests-26": "1blnIbgeFRqIXc0fb-x_P1OCdoK-8ege2",
+    "protests-27": "1frUgQJ-Tu7fXIMJcCjFf_EBFj8dUv7Tl",
+    "protests-28": "11vnv6vQJdw4yh9tToUqSywZqDObbkby1",
+    "protests-san-francisco-117": "19MBhZkK2lPTgV-vid5Q2P_8Dz5Cx2-Ig",
+    "protests-29": "1myvQ2cldcU-nDVzDb1BDhyaIlDPCZpnS",
+    "protests-34": "12sx5FvZys-vQT193jhnSXEavbaHTlkot",
+    "protests-san-francisco-18": "1bXRxrbgkGSo2szESUbJAk17RiGckCAUM",
+    "protests-30": "11MH0zrphXHfFeADu9gzonJVGyaq-_b35",
+    "protests-32": "1QRW2ITiGR2VrzJdb62WjIS-9ZpeUD8YK",
+    "protests-31": "1AuKRT3CiCCsLhB8JCyFlMDABr1pDfar5",
+    "protests-33": "1ho0OYGfdWRPuY3F31b9ihvLXzYg48uvj",
+    "protests-san-francisco-16": "1Gczox_IOCEytRwJpe6o4HpcDLds9r-HI",
+    "protests-san-francisco-17": "1jT4qmcn9Vpmfv_BI_2x90VJKjQxhAu4u",
+    "protests-san-francisco-23": "1Td2Yl1pT-1cIKwY40VSdZgUQMvC3iUxG",
+    "protests-san-francisco-39": "1U_BRzdFf6bfiZw7f-YLGgc9YN8vsNEWb",
+    "commissioned-work-1": "1ajEsl8z-_y9BttQHPyw7ZrNJ3gJ5blbc",
+    "commissioned-work-4": "1OU1mWTcoUC_qQoKDubUYo2OyGZmDq0i3",
+    "commissioned-work-12": "1Cnoi0g-hWN3FOxE1VnB3syrpq9AOyJjY",
+    "commissioned-work-2": "1G9OPhcEZPq8h3H3KrvVfN1x3boxXHslW",
+    "commissioned-work-16": "1aBgevSxYPQaQzZDoQYEiE5Kz3TjkcPU8",
+    "commissioned-work-6": "1s-Tk49jOgM1hcAfkfnaDyj47PLocY3nM",
+    "commissioned-work-10": "14P5gmiYs-5stUA9HVfIcGbqPzlNPBnkA",
+    "commissioned-work-3": "1JKoFQJHLOb8zXPHllMSY9GheKSRb95Rh",
+    "commissioned-work-18": "1Z0ae3-nBNt5qtYbS4ToK8_hBcUHSaKEm",
+    "commissioned-work-15": "1p6zhtBCq6ZE7HFte-VCqy8fdhv_xJIgY",
+    "commissioned-work-5": "1SNjsRneH-O90M8xfu20BrTjx11xcQNfR",
+    "commissioned-work-8": "1_Bq0qA9QvYRf9zo2GTyCYzxnf_CxeUPO",
+    "commissioned-work-13": "11trTFqbr3cL4ZD1iIiBsRKemyNbX6yRN",
+    "commissioned-work-23": "1d1arFAyju8Br9K1Fgg0JVJg15h5cS9yL",
+    "commissioned-work-7": "1fKlx4MqzKWyWE89fjRNBDa-rQ9S6Jvu2",
+    "commissioned-work-17": "1DuimUQFzsZr13CJwt8Ej0NdaMjalRZuZ",
+    "commissioned-work-14": "1XZ2gjpFZYn4daW3jGL4zIQDR8RLmGErV",
+    "commissioned-work-9": "1ZxYpIL_BnmU4fL2a_mD8LfW0W8sHOM8_",
+    "commissioned-work-19": "1AS0Z-gfeZyId_vBhbbte1CfUsYB26ocz",
+    "commissioned-work-22": "1igDK1bSweyikTRQiLsCf9iTtunpCmIgP",
+    "commissioned-work-11": "1cpNcdmo5XMCiLQzCfm7_nA57mGusGO5Q",
+    "commissioned-work-20": "1TcXB2rVslL-i-DUbygdnylXymlwFGrf_",
+    "commissioned-work-ebe87e4d-3890-4eb1-83c3-a8961e6e14bb": "1V1j3_QrbqhHc2gM_PjH978D7f-3DlPI-",
+    "animals-5876cd00-3243-40d2-a9de-8e35a06a3743": "1CJoWHBdOtxdMwm8xTa64y6kAsSTSCdeN",
+    "animals-aaf12059-a700-42f5-9add-621293d59071": "1G6G95D9QQJzXkEn0DUG08Tydt5CA4Y_U",
+    "animals-5fefecef-8440-48c9-ba81-9fae664b8f4f": "1kUXBjysMpbqmSsy15dpBO-jLqdTxyGOI",
+    "animals-7965128a-8e9f-44ff-9fb1-4b9ed48fc62a": "1ei9bVPB2pSMpKwzhKB5ncnbNgCTAFxO5",
+    "animals-f474b692-291c-4d30-9e2a-daf8b0783735": "1gDOhjcD0UFnt07Uiho_s7quWpx0Yhjmi",
+    "animals-2ec68cfe-f5bb-4ec6-9283-6c168576331a": "1nl4QvrQXXBKVmWwpgtYmfCRkRsH9MHQ-",
+    "animals-41fc2ae0-4fcb-4acd-adc5-761fa405f42e": "1aa8o46bUW9MWKjd9BERAI8Ix9TQrDa-U",
+    "animals-31be3d34-00ab-477e-9cfb-2cd8cb097c67": "114UnktPG1TjOen-Z9PKcmgJM1LzNDTKp",
+    "animals-3792d3f8-f324-46ac-93c3-8021358fa334": "10RHyAP0VTSVdb5QVxVYApM9OAYSpeV8G",
+    "animals-a4593883-68a7-4623-b3a4-d77521da01ed": "12NLV3iGTTYyGZsI0aRyqqIrPCi7dJcU_",
+    "animals-296e0301-299f-4bba-bb69-9614dd207ec9": "1FqFqUlBdtMdIZGgMYtKMbVyDpv9lNYBX",
+    "animals-78919519-4cb9-4b7f-9e2f-616207cb733f": "1QNd_m-hv8OtJfSu0TBsmF54mMJBJ1vLO",
+    "animals-454d9041-5394-4262-9d23-6d01924d5532": "14uDDKNLbGb4u7t87alsaBQfgtTJkujLO",
+    "animals-ef91e8d2-fc9f-4318-bbdb-f92318fe5e88": "1nbMTffErtPo706h8_i7GY9_pz7ORH4Vb",
+    "animals-840253df-18c4-46fc-9c5e-8ae984571655": "1zQBJpwXJ7EREIsuvZ7Ok9yxCYlUi8L2K",
+    "animals-9f9a7858-2f6e-4615-bcba-860e66fadcd0": "1MkzWExnrjVg8yUdQhCxKAmEWJDsYZqsc",
+    "animals-37593a04-0ebe-4b77-ab70-8e0fbc03ccbd": "1uOjkWPeqz3AYHmqNpgYKlDwgs0WHIX0k",
+    "animals-34b64cbb-6620-46db-988e-94e136fb98c1": "1MzCjn-fuFlNRMb9fg1_KE9H2BcO8O8jO",
+    "animals-a238b9cb-0631-4cd2-a7fd-c5bd1fd16b00": "1PFVVFnNBCd5Nm-qHNWtiGTGOPLfSVmEk",
+    "animals-5ea3c642-01ee-45ce-9e3b-4b43bacaa0d0": "1CFHq1_rGy56nl2iWvna47EgY9db33n8r",
+    "animals-e200e453-7024-48c1-8d50-0fc4976fb701": "1TmwU1FTlIKOh04rgh9NQDfKlXOFdaE1S",
+    "animals-864670b6-9f57-4346-a4f1-e7e155aed9c9": "1YRUZwn_BSY8s4K7eiOXmK23BIVkxOnEV",
+    "animals-9cd70457-2500-4790-82ca-2db13316bfb1": "1wYd1pIOjGVFeWsaDIHp_MGLg5sNaiBXc",
+    "animals-8488f9c7-d467-4b00-9f9a-6c9f939725c4": "1oECud0cEcZgI5kpYk4ONR9jS9Yj1-9G6",
+    "animals-f261acfb-668f-43d8-8fcb-2a98bccbc1d5": "1rAzs3v7aUQvFDeUDXvHmRUhfoJdeJl0m",
+    "animals-452d435d-3750-4459-ae6c-77c62a0dc6ac": "1xrGJYnOjIp6UcMhpvb7HQdRjkS9PpIRm",
+    "animals-922db87c-eb0b-4fa3-9e70-1461d23de938": "1o6dkEYAscYAuZmm9aUEgASQ2Q1F6LMhb",
+    "animals-13a6e73a-29d6-4da4-9b5b-c38a813e45e1": "1eOmW5rVVM53T_kJr2Xc5M8OdTFmc4gfL",
+    "animals-3a1d0971-8ff2-401b-91a7-b04c3e2b16e6": "1GcQ0m-zV4PCLmnNrUvBkIYcKJ6uP204w",
+    "animals-864fab41-6ec7-42d7-97ae-9f37ffc3f186": "1oOrxrCKSszCBI_Koj1msSkcg8zKxf3kU",
+    "animals-c63ecc14-d33a-4abd-8d4e-b145ae245ce4": "1UI8hzM_fYjVh5udHZsEhcgYFtrnF2llr",
+    "animals-5ee88bba-025e-4296-8017-56a90dad1150": "1AKuRxc7bj20sdwOFOxmArQUVBqCnlj7N",
+    "animals-2788daf9-5a05-416f-a445-3f27705cac1f": "105Dox6Ci2g9BgifrdyG2YRwjTKDLDk_0",
+    "animals-1a73050c-7714-4624-bb3b-ed1dcae4ffe6": "1m3ScvlK5GvhWc-FLAaUj8_RUR7stV-wM",
+    "animals-8149003b-f0e6-4f5b-8f3d-47ebd9acfa83": "16I5ED8rI_cSJl7hS71DRXHQAZVsI4A0W",
+    "animals-7f3f0363-6ccf-4ae6-a130-0927d590287d": "1VCnbjpAkOznv7WE-kc6_I2TUa8TO3O-R"
+  },
+  "verificationDetails": {
+    "the-natural-world-2": {
+      "publicId": "2_gaxjez",
+      "localPath": "The Natural World/jpgIMG_8054.jpg",
+      "drivePath": "The Natural World/jpgIMG_8054.jpg",
+      "matchDistance": 1
+    },
+    "the-natural-world-4": {
+      "publicId": "4_auboh4",
+      "localPath": "The Natural World/IMG_9417 copy.jpg",
+      "drivePath": "The Natural World/IMG_9417 copy.jpg",
+      "matchDistance": 1
+    },
+    "the-natural-world-6": {
+      "publicId": "6_mwivsz",
+      "localPath": "The Natural World/P1054959.JPG",
+      "drivePath": "The Natural World/P1054959.JPG",
+      "matchDistance": 3
+    },
+    "the-natural-world-8159a1be-ec8b-417e-926e-1fd3de25498e": {
+      "publicId": "portfolio-admin/the-natural-world/2c950309-5f83-47cc-bfe2-c128a62bacd9",
+      "localPath": "The Natural World/P1071220.JPG",
+      "drivePath": "The Natural World/P1071220.JPG",
+      "matchDistance": 1
+    },
+    "the-natural-world-10": {
+      "publicId": "10_dbkilq",
+      "localPath": "The Natural World/P1043267 copy.JPG",
+      "drivePath": "The Natural World/P1043267 copy.JPG",
+      "matchDistance": 9
+    },
+    "the-natural-world-1": {
+      "publicId": "1_vnpnhf",
+      "localPath": "The Natural World/IMG_2404 copy.JPG",
+      "drivePath": "The Natural World/IMG_2404 copy.JPG",
+      "matchDistance": 13
+    },
+    "the-natural-world-8": {
+      "publicId": "8_ongbmt",
+      "localPath": "The Natural World/P1036451.JPG",
+      "drivePath": "The Natural World/P1036451.JPG",
+      "matchDistance": 7
+    },
+    "the-natural-world-11": {
+      "publicId": "11_gaovai",
+      "localPath": "The Natural World/P1043477 copy.JPG",
+      "drivePath": "The Natural World/P1043477 copy.JPG",
+      "matchDistance": 4
+    },
+    "the-natural-world-21": {
+      "publicId": "21_hcnksz",
+      "localPath": "The Natural World/P1057399 copy.JPG",
+      "drivePath": "The Natural World/P1057399 copy.JPG",
+      "matchDistance": 12
+    },
+    "the-natural-world-12": {
+      "publicId": "12_txfrr3",
+      "localPath": "The Natural World/P1053803 copy.JPG",
+      "drivePath": "The Natural World/P1053803 copy.JPG",
+      "matchDistance": 2
+    },
+    "the-natural-world-c8aa594f-c479-48e3-9592-0f8e0fcbb27d": {
+      "publicId": "portfolio-admin/the-natural-world/ff98471f-4f8e-46c6-9fd6-f5aa3e33aa7e",
+      "localPath": "The Natural World/P1055152_3.JPG",
+      "drivePath": "The Natural World/P1055152_3.JPG",
+      "matchDistance": 5
+    },
+    "the-natural-world-14": {
+      "publicId": "14_wxnggz",
+      "localPath": "The Natural World/P1054405 copy.JPG",
+      "drivePath": "The Natural World/P1054405 copy.JPG",
+      "matchDistance": 1
+    },
+    "the-natural-world-15": {
+      "publicId": "15_ebnk6a",
+      "localPath": "The Natural World/IMG_9707 copy.jpg",
+      "drivePath": "The Natural World/IMG_9707 copy.jpg",
+      "matchDistance": 0
+    },
+    "the-natural-world-7": {
+      "publicId": "7_gu4xgl",
+      "localPath": "The Natural World/P1038431 copy.JPG",
+      "drivePath": "The Natural World/P1038431 copy.JPG",
+      "matchDistance": 4
+    },
+    "the-natural-world-ddff9075-dabd-4b24-aa28-895da96ed76f": {
+      "publicId": "portfolio-admin/the-natural-world/4303d4bc-869e-4b9f-b52b-455aa8e283bb",
+      "localPath": "The Natural World/P1092078.JPG",
+      "drivePath": "The Natural World/P1092078.JPG",
+      "matchDistance": 2
+    },
+    "the-natural-world-18": {
+      "publicId": "18_nmue2y",
+      "localPath": "The Natural World/P1054309_1 copy.JPG",
+      "drivePath": "The Natural World/P1054309_1 copy.JPG",
+      "matchDistance": 8
+    },
+    "the-natural-world-eb395539-71fd-4083-adeb-75055ecd5f14": {
+      "publicId": "portfolio-admin/the-natural-world/d4b64e93-35df-4b85-adfe-e2aa8002c9a7",
+      "localPath": "The Natural World/P1103091.JPG",
+      "drivePath": "The Natural World/P1103091.JPG",
+      "matchDistance": 1
+    },
+    "the-natural-world-16": {
+      "publicId": "16_y4smm6",
+      "localPath": "The Natural World/IMG_9944 copy.jpg",
+      "drivePath": "The Natural World/IMG_9944 copy.jpg",
+      "matchDistance": 1
+    },
+    "the-natural-world-8fea1d6a-3033-4ac7-85e9-2cf7cea085b0": {
+      "publicId": "portfolio-admin/the-natural-world/1f486c86-c341-4612-bed3-64bf1ecc30fe",
+      "localPath": "The Natural World/P1092546.JPG",
+      "drivePath": "The Natural World/P1092546.JPG",
+      "matchDistance": 6
+    },
+    "the-natural-world-084d2c60-c3d2-41d6-86b5-bdb68b5e3a40": {
+      "publicId": "portfolio-admin/the-natural-world/aab24ee1-43b3-4e71-aa8d-dcab569c500f",
+      "localPath": "The Natural World/P1119127 copy.JPG",
+      "drivePath": "The Natural World/P1119127 copy.JPG",
+      "matchDistance": 2
+    },
+    "the-natural-world-0389b96e-d9ed-408d-abf7-c81ad60b9f75": {
+      "publicId": "portfolio-admin/the-natural-world/ee6f6799-a395-4062-897e-4b77b5e6fc4f",
+      "localPath": "The Natural World/P1102945.JPG",
+      "drivePath": "The Natural World/P1102945.JPG",
+      "matchDistance": 0
+    },
+    "the-natural-world-5dfec68d-69db-4339-acaa-1ec73f141075": {
+      "publicId": "portfolio-admin/the-natural-world/0b331d2f-a337-43fd-9543-0205ff719516",
+      "localPath": "The Natural World/P1119248_1 copy.JPG",
+      "drivePath": "The Natural World/P1119248_1 copy.JPG",
+      "matchDistance": 0
+    },
+    "the-natural-world-7958f68a-43a1-47a9-85b3-1e40478e65dc": {
+      "publicId": "portfolio-admin/the-natural-world/53f20017-f5f2-4c42-af7c-493e9bfd606f",
+      "localPath": "The Natural World/P1073699-Enhanced-NR.JPG",
+      "drivePath": "The Natural World/P1073699-Enhanced-NR.JPG",
+      "matchDistance": 2
+    },
+    "the-natural-world-19": {
+      "publicId": "19_qyy4re",
+      "localPath": "The Natural World/P1055381.JPG",
+      "drivePath": "The Natural World/P1055381.JPG",
+      "matchDistance": 3
+    },
+    "the-natural-world-25": {
+      "publicId": "25_ywmvg4",
+      "localPath": "The Natural World/P1071960.JPG",
+      "drivePath": "The Natural World/P1071960.JPG",
+      "matchDistance": 5
+    },
+    "the-natural-world-29": {
+      "publicId": "29_q9cn74",
+      "localPath": "The Natural World/P1083750.JPG",
+      "drivePath": "The Natural World/P1083750.JPG",
+      "matchDistance": 8
+    },
+    "the-natural-world-32": {
+      "publicId": "32_yzhcp9",
+      "localPath": "The Natural World/P1086442.JPG",
+      "drivePath": "The Natural World/P1086442.JPG",
+      "matchDistance": 3
+    },
+    "the-natural-world-d666ea7d-9b96-45fe-bca3-08a90344fd09": {
+      "publicId": "portfolio-admin/the-natural-world/830f7be0-1be7-41a5-b63d-f4c2bc19456e",
+      "localPath": "The Natural World/P1071192_1.JPG",
+      "drivePath": "The Natural World/P1071192_1.JPG",
+      "matchDistance": 6
+    },
+    "the-natural-world-7dae8d35-c941-4c18-a05d-520b687cbb3a": {
+      "publicId": "portfolio-admin/the-natural-world/d7b118a0-5bc3-4338-b0d4-8fc3ff108f97",
+      "localPath": "The Natural World/P1103398.JPG",
+      "drivePath": "The Natural World/P1103398.JPG",
+      "matchDistance": 3
+    },
+    "the-natural-world-aa7b6f80-ac33-49f9-bd94-49a2a2d49d38": {
+      "publicId": "portfolio-admin/the-natural-world/4d4540f1-dc64-4389-abed-c6a506085c6c",
+      "localPath": "The Natural World/P1087059.JPG",
+      "drivePath": "The Natural World/P1087059.JPG",
+      "matchDistance": 2
+    },
+    "the-natural-world-4ab1a8e2-d8ef-44a0-9aef-b4a3a7ba68a5": {
+      "publicId": "portfolio-admin/the-natural-world/8cd102e5-5c40-4eea-945c-7a3cab8f7626",
+      "localPath": "The Natural World/P1055082_2.JPG",
+      "drivePath": "The Natural World/P1055082_2.JPG",
+      "matchDistance": 2
+    },
+    "the-natural-world-0e65e18a-3c10-493d-89fc-3683e378b939": {
+      "publicId": "portfolio-admin/the-natural-world/fba0b583-032f-4b8c-93f2-ac1ea98c9886",
+      "localPath": "The Natural World/P1107510 copy.JPG",
+      "drivePath": "The Natural World/P1107510 copy.JPG",
+      "matchDistance": 1
+    },
+    "the-natural-world-23": {
+      "publicId": "23_avb5au",
+      "localPath": "The Natural World/IMG_2410 copy.JPG",
+      "drivePath": "The Natural World/IMG_2410 copy.JPG",
+      "matchDistance": 2
+    },
+    "the-natural-world-460f6ac5-21d4-4114-972a-54595bb05081": {
+      "publicId": "portfolio-admin/the-natural-world/ca6002dc-1fab-4bb0-98b8-fe9e6674d162",
+      "localPath": "The Natural World/P1105524.JPG",
+      "drivePath": "The Natural World/P1105524.JPG",
+      "matchDistance": 2
+    },
+    "the-natural-world-61a73130-d2ea-4ed1-acb2-634ce9ebcd66": {
+      "publicId": "portfolio-admin/the-natural-world/51f3da7b-bef8-4087-8c08-7ab6ef85e448",
+      "localPath": "The Natural World/P1107382.JPG",
+      "drivePath": "The Natural World/P1107382.JPG",
+      "matchDistance": 2
+    },
+    "the-natural-world-a350c9a9-a6ec-479e-a725-9dee7e7e890a": {
+      "publicId": "portfolio-admin/the-natural-world/f9afc10c-dc43-4afe-bf2a-a86681073abb",
+      "localPath": "The Natural World/P1106154 copy.JPG",
+      "drivePath": "The Natural World/P1106154 copy.JPG",
+      "matchDistance": 1
+    },
+    "the-natural-world-26": {
+      "publicId": "26_vqyhbg",
+      "localPath": "The Natural World/P1072814.JPG",
+      "drivePath": "The Natural World/P1072814.JPG",
+      "matchDistance": 4
+    },
+    "the-natural-world-bc775c20-e346-4e46-b1fe-ed32992b9a9a": {
+      "publicId": "portfolio-admin/the-natural-world/61a8ceac-a92c-4c09-9c55-3e150264d2c1",
+      "localPath": "The Natural World/P1087575.JPG",
+      "drivePath": "The Natural World/P1087575.JPG",
+      "matchDistance": 3
+    },
+    "california-1": {
+      "publicId": "place/california/1",
+      "localPath": "Place/California/IMG_0742 copy.jpg",
+      "drivePath": "Place/California/IMG_0742 copy.jpg",
+      "matchDistance": 13
+    },
+    "california-3": {
+      "publicId": "place/california/3",
+      "localPath": "Place/California/P1042003 copy.JPG",
+      "drivePath": "Place/California/P1042003 copy.JPG",
+      "matchDistance": 2
+    },
+    "california-4": {
+      "publicId": "place/california/4",
+      "localPath": "Place/California/P1042029 copy.JPG",
+      "drivePath": "Place/California/P1042029 copy.JPG",
+      "matchDistance": 6
+    },
+    "california-8": {
+      "publicId": "place/california/8",
+      "localPath": "Place/California/P1043584 copy.JPG",
+      "drivePath": "Place/California/P1043584 copy.JPG",
+      "matchDistance": 10
+    },
+    "california-5": {
+      "publicId": "place/california/5",
+      "localPath": "Place/California/P1042918_1 copy.JPG",
+      "drivePath": "Place/California/P1042918_1 copy.JPG",
+      "matchDistance": 5
+    },
+    "california-27": {
+      "publicId": "place/california/27",
+      "localPath": "Place/California/IMG_8968 copy.jpg",
+      "drivePath": "Place/California/IMG_8968 copy.jpg",
+      "matchDistance": 10
+    },
+    "california-7": {
+      "publicId": "place/california/7",
+      "localPath": "Place/California/P1043567 copy.JPG",
+      "drivePath": "Place/California/P1043567 copy.JPG",
+      "matchDistance": 3
+    },
+    "california-12": {
+      "publicId": "place/california/12",
+      "localPath": "Place/California/IMG_1590 copy.JPG",
+      "drivePath": "Place/California/IMG_1590 copy.JPG",
+      "matchDistance": 1
+    },
+    "california-11": {
+      "publicId": "place/california/11",
+      "localPath": "Place/California/P1055581 copy.JPG",
+      "drivePath": "Place/California/P1055581 copy.JPG",
+      "matchDistance": 8
+    },
+    "california-15": {
+      "publicId": "place/california/15",
+      "localPath": "Place/California/P1055931 copy.JPG",
+      "drivePath": "Place/California/P1055931 copy.JPG",
+      "matchDistance": 2
+    },
+    "california-30": {
+      "publicId": "place/california/30",
+      "localPath": "Place/California/IMG_9499 copy.jpg",
+      "drivePath": "Place/California/IMG_9499 copy.jpg",
+      "matchDistance": 10
+    },
+    "california-16": {
+      "publicId": "place/california/16",
+      "localPath": "Place/California/P1055955 copy.JPG",
+      "drivePath": "Place/California/P1055955 copy.JPG",
+      "matchDistance": 4
+    },
+    "california-17": {
+      "publicId": "place/california/17",
+      "localPath": "Place/California/P1056203 copy.JPG",
+      "drivePath": "Place/California/P1056203 copy.JPG",
+      "matchDistance": 10
+    },
+    "california-18": {
+      "publicId": "place/california/18",
+      "localPath": "Place/California/P1056215 copy.JPG",
+      "drivePath": "Place/California/P1056215 copy.JPG",
+      "matchDistance": 3
+    },
+    "california-19": {
+      "publicId": "place/california/19",
+      "localPath": "Place/California/P1056292 copy.JPG",
+      "drivePath": "Place/California/P1056292 copy.JPG",
+      "matchDistance": 1
+    },
+    "california-29": {
+      "publicId": "place/california/29",
+      "localPath": "Place/California/IMG_9437-2 copy.jpg",
+      "drivePath": "Place/California/IMG_9437-2 copy.jpg",
+      "matchDistance": 6
+    },
+    "california-20": {
+      "publicId": "place/california/20",
+      "localPath": "Place/California/P1058395 copy.JPG",
+      "drivePath": "Place/California/P1058395 copy.JPG",
+      "matchDistance": 3
+    },
+    "california-24": {
+      "publicId": "place/california/24",
+      "localPath": "Place/California/P1072958.JPG",
+      "drivePath": "Place/California/P1072958.JPG",
+      "matchDistance": 1
+    },
+    "california-28": {
+      "publicId": "place/california/28",
+      "localPath": "Place/California/IMG_9278-2 copy.jpg",
+      "drivePath": "Place/California/IMG_9278-2 copy.jpg",
+      "matchDistance": 1
+    },
+    "california-25": {
+      "publicId": "place/california/25",
+      "localPath": "Place/California/P1073333.JPG",
+      "drivePath": "Place/California/P1073333.JPG",
+      "matchDistance": 1
+    },
+    "california-26": {
+      "publicId": "place/california/26",
+      "localPath": "Place/California/jpgIMG_8062.jpg",
+      "drivePath": "Place/California/jpgIMG_8062.jpg",
+      "matchDistance": 5
+    },
+    "california-31": {
+      "publicId": "place/california/31",
+      "localPath": "Place/California/IMG_9514 copy.jpg",
+      "drivePath": "Place/California/IMG_9514 copy.jpg",
+      "matchDistance": 14
+    },
+    "california-32": {
+      "publicId": "place/california/32",
+      "localPath": "Place/California/IMG_9923 copy.jpg",
+      "drivePath": "Place/California/IMG_9923 copy.jpg",
+      "matchDistance": 2
+    },
+    "san-francisco-42": {
+      "publicId": "place/california/san-francisco/42",
+      "localPath": "Place/California/San Francisco/P1086313.JPG",
+      "drivePath": "Place/California/San Francisco/P1086313.JPG",
+      "matchDistance": 5
+    },
+    "san-francisco-25": {
+      "publicId": "place/california/san-francisco/25",
+      "localPath": "Place/California/San Francisco/P1084866.JPG",
+      "drivePath": "Place/California/San Francisco/P1084866.JPG",
+      "matchDistance": 4
+    },
+    "san-francisco-27": {
+      "publicId": "place/california/san-francisco/27",
+      "localPath": "Place/California/San Francisco/P1084972_1.JPG",
+      "drivePath": "Place/California/San Francisco/P1084972_1.JPG",
+      "matchDistance": 4
+    },
+    "san-francisco-28": {
+      "publicId": "place/california/san-francisco/28",
+      "localPath": "Place/California/San Francisco/P1084976.JPG",
+      "drivePath": "Place/California/San Francisco/P1084976.JPG",
+      "matchDistance": 2
+    },
+    "san-francisco-43": {
+      "publicId": "place/california/san-francisco/43",
+      "localPath": "Place/California/San Francisco/P1086615.JPG",
+      "drivePath": "Place/California/San Francisco/P1086615.JPG",
+      "matchDistance": 2
+    },
+    "san-francisco-14": {
+      "publicId": "place/california/san-francisco/14",
+      "localPath": "Place/California/San Francisco/P1084576.JPG",
+      "drivePath": "Place/California/San Francisco/P1084576.JPG",
+      "matchDistance": 4
+    },
+    "san-francisco-44": {
+      "publicId": "place/california/san-francisco/44",
+      "localPath": "Place/California/San Francisco/P1086656.JPG",
+      "drivePath": "Place/California/San Francisco/P1086656.JPG",
+      "matchDistance": 0
+    },
+    "san-francisco-46": {
+      "publicId": "place/california/san-francisco/46",
+      "localPath": "Place/California/San Francisco/IMG_9131 copy.jpg",
+      "drivePath": "Place/California/San Francisco/IMG_9131 copy.jpg",
+      "matchDistance": 6
+    },
+    "san-francisco-47": {
+      "publicId": "place/california/san-francisco/47",
+      "localPath": "Place/California/San Francisco/P1086788_2.JPG",
+      "drivePath": "Place/California/San Francisco/P1086788_2.JPG",
+      "matchDistance": 1
+    },
+    "san-francisco-55": {
+      "publicId": "place/california/san-francisco/55",
+      "localPath": "Place/California/San Francisco/P1038311 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1038311 copy.JPG",
+      "matchDistance": 5
+    },
+    "san-francisco-56": {
+      "publicId": "place/california/san-francisco/56",
+      "localPath": "Place/California/San Francisco/P1038377 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1038377 copy.JPG",
+      "matchDistance": 1
+    },
+    "san-francisco-83": {
+      "publicId": "place/california/san-francisco/83",
+      "localPath": "Place/California/San Francisco/P1043503 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1043503 copy.JPG",
+      "matchDistance": 6
+    },
+    "san-francisco-63": {
+      "publicId": "place/california/san-francisco/63",
+      "localPath": "Place/California/San Francisco/P1038835 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1038835 copy.JPG",
+      "matchDistance": 0
+    },
+    "san-francisco-67": {
+      "publicId": "place/california/san-francisco/67",
+      "localPath": "Place/California/San Francisco/P1039372 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1039372 copy.JPG",
+      "matchDistance": 4
+    },
+    "san-francisco-62": {
+      "publicId": "place/california/san-francisco/62",
+      "localPath": "Place/California/San Francisco/P1038754 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1038754 copy.JPG",
+      "matchDistance": 12
+    },
+    "san-francisco-68": {
+      "publicId": "place/california/san-francisco/68",
+      "localPath": "Place/California/San Francisco/P1040903 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1040903 copy.JPG",
+      "matchDistance": 1
+    },
+    "san-francisco-73": {
+      "publicId": "place/california/san-francisco/73",
+      "localPath": "Place/California/San Francisco/P1041544 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1041544 copy.JPG",
+      "matchDistance": 3
+    },
+    "san-francisco-69": {
+      "publicId": "place/california/san-francisco/69",
+      "localPath": "Place/California/San Francisco/P1041193 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1041193 copy.JPG",
+      "matchDistance": 4
+    },
+    "san-francisco-74": {
+      "publicId": "place/california/san-francisco/74",
+      "localPath": "Place/California/San Francisco/P1042369 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1042369 copy.JPG",
+      "matchDistance": 1
+    },
+    "san-francisco-79": {
+      "publicId": "place/california/san-francisco/79",
+      "localPath": "Place/California/San Francisco/P1043134 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1043134 copy.JPG",
+      "matchDistance": 5
+    },
+    "san-francisco-78": {
+      "publicId": "place/california/san-francisco/78",
+      "localPath": "Place/California/San Francisco/P1042835 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1042835 copy.JPG",
+      "matchDistance": 4
+    },
+    "san-francisco-91": {
+      "publicId": "place/california/san-francisco/91",
+      "localPath": "Place/California/San Francisco/P1056588 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1056588 copy.JPG",
+      "matchDistance": 1
+    },
+    "san-francisco-114": {
+      "publicId": "place/california/san-francisco/114",
+      "localPath": "Place/California/San Francisco/P1072520.JPG",
+      "drivePath": "Place/California/San Francisco/P1072520.JPG",
+      "matchDistance": 2
+    },
+    "san-francisco-86": {
+      "publicId": "place/california/san-francisco/86",
+      "localPath": "Place/California/San Francisco/P1055557_1 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1055557_1 copy.JPG",
+      "matchDistance": 16
+    },
+    "san-francisco-77": {
+      "publicId": "place/california/san-francisco/77",
+      "localPath": "Place/California/San Francisco/P1042626 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1042626 copy.JPG",
+      "matchDistance": 1
+    },
+    "san-francisco-93": {
+      "publicId": "place/california/san-francisco/93",
+      "localPath": "Place/California/San Francisco/P1056624 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1056624 copy.JPG",
+      "matchDistance": 3
+    },
+    "san-francisco-70": {
+      "publicId": "place/california/san-francisco/70",
+      "localPath": "Place/California/San Francisco/P1041214 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1041214 copy.JPG",
+      "matchDistance": 4
+    },
+    "san-francisco-80": {
+      "publicId": "place/california/san-francisco/80",
+      "localPath": "Place/California/San Francisco/P1043314 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1043314 copy.JPG",
+      "matchDistance": 10
+    },
+    "san-francisco-107": {
+      "publicId": "place/california/san-francisco/107",
+      "localPath": "Place/California/San Francisco/P1058278 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1058278 copy.JPG",
+      "matchDistance": 2
+    },
+    "san-francisco-121": {
+      "publicId": "place/california/san-francisco/121",
+      "localPath": "Place/California/San Francisco/P1083976_1.JPG",
+      "drivePath": "Place/California/San Francisco/P1083976_1.JPG",
+      "matchDistance": 2
+    },
+    "san-francisco-125": {
+      "publicId": "place/california/san-francisco/125",
+      "localPath": "Place/California/San Francisco/P1084027.JPG",
+      "drivePath": "Place/California/San Francisco/P1084027.JPG",
+      "matchDistance": 8
+    },
+    "san-francisco-100": {
+      "publicId": "place/california/san-francisco/100",
+      "localPath": "Place/California/San Francisco/P1057271_1 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1057271_1 copy.JPG",
+      "matchDistance": 4
+    },
+    "san-francisco-98": {
+      "publicId": "place/california/san-francisco/98",
+      "localPath": "Place/California/San Francisco/IMG_3561 copy.JPG",
+      "drivePath": "Place/California/San Francisco/IMG_3561 copy.JPG",
+      "matchDistance": 14
+    },
+    "san-francisco-108": {
+      "publicId": "place/california/san-francisco/108",
+      "localPath": "Place/California/San Francisco/P1058296 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1058296 copy.JPG",
+      "matchDistance": 0
+    },
+    "san-francisco-124": {
+      "publicId": "place/california/san-francisco/124",
+      "localPath": "Place/California/San Francisco/P1083999.JPG",
+      "drivePath": "Place/California/San Francisco/P1083999.JPG",
+      "matchDistance": 5
+    },
+    "san-francisco-110": {
+      "publicId": "place/california/san-francisco/110",
+      "localPath": "Place/California/San Francisco/P1058328_1 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1058328_1 copy.JPG",
+      "matchDistance": 1
+    },
+    "san-francisco-111": {
+      "publicId": "place/california/san-francisco/111",
+      "localPath": "Place/California/San Francisco/P1072335.JPG",
+      "drivePath": "Place/California/San Francisco/P1072335.JPG",
+      "matchDistance": 2
+    },
+    "san-francisco-112": {
+      "publicId": "place/california/san-francisco/112",
+      "localPath": "Place/California/San Francisco/P1072482.JPG",
+      "drivePath": "Place/California/San Francisco/P1072482.JPG",
+      "matchDistance": 1
+    },
+    "san-francisco-85": {
+      "publicId": "place/california/san-francisco/85",
+      "localPath": "Place/California/San Francisco/P1043663 copy.JPG",
+      "drivePath": "Place/California/San Francisco/P1043663 copy.JPG",
+      "matchDistance": 13
+    },
+    "san-francisco-131": {
+      "publicId": "place/california/san-francisco/131",
+      "localPath": "Place/California/San Francisco/IMG_3911 copy.JPG",
+      "drivePath": "Place/California/San Francisco/IMG_3911 copy.JPG",
+      "matchDistance": 8
+    },
+    "san-francisco-115": {
+      "publicId": "place/california/san-francisco/115",
+      "localPath": "Place/California/San Francisco/P1072526_1.JPG",
+      "drivePath": "Place/California/San Francisco/P1072526_1.JPG",
+      "matchDistance": 2
+    },
+    "san-francisco-128": {
+      "publicId": "place/california/san-francisco/128",
+      "localPath": "Place/California/San Francisco/P1084044.JPG",
+      "drivePath": "Place/California/San Francisco/P1084044.JPG",
+      "matchDistance": 5
+    },
+    "san-francisco-139": {
+      "publicId": "place/california/san-francisco/139",
+      "localPath": "Place/California/San Francisco/P1084237.JPG",
+      "drivePath": "Place/California/San Francisco/P1084237.JPG",
+      "matchDistance": 2
+    },
+    "san-francisco-109": {
+      "publicId": "place/california/san-francisco/109",
+      "localPath": "Place/California/San Francisco/IMG_3815 copy.JPG",
+      "drivePath": "Place/California/San Francisco/IMG_3815 copy.JPG",
+      "matchDistance": 7
+    },
+    "san-francisco-135": {
+      "publicId": "place/california/san-francisco/135",
+      "localPath": "Place/California/San Francisco/P1084064.JPG",
+      "drivePath": "Place/California/San Francisco/P1084064.JPG",
+      "matchDistance": 2
+    },
+    "india-1": {
+      "publicId": "place/india/1",
+      "localPath": "Place/India/IMG_5452_1 copy.JPG",
+      "drivePath": "Place/India/IMG_5452_1 copy.JPG",
+      "matchDistance": 11
+    },
+    "india-7": {
+      "publicId": "place/india/7",
+      "localPath": "Place/India/P1071474.JPG",
+      "drivePath": "Place/India/P1071474.JPG",
+      "matchDistance": 1
+    },
+    "india-29": {
+      "publicId": "place/india/29",
+      "localPath": "Place/India/P1072052.JPG",
+      "drivePath": "Place/India/P1072052.JPG",
+      "matchDistance": 5
+    },
+    "india-5": {
+      "publicId": "place/india/5",
+      "localPath": "Place/India/P1071322.JPG",
+      "drivePath": "Place/India/P1071322.JPG",
+      "matchDistance": 3
+    },
+    "india-4": {
+      "publicId": "place/india/4",
+      "localPath": "Place/India/IMG_5532 copy.JPG",
+      "drivePath": "Place/India/IMG_5532 copy.JPG",
+      "matchDistance": 3
+    },
+    "india-32": {
+      "publicId": "place/india/32",
+      "localPath": "Place/India/P1072114.JPG",
+      "drivePath": "Place/India/P1072114.JPG",
+      "matchDistance": 29
+    },
+    "india-8": {
+      "publicId": "place/india/8",
+      "localPath": "Place/India/P1071476.JPG",
+      "drivePath": "Place/India/P1071476.JPG",
+      "matchDistance": 2
+    },
+    "india-30": {
+      "publicId": "place/india/30",
+      "localPath": "Place/India/P1072053.JPG",
+      "drivePath": "Place/India/P1072053.JPG",
+      "matchDistance": 5
+    },
+    "india-2": {
+      "publicId": "place/india/2",
+      "localPath": "Place/India/IMG_5459 copy.JPG",
+      "drivePath": "Place/India/IMG_5459 copy.JPG",
+      "matchDistance": 4
+    },
+    "india-12": {
+      "publicId": "place/india/12",
+      "localPath": "Place/India/P1071616.JPG",
+      "drivePath": "Place/India/P1071616.JPG",
+      "matchDistance": 5
+    },
+    "india-24": {
+      "publicId": "place/india/24",
+      "localPath": "Place/India/P1071962.JPG",
+      "drivePath": "Place/India/P1071962.JPG",
+      "matchDistance": 1
+    },
+    "india-34": {
+      "publicId": "place/india/34",
+      "localPath": "Place/India/P1072187_1.JPG",
+      "drivePath": "Place/India/P1072187_1.JPG",
+      "matchDistance": 9
+    },
+    "india-6": {
+      "publicId": "place/india/6",
+      "localPath": "Place/India/P1071365.JPG",
+      "drivePath": "Place/India/P1071365.JPG",
+      "matchDistance": 3
+    },
+    "india-14": {
+      "publicId": "place/india/14",
+      "localPath": "Place/India/P1071631.JPG",
+      "drivePath": "Place/India/P1071631.JPG",
+      "matchDistance": 3
+    },
+    "india-3": {
+      "publicId": "place/india/3",
+      "localPath": "Place/India/IMG_5487_1 copy.JPG",
+      "drivePath": "Place/India/IMG_5487_1 copy.JPG",
+      "matchDistance": 4
+    },
+    "india-33": {
+      "publicId": "place/india/33",
+      "localPath": "Place/India/P1072178.JPG",
+      "drivePath": "Place/India/P1072178.JPG",
+      "matchDistance": 12
+    },
+    "shapes-and-shadows-1": {
+      "publicId": "shapes-and-shadows/1",
+      "localPath": "abstract/IMG_2901 copy.JPG",
+      "drivePath": "abstract/IMG_2901 copy.JPG",
+      "matchDistance": 7
+    },
+    "shapes-and-shadows-2": {
+      "publicId": "shapes-and-shadows/2",
+      "localPath": "abstract/P1038079 copy.JPG",
+      "drivePath": "abstract/P1038079 copy.JPG",
+      "matchDistance": 6
+    },
+    "shapes-and-shadows-3": {
+      "publicId": "shapes-and-shadows/3",
+      "localPath": "abstract/P1039146 copy.JPG",
+      "drivePath": "abstract/P1039146 copy.JPG",
+      "matchDistance": 0
+    },
+    "shapes-and-shadows-5": {
+      "publicId": "shapes-and-shadows/5",
+      "localPath": "abstract/P1039650.JPG",
+      "drivePath": "abstract/P1039650.JPG",
+      "matchDistance": 4
+    },
+    "shapes-and-shadows-2d5fea86-ac8e-49da-9dfd-942ac03a9052": {
+      "publicId": "portfolio-admin/shapes-and-shadows/a63f28df-3b1b-4322-a900-c1aebd8e5563",
+      "localPath": "abstract/P1107723-Enhanced-NR copy.JPG",
+      "drivePath": "abstract/P1107723-Enhanced-NR copy.JPG",
+      "matchDistance": 1
+    },
+    "shapes-and-shadows-6": {
+      "publicId": "shapes-and-shadows/6",
+      "localPath": "abstract/remove/P1039874.JPG",
+      "drivePath": "abstract/remove/P1039874.JPG",
+      "matchDistance": 0
+    },
+    "shapes-and-shadows-9": {
+      "publicId": "shapes-and-shadows/9",
+      "localPath": "abstract/P1056173.JPG",
+      "drivePath": "abstract/P1056173.JPG",
+      "matchDistance": 2
+    },
+    "shapes-and-shadows-13": {
+      "publicId": "shapes-and-shadows/13",
+      "localPath": "abstract/P1072142.JPG",
+      "drivePath": "abstract/P1072142.JPG",
+      "matchDistance": 7
+    },
+    "shapes-and-shadows-7": {
+      "publicId": "shapes-and-shadows/7",
+      "localPath": "abstract/P1055962_2 copy.JPG",
+      "drivePath": "abstract/P1055962_2 copy.JPG",
+      "matchDistance": 0
+    },
+    "shapes-and-shadows-cbb6c311-c9d3-405c-8a8e-f8c467aa2ae1": {
+      "publicId": "portfolio-admin/shapes-and-shadows/8b2ab9b0-9cad-4bd8-8f78-bb17bccec911",
+      "localPath": "abstract/P1105883 copy.JPG",
+      "drivePath": "abstract/P1105883 copy.JPG",
+      "matchDistance": 1
+    },
+    "shapes-and-shadows-11": {
+      "publicId": "shapes-and-shadows/11",
+      "localPath": "abstract/P1056271 copy.JPG",
+      "drivePath": "abstract/P1056271 copy.JPG",
+      "matchDistance": 1
+    },
+    "shapes-and-shadows-51824052-9ca6-4468-a25b-ed0fab793e96": {
+      "publicId": "portfolio-admin/shapes-and-shadows/9bd6fe76-17b2-4f1e-bb52-a40ae1fa9a06",
+      "localPath": "abstract/P1107270.JPG",
+      "drivePath": "abstract/P1107270.JPG",
+      "matchDistance": 3
+    },
+    "shapes-and-shadows-14": {
+      "publicId": "shapes-and-shadows/14",
+      "localPath": "abstract/P1072236.JPG",
+      "drivePath": "abstract/P1072236.JPG",
+      "matchDistance": 4
+    },
+    "shapes-and-shadows-94c9ea39-5acc-4118-94e1-591665e77dca": {
+      "publicId": "portfolio-admin/shapes-and-shadows/f35a2169-fb3c-45db-97d8-9ef1b5e9741f",
+      "localPath": "abstract/P1088890.JPG",
+      "drivePath": "abstract/P1088890.JPG",
+      "matchDistance": 5
+    },
+    "shapes-and-shadows-bde4b5b5-a277-4723-a4d9-f753cd58eb57": {
+      "publicId": "portfolio-admin/shapes-and-shadows/c9f8b11c-3096-4c3c-86c2-58ca385a1eef",
+      "localPath": "abstract/P1106853 copy.JPG",
+      "drivePath": "abstract/P1106853 copy.JPG",
+      "matchDistance": 5
+    },
+    "shapes-and-shadows-12": {
+      "publicId": "shapes-and-shadows/12",
+      "localPath": "abstract/P1058556_1 copy.JPG",
+      "drivePath": "abstract/P1058556_1 copy.JPG",
+      "matchDistance": 2
+    },
+    "shapes-and-shadows-15": {
+      "publicId": "shapes-and-shadows/15",
+      "localPath": "abstract/P1072263.JPG",
+      "drivePath": "abstract/P1072263.JPG",
+      "matchDistance": 1
+    },
+    "shapes-and-shadows-16": {
+      "publicId": "shapes-and-shadows/16",
+      "localPath": "abstract/P1072471.JPG",
+      "drivePath": "abstract/P1072471.JPG",
+      "matchDistance": 1
+    },
+    "shapes-and-shadows-17": {
+      "publicId": "shapes-and-shadows/17",
+      "localPath": "abstract/P1086665.JPG",
+      "drivePath": "abstract/P1086665.JPG",
+      "matchDistance": 2
+    },
+    "shapes-and-shadows-38e6598e-5ed1-40c6-afe6-eac40745f5cc": {
+      "publicId": "portfolio-admin/shapes-and-shadows/764b6760-202b-4311-a8e8-84a42a764907",
+      "localPath": "abstract/P1108046-Enhanced-NR copy.JPG",
+      "drivePath": "abstract/P1108046-Enhanced-NR copy.JPG",
+      "matchDistance": 4
+    },
+    "shapes-and-shadows-c5bafdfc-82f9-4b88-b1f3-e1649144dee6": {
+      "publicId": "portfolio-admin/shapes-and-shadows/2c326205-f739-49b9-9d3e-294d626175b6",
+      "localPath": "abstract/P1056224_1.JPG",
+      "drivePath": "abstract/P1056224_1.JPG",
+      "matchDistance": 1
+    },
+    "protests-1": {
+      "publicId": "protests/1",
+      "localPath": "Reportage/IMG_1068 copy.JPG",
+      "drivePath": "Reportage/IMG_1068 copy.JPG",
+      "matchDistance": 2
+    },
+    "protests-2": {
+      "publicId": "protests/2",
+      "localPath": "Reportage/P1037595 copy.JPG",
+      "drivePath": "Reportage/P1037595 copy.JPG",
+      "matchDistance": 0
+    },
+    "protests-3": {
+      "publicId": "protests/3",
+      "localPath": "Reportage/P1037599 copy.JPG",
+      "drivePath": "Reportage/P1037599 copy.JPG",
+      "matchDistance": 1
+    },
+    "protests-12": {
+      "publicId": "protests/12",
+      "localPath": "Reportage/P1056400 copy.JPG",
+      "drivePath": "Reportage/P1056400 copy.JPG",
+      "matchDistance": 0
+    },
+    "protests-4": {
+      "publicId": "protests/4",
+      "localPath": "Reportage/P1037606_1 copy.JPG",
+      "drivePath": "Reportage/P1037606_1 copy.JPG",
+      "matchDistance": 3
+    },
+    "protests-san-francisco-38": {
+      "publicId": "place/california/san-francisco/38",
+      "localPath": "Reportage/P1085926.JPG",
+      "drivePath": "Reportage/P1085926.JPG",
+      "matchDistance": 4
+    },
+    "protests-5": {
+      "publicId": "protests/5",
+      "localPath": "Reportage/P1037615 copy.JPG",
+      "drivePath": "Reportage/P1037615 copy.JPG",
+      "matchDistance": 0
+    },
+    "protests-san-francisco-22": {
+      "publicId": "place/california/san-francisco/22",
+      "localPath": "Reportage/P1084838.JPG",
+      "drivePath": "Reportage/P1084838.JPG",
+      "matchDistance": 0
+    },
+    "protests-6": {
+      "publicId": "protests/6",
+      "localPath": "Reportage/P1039418 copy.JPG",
+      "drivePath": "Reportage/P1039418 copy.JPG",
+      "matchDistance": 3
+    },
+    "protests-7": {
+      "publicId": "protests/7",
+      "localPath": "Reportage/P1039490 copy.JPG",
+      "drivePath": "Reportage/P1039490 copy.JPG",
+      "matchDistance": 2
+    },
+    "protests-san-francisco-118": {
+      "publicId": "place/california/san-francisco/118",
+      "localPath": "Reportage/P1072623.JPG",
+      "drivePath": "Reportage/P1072623.JPG",
+      "matchDistance": 6
+    },
+    "protests-8": {
+      "publicId": "protests/8",
+      "localPath": "Reportage/P1039512.JPG",
+      "drivePath": "Reportage/P1039512.JPG",
+      "matchDistance": 5
+    },
+    "protests-9": {
+      "publicId": "protests/9",
+      "localPath": "Reportage/P1039522 copy.JPG",
+      "drivePath": "Reportage/P1039522 copy.JPG",
+      "matchDistance": 0
+    },
+    "protests-10": {
+      "publicId": "protests/10",
+      "localPath": "Reportage/P1039549.JPG",
+      "drivePath": "Reportage/P1039549.JPG",
+      "matchDistance": 3
+    },
+    "protests-13": {
+      "publicId": "protests/13",
+      "localPath": "Reportage/P1085116.JPG",
+      "drivePath": "Reportage/P1085116.JPG",
+      "matchDistance": 1
+    },
+    "protests-san-francisco-116": {
+      "publicId": "place/california/san-francisco/116",
+      "localPath": "Reportage/P1072557.JPG",
+      "drivePath": "Reportage/P1072557.JPG",
+      "matchDistance": 2
+    },
+    "protests-17": {
+      "publicId": "protests/17",
+      "localPath": "Reportage/P1085338.JPG",
+      "drivePath": "Reportage/P1085338.JPG",
+      "matchDistance": 3
+    },
+    "protests-14": {
+      "publicId": "protests/14",
+      "localPath": "Reportage/P1085211.JPG",
+      "drivePath": "Reportage/P1085211.JPG",
+      "matchDistance": 2
+    },
+    "protests-11": {
+      "publicId": "protests/11",
+      "localPath": "Reportage/P1039596 copy.JPG",
+      "drivePath": "Reportage/P1039596 copy.JPG",
+      "matchDistance": 2
+    },
+    "protests-15": {
+      "publicId": "protests/15",
+      "localPath": "Reportage/P1085263.JPG",
+      "drivePath": "Reportage/P1085263.JPG",
+      "matchDistance": 2
+    },
+    "protests-16": {
+      "publicId": "protests/16",
+      "localPath": "Reportage/P1085274.JPG",
+      "drivePath": "Reportage/P1085274.JPG",
+      "matchDistance": 2
+    },
+    "protests-18": {
+      "publicId": "protests/18",
+      "localPath": "Reportage/P1085339.JPG",
+      "drivePath": "Reportage/P1085339.JPG",
+      "matchDistance": 1
+    },
+    "protests-san-francisco-21": {
+      "publicId": "place/california/san-francisco/21",
+      "localPath": "Reportage/P1084832_1.JPG",
+      "drivePath": "Reportage/P1084832_1.JPG",
+      "matchDistance": 2
+    },
+    "protests-20": {
+      "publicId": "protests/20",
+      "localPath": "Reportage/P1085395.JPG",
+      "drivePath": "Reportage/P1085395.JPG",
+      "matchDistance": 1
+    },
+    "protests-san-francisco-20": {
+      "publicId": "place/california/san-francisco/20",
+      "localPath": "Reportage/P1084792.JPG",
+      "drivePath": "Reportage/P1084792.JPG",
+      "matchDistance": 2
+    },
+    "protests-21": {
+      "publicId": "protests/21",
+      "localPath": "Reportage/P1085422.JPG",
+      "drivePath": "Reportage/P1085422.JPG",
+      "matchDistance": 2
+    },
+    "protests-22": {
+      "publicId": "protests/22",
+      "localPath": "Reportage/P1085423.JPG",
+      "drivePath": "Reportage/P1085423.JPG",
+      "matchDistance": 3
+    },
+    "protests-san-francisco-19": {
+      "publicId": "place/california/san-francisco/19",
+      "localPath": "Reportage/P1084779.JPG",
+      "drivePath": "Reportage/P1084779.JPG",
+      "matchDistance": 3
+    },
+    "protests-23": {
+      "publicId": "protests/23",
+      "localPath": "Reportage/P1085446.JPG",
+      "drivePath": "Reportage/P1085446.JPG",
+      "matchDistance": 1
+    },
+    "protests-26": {
+      "publicId": "protests/26",
+      "localPath": "Reportage/P1085553.JPG",
+      "drivePath": "Reportage/P1085553.JPG",
+      "matchDistance": 2
+    },
+    "protests-27": {
+      "publicId": "protests/27",
+      "localPath": "Reportage/P1085587.JPG",
+      "drivePath": "Reportage/P1085587.JPG",
+      "matchDistance": 1
+    },
+    "protests-28": {
+      "publicId": "protests/28",
+      "localPath": "Reportage/P1085612.JPG",
+      "drivePath": "Reportage/P1085612.JPG",
+      "matchDistance": 0
+    },
+    "protests-san-francisco-117": {
+      "publicId": "place/california/san-francisco/117",
+      "localPath": "Reportage/P1072592_1.JPG",
+      "drivePath": "Reportage/P1072592_1.JPG",
+      "matchDistance": 4
+    },
+    "protests-29": {
+      "publicId": "protests/29",
+      "localPath": "Reportage/P1085639.JPG",
+      "drivePath": "Reportage/P1085639.JPG",
+      "matchDistance": 0
+    },
+    "protests-34": {
+      "publicId": "protests/34",
+      "localPath": "Reportage/P1085742_1.JPG",
+      "drivePath": "Reportage/P1085742_1.JPG",
+      "matchDistance": 3
+    },
+    "protests-san-francisco-18": {
+      "publicId": "place/california/san-francisco/18",
+      "localPath": "Reportage/P1084746.JPG",
+      "drivePath": "Reportage/P1084746.JPG",
+      "matchDistance": 2
+    },
+    "protests-30": {
+      "publicId": "protests/30",
+      "localPath": "Reportage/P1085659.JPG",
+      "drivePath": "Reportage/P1085659.JPG",
+      "matchDistance": 1
+    },
+    "protests-32": {
+      "publicId": "protests/32",
+      "localPath": "Reportage/P1085690_1.JPG",
+      "drivePath": "Reportage/P1085690_1.JPG",
+      "matchDistance": 3
+    },
+    "protests-31": {
+      "publicId": "protests/31",
+      "localPath": "Reportage/P1085686.JPG",
+      "drivePath": "Reportage/P1085686.JPG",
+      "matchDistance": 1
+    },
+    "protests-33": {
+      "publicId": "protests/33",
+      "localPath": "Reportage/P1085709.JPG",
+      "drivePath": "Reportage/P1085709.JPG",
+      "matchDistance": 1
+    },
+    "protests-san-francisco-16": {
+      "publicId": "place/california/san-francisco/16",
+      "localPath": "Reportage/P1084653.JPG",
+      "drivePath": "Reportage/P1084653.JPG",
+      "matchDistance": 2
+    },
+    "protests-san-francisco-17": {
+      "publicId": "place/california/san-francisco/17",
+      "localPath": "Reportage/P1084717.JPG",
+      "drivePath": "Reportage/P1084717.JPG",
+      "matchDistance": 1
+    },
+    "protests-san-francisco-23": {
+      "publicId": "place/california/san-francisco/23",
+      "localPath": "Reportage/P1084850.JPG",
+      "drivePath": "Reportage/P1084850.JPG",
+      "matchDistance": 2
+    },
+    "protests-san-francisco-39": {
+      "publicId": "place/california/san-francisco/39",
+      "localPath": "Reportage/P1085937.JPG",
+      "drivePath": "Reportage/P1085937.JPG",
+      "matchDistance": 1
+    },
+    "commissioned-work-1": {
+      "publicId": "commissioned-work/1",
+      "localPath": "Portraits/P1059313_1.JPG",
+      "drivePath": "Portraits/P1059313_1.JPG",
+      "matchDistance": 2
+    },
+    "commissioned-work-4": {
+      "publicId": "commissioned-work/4",
+      "localPath": "Portraits/P1059450_2.JPG",
+      "drivePath": "Portraits/P1059450_2.JPG",
+      "matchDistance": 4
+    },
+    "commissioned-work-12": {
+      "publicId": "commissioned-work/12",
+      "localPath": "Portraits/h800-1084938Ju3R5PFo.jpg",
+      "drivePath": "Portraits/h800-1084938Ju3R5PFo.jpg",
+      "matchDistance": 10
+    },
+    "commissioned-work-2": {
+      "publicId": "commissioned-work/2",
+      "localPath": "Portraits/P1059343_1.JPG",
+      "drivePath": "Portraits/P1059343_1.JPG",
+      "matchDistance": 14
+    },
+    "commissioned-work-16": {
+      "publicId": "commissioned-work/16",
+      "localPath": "Portraits/h800-1084938Q8fQ2uEB.jpg",
+      "drivePath": "Portraits/h800-1084938Q8fQ2uEB.jpg",
+      "matchDistance": 1
+    },
+    "commissioned-work-6": {
+      "publicId": "commissioned-work/6",
+      "localPath": "Portraits/P1059606_1.JPG",
+      "drivePath": "Portraits/P1059606_1.JPG",
+      "matchDistance": 16
+    },
+    "commissioned-work-10": {
+      "publicId": "commissioned-work/10",
+      "localPath": "Portraits/P1070211_1.JPG",
+      "drivePath": "Portraits/P1070211_1.JPG",
+      "matchDistance": 3
+    },
+    "commissioned-work-3": {
+      "publicId": "commissioned-work/3",
+      "localPath": "Portraits/P1059356_1.JPG",
+      "drivePath": "Portraits/P1059356_1.JPG",
+      "matchDistance": 7
+    },
+    "commissioned-work-18": {
+      "publicId": "commissioned-work/18",
+      "localPath": "Portraits/h800-1084938TcwkhLsN.jpg",
+      "drivePath": "Portraits/h800-1084938TcwkhLsN.jpg",
+      "matchDistance": 5
+    },
+    "commissioned-work-15": {
+      "publicId": "commissioned-work/15",
+      "localPath": "Portraits/h800-1084938OJV3LMlE.jpg",
+      "drivePath": "Portraits/h800-1084938OJV3LMlE.jpg",
+      "matchDistance": 4
+    },
+    "commissioned-work-5": {
+      "publicId": "commissioned-work/5",
+      "localPath": "Portraits/P1059522.JPG",
+      "drivePath": "Portraits/P1059522.JPG",
+      "matchDistance": 5
+    },
+    "commissioned-work-8": {
+      "publicId": "commissioned-work/8",
+      "localPath": "Portraits/P1070006_1.JPG",
+      "drivePath": "Portraits/P1070006_1.JPG",
+      "matchDistance": 5
+    },
+    "commissioned-work-13": {
+      "publicId": "commissioned-work/13",
+      "localPath": "Portraits/h800-1084938KIWvaIoA.jpg",
+      "drivePath": "Portraits/h800-1084938KIWvaIoA.jpg",
+      "matchDistance": 3
+    },
+    "commissioned-work-23": {
+      "publicId": "commissioned-work/23",
+      "localPath": "Portraits/h800-1084938vAajtIkK.jpg",
+      "drivePath": "Portraits/h800-1084938vAajtIkK.jpg",
+      "matchDistance": 4
+    },
+    "commissioned-work-7": {
+      "publicId": "commissioned-work/7",
+      "localPath": "Portraits/P1069960_4.JPG",
+      "drivePath": "Portraits/P1069960_4.JPG",
+      "matchDistance": 9
+    },
+    "commissioned-work-17": {
+      "publicId": "commissioned-work/17",
+      "localPath": "Portraits/h800-1084938SwXfg4MF.jpg",
+      "drivePath": "Portraits/h800-1084938SwXfg4MF.jpg",
+      "matchDistance": 0
+    },
+    "commissioned-work-14": {
+      "publicId": "commissioned-work/14",
+      "localPath": "Portraits/h800-1084938MbPpN26s.jpg",
+      "drivePath": "Portraits/h800-1084938MbPpN26s.jpg",
+      "matchDistance": 0
+    },
+    "commissioned-work-9": {
+      "publicId": "commissioned-work/9",
+      "localPath": "Portraits/P1070042_1.JPG",
+      "drivePath": "Portraits/P1070042_1.JPG",
+      "matchDistance": 3
+    },
+    "commissioned-work-19": {
+      "publicId": "commissioned-work/19",
+      "localPath": "Portraits/h800-1084938XdqAYRYX.jpg",
+      "drivePath": "Portraits/h800-1084938XdqAYRYX.jpg",
+      "matchDistance": 2
+    },
+    "commissioned-work-22": {
+      "publicId": "commissioned-work/22",
+      "localPath": "Portraits/h800-1084938swWSqpvz.jpg",
+      "drivePath": "Portraits/h800-1084938swWSqpvz.jpg",
+      "matchDistance": 1
+    },
+    "commissioned-work-11": {
+      "publicId": "commissioned-work/11",
+      "localPath": "Portraits/P1070285_1.JPG",
+      "drivePath": "Portraits/P1070285_1.JPG",
+      "matchDistance": 2
+    },
+    "commissioned-work-20": {
+      "publicId": "commissioned-work/20",
+      "localPath": "Portraits/h800-1084938cyIka0XM.jpg",
+      "drivePath": "Portraits/h800-1084938cyIka0XM.jpg",
+      "matchDistance": 1
+    },
+    "commissioned-work-ebe87e4d-3890-4eb1-83c3-a8961e6e14bb": {
+      "publicId": "portfolio-admin/commissioned-work/edbb0b86-47fd-4e36-9faa-2357650f028b",
+      "localPath": "Portraits/not commissioned/h800-1084938cgrZNmHZ.jpg",
+      "drivePath": "Portraits/not commissioned/h800-1084938cgrZNmHZ.jpg",
+      "matchDistance": 2
+    },
+    "animals-5876cd00-3243-40d2-a9de-8e35a06a3743": {
+      "publicId": "portfolio-admin/animals/9c107bba-3528-4460-aecc-fa163b5711a1",
+      "localPath": "The Natural World/animals/P1119864 copy 2.JPG",
+      "drivePath": "The Natural World/animals/P1119864 copy 2.JPG",
+      "matchDistance": 2
+    },
+    "animals-aaf12059-a700-42f5-9add-621293d59071": {
+      "publicId": "portfolio-admin/animals/4b334e5f-3694-46bd-b56b-cc900a8868fd",
+      "localPath": "The Natural World/animals/P1087645.JPG",
+      "drivePath": "The Natural World/animals/P1087645.JPG",
+      "matchDistance": 3
+    },
+    "animals-5fefecef-8440-48c9-ba81-9fae664b8f4f": {
+      "publicId": "portfolio-admin/animals/ae49a800-64bf-426f-8268-abea9517aad7",
+      "localPath": "The Natural World/animals/P1119882 copy 2.JPG",
+      "drivePath": "The Natural World/animals/P1119882 copy 2.JPG",
+      "matchDistance": 3
+    },
+    "animals-7965128a-8e9f-44ff-9fb1-4b9ed48fc62a": {
+      "publicId": "portfolio-admin/animals/f9a7ee2f-feb1-47ea-aa2a-51993f16d509",
+      "localPath": "The Natural World/animals/P1105140.JPG",
+      "drivePath": "The Natural World/animals/P1105140.JPG",
+      "matchDistance": 3
+    },
+    "animals-f474b692-291c-4d30-9e2a-daf8b0783735": {
+      "publicId": "portfolio-admin/animals/af0773cd-bb09-4f1a-adb0-b0c44152c4ab",
+      "localPath": "The Natural World/animals/P1104302.JPG",
+      "drivePath": "The Natural World/animals/P1104302.JPG",
+      "matchDistance": 1
+    },
+    "animals-2ec68cfe-f5bb-4ec6-9283-6c168576331a": {
+      "publicId": "portfolio-admin/animals/2c058d14-2819-49b4-b81f-f3f154b7327c",
+      "localPath": "The Natural World/Best for 2026/P1086210_2.JPG",
+      "drivePath": "The Natural World/Best for 2026/P1086210_2.JPG",
+      "matchDistance": 1
+    },
+    "animals-41fc2ae0-4fcb-4acd-adc5-761fa405f42e": {
+      "publicId": "portfolio-admin/animals/59ef0330-94f8-45ce-ab41-3a300c7774ef",
+      "localPath": "The Natural World/animals/P1119686 copy 2.JPG",
+      "drivePath": "The Natural World/animals/P1119686 copy 2.JPG",
+      "matchDistance": 5
+    },
+    "animals-31be3d34-00ab-477e-9cfb-2cd8cb097c67": {
+      "publicId": "portfolio-admin/animals/d3001822-2fac-452b-96a5-8947403f3e68",
+      "localPath": "The Natural World/animals/P1086997.JPG",
+      "drivePath": "The Natural World/animals/P1086997.JPG",
+      "matchDistance": 3
+    },
+    "animals-3792d3f8-f324-46ac-93c3-8021358fa334": {
+      "publicId": "portfolio-admin/animals/70d68c2f-2dd9-4605-8fbc-0762d1170022",
+      "localPath": "The Natural World/animals/P1119654 copy 2.JPG",
+      "drivePath": "The Natural World/animals/P1119654 copy 2.JPG",
+      "matchDistance": 1
+    },
+    "animals-a4593883-68a7-4623-b3a4-d77521da01ed": {
+      "publicId": "portfolio-admin/animals/197522fe-8e1c-4aef-8cfb-55ea71cce17d",
+      "localPath": "The Natural World/animals/P1086246-Enhanced-NR.JPG",
+      "drivePath": "The Natural World/animals/P1086246-Enhanced-NR.JPG",
+      "matchDistance": 0
+    },
+    "animals-296e0301-299f-4bba-bb69-9614dd207ec9": {
+      "publicId": "portfolio-admin/animals/636e18a8-3764-46a7-88ee-9515e671a449",
+      "localPath": "The Natural World/animals/P1119442 copy 2.JPG",
+      "drivePath": "The Natural World/animals/P1119442 copy 2.JPG",
+      "matchDistance": 4
+    },
+    "animals-78919519-4cb9-4b7f-9e2f-616207cb733f": {
+      "publicId": "portfolio-admin/animals/8b5705c6-bc2b-456a-a932-1da1e4d39013",
+      "localPath": "The Natural World/animals/P1087131_1.JPG",
+      "drivePath": "The Natural World/animals/P1087131_1.JPG",
+      "matchDistance": 0
+    },
+    "animals-454d9041-5394-4262-9d23-6d01924d5532": {
+      "publicId": "portfolio-admin/animals/daa5733b-595d-4993-9f6f-c4068b62d257",
+      "localPath": "The Natural World/animals/P1119733 copy 2.JPG",
+      "drivePath": "The Natural World/animals/P1119733 copy 2.JPG",
+      "matchDistance": 0
+    },
+    "animals-ef91e8d2-fc9f-4318-bbdb-f92318fe5e88": {
+      "publicId": "portfolio-admin/animals/21a624c4-5649-47da-83f0-b9e8916bed9e",
+      "localPath": "The Natural World/animals/P1119894 copy 2.JPG",
+      "drivePath": "The Natural World/animals/P1119894 copy 2.JPG",
+      "matchDistance": 0
+    },
+    "animals-840253df-18c4-46fc-9c5e-8ae984571655": {
+      "publicId": "portfolio-admin/animals/dfead1c4-85b0-4f3a-960a-a02583f50510",
+      "localPath": "The Natural World/animals/P1088285.JPG",
+      "drivePath": "The Natural World/animals/P1088285.JPG",
+      "matchDistance": 2
+    },
+    "animals-9f9a7858-2f6e-4615-bcba-860e66fadcd0": {
+      "publicId": "portfolio-admin/animals/afb0cc3d-aee8-4039-84d1-efda130e3936",
+      "localPath": "The Natural World/animals/P1119896 copy 2.JPG",
+      "drivePath": "The Natural World/animals/P1119896 copy 2.JPG",
+      "matchDistance": 1
+    },
+    "animals-37593a04-0ebe-4b77-ab70-8e0fbc03ccbd": {
+      "publicId": "portfolio-admin/animals/27fdc646-980a-4628-a7c5-dbe8ad9f16ae",
+      "localPath": "The Natural World/animals/P1057273 copy.JPG",
+      "drivePath": "The Natural World/animals/P1057273 copy.JPG",
+      "matchDistance": 11
+    },
+    "animals-34b64cbb-6620-46db-988e-94e136fb98c1": {
+      "publicId": "portfolio-admin/animals/5e9af882-bd3c-4fcf-903a-7e73297c0cb8",
+      "localPath": "The Natural World/animals/P1088962.JPG",
+      "drivePath": "The Natural World/animals/P1088962.JPG",
+      "matchDistance": 0
+    },
+    "animals-a238b9cb-0631-4cd2-a7fd-c5bd1fd16b00": {
+      "publicId": "portfolio-admin/animals/ee7c9fd6-8c2b-407b-8ce0-16bfd3c8a574",
+      "localPath": "The Natural World/Best for 2026/P1086547.JPG",
+      "drivePath": "The Natural World/Best for 2026/P1086547.JPG",
+      "matchDistance": 0
+    },
+    "animals-5ea3c642-01ee-45ce-9e3b-4b43bacaa0d0": {
+      "publicId": "portfolio-admin/animals/c93179a5-55b8-4e0b-8169-c61ef3578ef1",
+      "localPath": "The Natural World/animals/P1119446 copy 2.JPG",
+      "drivePath": "The Natural World/animals/P1119446 copy 2.JPG",
+      "matchDistance": 2
+    },
+    "animals-e200e453-7024-48c1-8d50-0fc4976fb701": {
+      "publicId": "portfolio-admin/animals/b05e4126-5228-40a0-85a2-0ccea8094a05",
+      "localPath": "The Natural World/animals/P1087766.JPG",
+      "drivePath": "The Natural World/animals/P1087766.JPG",
+      "matchDistance": 8
+    },
+    "animals-864670b6-9f57-4346-a4f1-e7e155aed9c9": {
+      "publicId": "portfolio-admin/animals/1c6e65ba-93ca-460a-8010-78e43f8f2b4c",
+      "localPath": "The Natural World/animals/P1103297.JPG",
+      "drivePath": "The Natural World/animals/P1103297.JPG",
+      "matchDistance": 3
+    },
+    "animals-9cd70457-2500-4790-82ca-2db13316bfb1": {
+      "publicId": "portfolio-admin/animals/56fbddfe-08a0-4884-8a88-5ae02c23e512",
+      "localPath": "The Natural World/animals/P1119485 copy 2.JPG",
+      "drivePath": "The Natural World/animals/P1119485 copy 2.JPG",
+      "matchDistance": 1
+    },
+    "animals-8488f9c7-d467-4b00-9f9a-6c9f939725c4": {
+      "publicId": "portfolio-admin/animals/ac2440be-1a24-4800-9f1b-2fc7b54064f1",
+      "localPath": "The Natural World/animals/P1087776.JPG",
+      "drivePath": "The Natural World/animals/P1087776.JPG",
+      "matchDistance": 3
+    },
+    "animals-f261acfb-668f-43d8-8fcb-2a98bccbc1d5": {
+      "publicId": "portfolio-admin/animals/1b34c090-218d-4725-b355-a30503f121ae",
+      "localPath": "The Natural World/animals/P1087783-Enhanced-NR.JPG",
+      "drivePath": "The Natural World/animals/P1087783-Enhanced-NR.JPG",
+      "matchDistance": 11
+    },
+    "animals-452d435d-3750-4459-ae6c-77c62a0dc6ac": {
+      "publicId": "portfolio-admin/animals/eb61b9cf-b7e4-4671-8d32-3bec5b14a44f",
+      "localPath": "The Natural World/Best for 2026/P1070555_1.JPG",
+      "drivePath": "The Natural World/Best for 2026/P1070555_1.JPG",
+      "matchDistance": 2
+    },
+    "animals-922db87c-eb0b-4fa3-9e70-1461d23de938": {
+      "publicId": "portfolio-admin/animals/8d5dc14c-5b7d-45cb-a793-feb3d2c0dc25",
+      "localPath": "The Natural World/animals/P1087025.JPG",
+      "drivePath": "The Natural World/animals/P1087025.JPG",
+      "matchDistance": 2
+    },
+    "animals-13a6e73a-29d6-4da4-9b5b-c38a813e45e1": {
+      "publicId": "portfolio-admin/animals/d0362c5b-23b4-4a16-a303-481b6fa20e7d",
+      "localPath": "The Natural World/Best for 2026/P1071764.JPG",
+      "drivePath": "The Natural World/Best for 2026/P1071764.JPG",
+      "matchDistance": 4
+    },
+    "animals-3a1d0971-8ff2-401b-91a7-b04c3e2b16e6": {
+      "publicId": "portfolio-admin/animals/41f4ddb4-29bc-4af1-95c8-3a790d816fef",
+      "localPath": "Place/Colombia/IMG_2871.JPG",
+      "drivePath": "Place/Colombia/IMG_2871.JPG",
+      "matchDistance": 2
+    },
+    "animals-864fab41-6ec7-42d7-97ae-9f37ffc3f186": {
+      "publicId": "portfolio-admin/animals/be1272b4-3ded-4ab7-bc21-972fa2ba7b5d",
+      "localPath": "The Natural World/Best for 2026/P1056673 copy.JPG",
+      "drivePath": "The Natural World/Best for 2026/P1056673 copy.JPG",
+      "matchDistance": 4
+    },
+    "animals-c63ecc14-d33a-4abd-8d4e-b145ae245ce4": {
+      "publicId": "portfolio-admin/animals/c04b445c-a80b-426b-9c19-1f138419e797",
+      "localPath": "The Natural World/P1071241.JPG",
+      "drivePath": "The Natural World/P1071241.JPG",
+      "matchDistance": 3
+    },
+    "animals-5ee88bba-025e-4296-8017-56a90dad1150": {
+      "publicId": "portfolio-admin/animals/fb633e24-7871-4812-a338-33e1efa60007",
+      "localPath": "The Natural World/Best for 2026/P1071486.JPG",
+      "drivePath": "The Natural World/Best for 2026/P1071486.JPG",
+      "matchDistance": 1
+    },
+    "animals-2788daf9-5a05-416f-a445-3f27705cac1f": {
+      "publicId": "portfolio-admin/animals/63938a60-3dae-4150-8476-a9d419c6bb15",
+      "localPath": "The Natural World/Best for 2026/P1086530_3.JPG",
+      "drivePath": "The Natural World/Best for 2026/P1086530_3.JPG",
+      "matchDistance": 1
+    },
+    "animals-1a73050c-7714-4624-bb3b-ed1dcae4ffe6": {
+      "publicId": "portfolio-admin/animals/eb91802c-c8d4-4eee-a874-ea6dd5daeb19",
+      "localPath": "The Natural World/P1070858_1.JPG",
+      "drivePath": "The Natural World/P1070858_1.JPG",
+      "matchDistance": 6
+    },
+    "animals-8149003b-f0e6-4f5b-8f3d-47ebd9acfa83": {
+      "publicId": "portfolio-admin/animals/a55a5e0c-2f7d-4211-8034-c22b65bf13a4",
+      "localPath": "The Natural World/animals/P1120723 copy.JPG",
+      "drivePath": "The Natural World/animals/P1120723 copy.JPG",
+      "matchDistance": 1
+    },
+    "animals-7f3f0363-6ccf-4ae6-a130-0927d590287d": {
+      "publicId": "portfolio-admin/animals/a95e5490-c6d3-4ed6-a6f8-ab4265f8ffc8",
+      "localPath": "The Natural World/animals/P1119607_6 copy.JPG",
+      "drivePath": "The Natural World/animals/P1119607_6 copy.JPG",
+      "matchDistance": 16
+    }
+  }
+}

@@ -1,37 +1,10 @@
 {% comment %}
-  Customer-facing consolidation for Gelato's three Shopify products per photo.
+  Customer-facing presentation for one Fine Art product per photo.
   Include this file before </body> in layout/theme.liquid.
-  Revision: 2026-08-06 duplicate-handle normalization and full-bleed previews.
+  Revision: 2026-08-19 San Francisco 93 Gelato-only pilot, mobile controls cleanup.
 {% endcomment %}
 
 <style>
-  .ct-print-type {
-    display: grid;
-    gap: 0.75rem;
-  }
-
-  .ct-print-type__label {
-    font: inherit;
-  }
-
-  .ct-print-type__options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .ct-print-type__option {
-    border: 1px solid currentColor;
-    color: inherit;
-    padding: 0.7rem 1rem;
-    text-decoration: none;
-  }
-
-  .ct-print-type__option[aria-current='true'] {
-    background: rgb(var(--color-foreground));
-    color: rgb(var(--color-background));
-  }
-
   /* Horizon defaults product media to contain. These print previews are
      already aspect-ratio matched, so cover removes unused frame/letterbox
      space while limiting the crop to the media container. */
@@ -43,10 +16,56 @@
     object-position: center center;
   }
 
-  /* Gelato mockups remain attached as fulfillment media. The reconcile script
-     marks the original artwork with a stable alt prefix; keep only that image
-     in the PDP gallery while leaving its zoom dialog available. */
+  /* The reconcile script marks the original artwork with a stable alt prefix.
+     Hide every Gelato mockup except the one for the selected size; retain the
+     artwork as the secondary zoomable image. */
   .ct-print-product .ct-non-artwork-media {
+    display: none !important;
+  }
+
+  /* Fine Art products keep Gelato's size-specific mockups available so
+     Shopify can display the exact selected fulfillment variant. */
+  .ct-print-product.ct-mockup-preview .ct-non-artwork-media {
+    display: none !important;
+  }
+
+  .ct-print-product.ct-mockup-preview .ct-non-artwork-media.ct-selected-variant-media {
+    display: block !important;
+  }
+
+  .ct-print-product.ct-mockup-preview .ct-non-artwork-media img {
+    object-fit: contain !important;
+    background: #f4f2ed;
+  }
+
+  .ct-gelato-only-pilot media-gallery .ct-artwork-media,
+  .ct-gelato-only-pilot .dialog-zoomed-gallery .ct-artwork-media {
+    display: none !important;
+  }
+
+  .ct-gelato-only-pilot media-gallery .media-gallery__grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .ct-gelato-only-pilot media-gallery .ct-selected-variant-media {
+    grid-column: 1 / -1;
+  }
+
+  .ct-gelato-only-pilot media-gallery slideshow-controls {
+    display: none !important;
+  }
+
+  .ct-original-photo-reference {
+    margin: 0;
+  }
+
+  .ct-original-photo-reference a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  [data-ct-print-type] {
     display: none !important;
   }
 
@@ -63,11 +82,17 @@
 <script>
   (() => {
     const formats = [
-      { suffix: '-framed-fine-art-print', label: 'Framed fine art print' },
-      { suffix: '-canvas-print', label: 'Canvas print' },
-      { suffix: '-fine-art-print', label: 'Fine art print' },
+      { suffix: '-framed-fine-art-print', active: false },
+      { suffix: '-canvas-print', active: false },
+      { suffix: '-fine-art-print', active: true },
     ];
     const artworkMediaAltPrefix = 'Claire Thomas artwork:';
+    const originalPhotoUrls = {
+      'san-francisco-93-fine-art-print':
+        'https://res.cloudinary.com/dpmdkrggj/image/upload/f_auto,q_auto,w_2400,c_limit/place/california/san-francisco/93',
+    };
+    let productDataPromise = null;
+    let previewSyncToken = 0;
 
     const productHandle = (href) => {
       try {
@@ -177,6 +202,36 @@
         });
     };
 
+    const originalPhotoUrlForHandle = (handle) => originalPhotoUrls[normalizedHandle(handle)] || '';
+
+    const addOriginalPhotoReference = () => {
+      const handle = productHandle(window.location.pathname);
+      const originalPhotoUrl = originalPhotoUrlForHandle(handle);
+      document.documentElement.classList.toggle('ct-gelato-only-pilot', Boolean(originalPhotoUrl));
+
+      let reference = document.querySelector('[data-ct-original-photo-reference]');
+      if (!originalPhotoUrl) {
+        reference?.remove();
+        return;
+      }
+
+      if (!reference) {
+        const variantPicker = document.querySelector('main variant-picker');
+        if (!variantPicker) return;
+        reference = document.createElement('p');
+        reference.className = 'ct-original-photo-reference';
+        reference.dataset.ctOriginalPhotoReference = '';
+        const link = document.createElement('a');
+        link.textContent = 'View original photograph';
+        link.target = '_blank';
+        link.rel = 'noreferrer';
+        reference.append(link);
+        variantPicker.insertAdjacentElement('afterend', reference);
+      }
+
+      reference.querySelector('a').href = originalPhotoUrl;
+    };
+
     const filterProductMedia = () => {
       const isPrintProduct = document.documentElement.classList.contains('ct-print-product');
       const containers = [
@@ -204,22 +259,63 @@
       });
     };
 
+    const loadProductData = () => {
+      if (!productDataPromise) {
+        productDataPromise = fetch(`${window.location.pathname}.js`)
+          .then((response) => response.ok ? response.json() : null)
+          .catch(() => null);
+      }
+      return productDataPromise;
+    };
+
+    const applySelectedMockup = (selectedMediaAlt) => {
+      document.querySelectorAll('.ct-non-artwork-media').forEach((container) => {
+        const imageAlt = container.querySelector('img')?.alt?.trim() || '';
+        const target = container.closest('li') || container;
+        target.classList.toggle(
+          'ct-selected-variant-media',
+          Boolean(selectedMediaAlt && imageAlt === selectedMediaAlt),
+        );
+      });
+    };
+
+    const syncVariantPreview = async () => {
+      if (!document.documentElement.classList.contains('ct-mockup-preview')) return;
+
+      const syncToken = ++previewSyncToken;
+      const variantPayload = document.querySelector(
+        'main variant-picker form.variant-picker__form script[type="application/json"]',
+      );
+      let selectedMediaAlt = '';
+      try {
+        selectedMediaAlt = JSON.parse(variantPayload?.textContent || '{}').featured_media?.alt || '';
+      } catch {
+        selectedMediaAlt = '';
+      }
+      applySelectedMockup(selectedMediaAlt);
+
+      const selectedVariantId = Number(
+		document.querySelector('main variant-picker input[type="radio"]:checked')?.dataset?.variantId,
+      );
+      if (!selectedVariantId) return;
+      const productData = await loadProductData();
+      if (syncToken !== previewSyncToken) return;
+      const selectedVariant = productData?.variants?.find((variant) => variant.id === selectedVariantId);
+      applySelectedMockup(selectedVariant?.featured_media?.alt || selectedMediaAlt);
+    };
+
     const addPrintTypeChooser = () => {
       const handle = productHandle(window.location.pathname);
       const currentFormat = formatForHandle(handle);
-      document.documentElement.classList.toggle('ct-print-product', Boolean(currentFormat));
-      if (!currentFormat) {
-        document.querySelector('[data-ct-print-type]')?.remove();
-        return;
-      }
-
-      const baseHandle = baseHandleFor(handle);
-      const variantPicker = document.querySelector('main variant-picker');
-      if (!variantPicker) return;
-
-      const existing = document.querySelector('[data-ct-print-type]');
-      if (existing?.dataset.baseHandle === baseHandle) return;
-      existing?.remove();
+      const isFineArt = Boolean(currentFormat?.active);
+      document.documentElement.classList.toggle('ct-print-product', isFineArt);
+      document.documentElement.classList.toggle(
+        'ct-mockup-preview',
+        isFineArt,
+      );
+      const legacyPrintTypeChooser = document.querySelector('[data-ct-print-type]');
+      if (legacyPrintTypeChooser) legacyPrintTypeChooser.hidden = true;
+      if (!isFineArt) return;
 
       const heading = document.querySelector('main h1');
       const fullTitle = heading?.textContent?.trim() || '';
@@ -229,33 +325,15 @@
         if (paragraph.textContent?.trim() === fullTitle) paragraph.textContent = photoTitle;
       });
 
-      const chooser = document.createElement('div');
-      chooser.className = 'ct-print-type';
-      chooser.dataset.ctPrintType = '';
-      chooser.dataset.baseHandle = baseHandle;
-      chooser.innerHTML = `
-        <div class="ct-print-type__label">Print type</div>
-        <div class="ct-print-type__options">
-          ${formats
-            .slice()
-            .reverse()
-            .map(
-              (format) =>
-                `<a class="ct-print-type__option" href="/products/${baseHandle}${format.suffix}"${
-                  format.suffix === currentFormat.suffix ? ' aria-current="true"' : ''
-                }>${format.label}</a>`,
-            )
-            .join('')}
-        </div>
-      `;
-      variantPicker.before(chooser);
     };
 
     let scheduled = false;
     const enhanceStorefront = () => {
       consolidateProductCards();
       addPrintTypeChooser();
+      addOriginalPhotoReference();
       filterProductMedia();
+      syncVariantPreview();
       enforceContactRequirements();
     };
     const scheduleEnhancement = () => {
@@ -269,6 +347,7 @@
 
     enhanceStorefront();
     document.addEventListener('DOMContentLoaded', enhanceStorefront, { once: true });
+    document.addEventListener('change', () => window.setTimeout(enhanceStorefront, 0));
     new MutationObserver(scheduleEnhancement).observe(document.documentElement, {
       childList: true,
       subtree: true,

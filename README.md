@@ -1,8 +1,12 @@
 # cportfolio
 
+For non-commerce architecture and verified production state, read [APP_REFERENCE.md](APP_REFERENCE.md). For setup, deployment, content editing, recovery, or troubleshooting, read [APP_OPERATIONS.md](APP_OPERATIONS.md). These documents distinguish deployed behavior from local changes; older setup notes below are not deployment evidence.
+
 Static portfolio site with placeholder content for safe editing and later content replacement.
 
 Uses local images by default, with Cloudinary delivery enabled for the portfolio galleries, including `Commissioned Work`, with local fallback.
+
+Google Drive delivery is supported per photo with an optional `driveFileId`. Mapped Drive files are preferred; Cloudinary remains configured as the fallback. Drive files must be shared as “Anyone with the link → Viewer”.
 
 The portfolio sidebar now includes a collapsible `place` section with `California` and `San Francisco` sub-galleries. The UI is wired to `./Place/California/` and `./Place/California/San Francisco/`, and both galleries are populated with local images.
 
@@ -80,3 +84,12 @@ To move more series to Cloudinary:
 2. Fetch or copy their public IDs
 3. Add those public IDs to the relevant items in `site.js`
 4. Refresh the site
+
+## Google Drive setup
+
+1. Upload the photo folder to Google Drive and share the folder/files as **Anyone with the link → Viewer**. The local version-5 manifest contains 246 mappings. October 2 inspection found no deployed manifest and production still using Cloudinary; uploading files alone does not switch the website.
+2. Copy its file ID from a URL such as `https://drive.google.com/file/d/FILE_ID/view`.
+3. Add the mapping to `google-drive-manifest.json`, for example: `{ "version": 1, "items": { "the-natural-world-1": "FILE_ID" } }`.
+4. Review and deploy the Drive-aware loader, renderer, and manifest together. Verify actual production image requests; refreshing the current deployment alone does not enable Drive. Test grid and lightbox fallback separately.
+
+Keep each existing `publicId` while testing so the Cloudinary path remains available for rollback.

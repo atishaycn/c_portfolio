@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
 	apiRequest,
+	assertTemplatePlaceholderOrientation,
 	applyReconcilePlan,
 	aspectGroupFor,
 	buildManifest,
@@ -11,6 +12,8 @@ import {
 	artworkMediaAltFor,
 	artworkMediaInput,
 	buildShopifyVariantMediaUpdates,
+	buildShopifyVariantMockupPlan,
+	enrichProductsWithGelatoDetails,
 	buildCatalogAudit,
 	buildCreatedRepairPlan,
 	catalogVersionTag,
@@ -19,6 +22,7 @@ import {
 	cloudinaryUrl,
 	expectedProductKeys,
 	extraArtworkMediaIds,
+	fetchGelatoProductDetail,
 	findStaleProducts,
 	gelato429MaxAttempts,
 	isStalledCreatedProduct,
@@ -421,12 +425,12 @@ test("processes every create through sequential bounded publishing batches", asy
 
 test("requires exactly one active managed product for every catalog key", () => {
 	const photos = [{ printId: "photo-1" }];
-	const cleanProducts = ["fine-art", "framed", "canvas"].map((medium) => ({
-		id: medium,
-		externalId: medium,
+	const cleanProducts = [{
+		id: "fine-art",
+		externalId: "fine-art",
 		status: "active",
-		tags: ["photo-1", `format-${medium}`, "claire-thomas"],
-	}));
+		tags: ["photo-1", "format-fine-art", "claire-thomas"],
+	}];
 	assert.equal(buildCatalogAudit(photos, cleanProducts).clean, true);
 
 	const broken = buildCatalogAudit(photos, [
@@ -435,7 +439,7 @@ test("requires exactly one active managed product for every catalog key", () => 
 		{
 			id: "draft",
 			status: "created",
-			tags: ["photo-1", "format-canvas", "claire-thomas"],
+			tags: ["photo-1", "format-fine-art", "claire-thomas"],
 		},
 		{ id: "unmanaged", status: "created", tags: [] },
 	]);
@@ -520,15 +524,13 @@ test("missing Shopify nodes are treated as inactive", () => {
 test("builds a dynamic non-commissioned catalog", () => {
 	const manifest = buildManifest();
 	assert(manifest.photoCount > 0);
-	assert.equal(manifest.productCount, manifest.photoCount * 3);
+	assert.equal(manifest.productCount, manifest.photoCount);
 	assert.equal(new Set(manifest.photos.map((photo) => photo.printId)).size, manifest.photoCount);
 	assert.equal(manifest.photos.some((photo) => photo.series === "commissioned-work"), false);
 	assert.equal(manifest.photos.find((photo) => photo.printId === "the-natural-world-3")?.publicId, "3_asebdu");
 	assert.equal(manifest.photos.find((photo) => photo.printId === "san-francisco-24")?.publicId, "place/california/san-francisco/24");
 	assert.deepEqual(manifest.photos.find((photo) => photo.aspectGroup === "square")?.sizesByMedium, {
 		"fine-art": ["10x10", "12x12", "16x16"],
-		framed: ["12x12", "16x16", "20x20"],
-		canvas: ["8x8", "12x12", "16x16"],
 	});
 	assert.equal(
 		manifest.photos.find((photo) => photo.printId === "protests-san-francisco-16")?.publicId,
@@ -644,6 +646,31 @@ test("uses product-specific square sizes and Gelato wood frame labels", () => {
 	);
 });
 
+test("rejects landscape placeholders on vertical Gelato variants", () => {
+	assert.throws(
+		() => assertTemplatePlaceholderOrientation({
+			title: "40x50 cm / 16x20 - Vertical",
+			orientation: "vertical",
+			imagePlaceholders: [{ name: "Artwork", width: 325.6, height: 237.5 }],
+		}, "fine-art"),
+		/has a 325.6x237.5 horizontal placeholder/,
+	);
+	assert.doesNotThrow(() => assertTemplatePlaceholderOrientation({
+		title: "40x50 cm / 16x20 - Vertical",
+		orientation: "vertical",
+		imagePlaceholders: [{ name: "Artwork", width: 237.5, height: 325.6 }],
+	}, "fine-art"));
+});
+
+test("accepts square placeholders for square Gelato variants", () => {
+	assert.doesNotThrow(() => assertTemplatePlaceholderOrientation({
+		title: "40x40 cm / 16x16 - Horizontal",
+		orientation: "horizontal",
+		size: "16x16",
+		imagePlaceholders: [{ width: 408, height: 408 }],
+	}, "fine-art"));
+});
+
 test("reports managed products removed from the portfolio", () => {
 	const photos = [{ printId: "kept-photo" }];
 	const state = {
@@ -665,7 +692,7 @@ test("reports managed products removed from the portfolio", () => {
 			tags: ["deleted-photo", "format-canvas"],
 		},
 	];
-	assert.equal(expectedProductKeys(photos).size, 3);
+	assert.equal(expectedProductKeys(photos).size, 1);
 	assert.equal(managedProductKey(remote[0]), "deleted-photo:canvas");
 	assert.equal(managedProductKey(remote[1]), null);
 	assert.deepEqual(findStaleProducts(state, remote, photos), [
@@ -770,11 +797,10 @@ test("reconcile archives stale products, replaces old catalog versions, and upda
 		[renamed],
 		{ products: { "animals-stable-2:fine-art": { id: "current" } } },
 		[current, old, stale],
-		["fine-art", "framed", "canvas"],
+		["fine-art"],
 	);
-	assert.equal(plan.creates.length, 2);
-	assert.equal(plan.creates.some((action) => action.medium === "framed"), true);
-	assert.equal(plan.archives.some((action) => action.product.id === "old" && action.reason === "catalog-version-replacement"), true);
+	assert.equal(plan.creates.length, 0);
+	assert.equal(plan.archives.some((action) => action.product.id === "old" && action.reason === "retired-format"), true);
 	assert.equal(plan.archives.some((action) => action.product.id === "stale" && action.reason === "not-in-cms"), true);
 	assert.equal(plan.updates.length, 1);
 	assert.equal(plan.updates[0].key, "animals-stable-2:fine-art");
@@ -801,7 +827,7 @@ test("does not match products by mutable title and blocks archive without Shopif
 	assert.equal(plan.creates.length, 1);
 	assert.equal(plan.archives.length, 0);
 	assert.deepEqual(plan.blocked, [{ action: "archive", key: "removed-photo:fine-art", productId: staleWithoutExternalId.id, reason: "missing-shopify-external-id" }]);
-	assert.equal(catalogVersionTag, "catalog-edge-to-edge-v1");
+	assert.equal(catalogVersionTag, "catalog-fine-art-mockup-v2");
 });
 
 test("allows pending publishing products to wait for Shopify mappings", () => {
@@ -818,7 +844,7 @@ test("allows pending publishing products to wait for Shopify mappings", () => {
 		status: "publishing_queued",
 		title: "Old title",
 		handle: "old-handle",
-		tags: ["photo-1", "format-fine-art", "claire-thomas", "catalog-edge-to-edge-v1"],
+		tags: ["photo-1", "format-fine-art", "claire-thomas", "catalog-fine-art-mockup-v2"],
 	};
 	const plan = buildReconcilePlan([photo], { products: {} }, [pending], ["fine-art"]);
 	assert.equal(plan.pending.length, 1);
@@ -1109,7 +1135,7 @@ test("archives an exact empty unbound active orphan before assigning its canonic
 test("refuses to mutate usable active or differently tagged canonical-handle blockers", async () => {
 	const { product, desired, blocker } = canonicalHandleFixture();
 	assert.deepEqual(managedIdentityTags(desired.tags), [
-		"catalog-edge-to-edge-v1",
+		"catalog-fine-art-mockup-v2",
 		"claire-thomas",
 		"format-fine-art",
 		"photo-id:animals-17",
@@ -1460,6 +1486,86 @@ test("plans a deterministic full-bleed artwork media repair for every Shopify va
 		},
 	};
 	assert.equal(productNeedsShopifyMediaRepair(repaired, photo), false);
+});
+
+test("maps Fine Art mockups through Shopify SKU instead of unreliable Gelato external IDs", () => {
+	const artwork = { id: "artwork", alt: "Claire Thomas artwork: photo-1", status: "READY" };
+	const mockupSmall = { id: "mockup-small", alt: "gelato-image-small", status: "READY" };
+	const mockupLarge = { id: "mockup-large", alt: "gelato-image-large", status: "READY" };
+	const product = {
+		tags: ["photo-id:photo-1", "format-fine-art", "claire-thomas"],
+		variants: [
+			{ id: "gelato-small", externalId: "shopify-large" },
+			{ id: "gelato-large", externalId: "shopify-small" },
+		],
+		productImages: [
+			{ id: "gelato-image-small", productVariantIds: ["gelato-small"] },
+			{ id: "gelato-image-large", productVariantIds: ["gelato-large"] },
+		],
+		shopifyMedia: { nodes: [artwork, mockupSmall, mockupLarge] },
+		shopifyVariants: { nodes: [
+			{ id: "shopify-small", sku: "gelato-small", media: { nodes: [artwork] } },
+			{ id: "shopify-large", sku: "gelato-large", media: { nodes: [mockupSmall] } },
+		] },
+	};
+	assert.deepEqual(buildShopifyVariantMockupPlan(product), {
+		missing: [],
+		updates: [
+			{ id: "shopify-small", mediaId: "mockup-small" },
+			{ id: "shopify-large", mediaId: "mockup-large" },
+		],
+	});
+	assert.deepEqual(buildShopifyVariantMediaUpdates(product, artwork), [
+		{ id: "shopify-small", mediaId: "mockup-small" },
+		{ id: "shopify-large", mediaId: "mockup-large" },
+	]);
+});
+
+test("treats a Fine Art summary without Gelato mockup mappings as unrepaired", async () => {
+	const photo = { printId: "photo-1" };
+	const artwork = { id: "artwork", alt: artworkMediaAltFor(photo), status: "READY" };
+	const summary = {
+		id: "gelato-product-1",
+		storeId: "store-1",
+		tags: ["format-fine-art"],
+		shopifyMedia: { nodes: [artwork] },
+		shopifyVariants: { nodes: [{ id: "variant-1", sku: "gelato-variant-1", media: { nodes: [artwork] } }] },
+	};
+	assert.equal(productNeedsShopifyMediaRepair(summary, photo), true);
+
+	const requests = [];
+	const detail = await fetchGelatoProductDetail(summary, {
+		apiRequestImpl: async (path) => {
+			requests.push(path);
+			return {
+				productImages: [{ id: "mockup-1", productVariantIds: ["gelato-variant-1"] }],
+				variants: [{ id: "gelato-variant-1" }],
+			};
+		},
+	});
+	assert.deepEqual(requests, ["/stores/store-1/products/gelato-product-1"]);
+	assert.equal(detail.productImages[0].id, "mockup-1");
+
+	const enriched = await enrichProductsWithGelatoDetails([summary], {
+		storeId: "store-1",
+		apiRequestImpl: async () => ({
+			productImages: [{ id: "mockup-1", productVariantIds: ["gelato-variant-1"] }],
+			variants: [{ id: "gelato-variant-1" }],
+		}),
+	});
+	assert.equal(enriched[0].productImages[0].id, "mockup-1");
+
+	let skippedRequests = 0;
+	const skipped = await enrichProductsWithGelatoDetails([summary], {
+		storeId: "store-1",
+		shouldEnrich: () => false,
+		apiRequestImpl: async () => {
+			skippedRequests += 1;
+			return {};
+		},
+	});
+	assert.equal(skippedRequests, 0);
+	assert.equal(skipped[0], summary);
 });
 
 test("recognizes direct Shopify media query results and keeps one ready artwork marker", () => {
@@ -1849,4 +1955,35 @@ test("waits until every Shopify variant points at the artwork media", async () =
 	});
 	assert.equal(observed, complete);
 	assert.equal(fetches, 2);
+});
+
+test("polls Shopify through the external product ID for Gelato records", async () => {
+	const photo = { printId: "photo-1" };
+	const artworkMedia = { id: "artwork", alt: artworkMediaAltFor(photo), status: "READY" };
+	const gelatoProduct = {
+		id: "gelato-product-uuid",
+		externalId: "123456789",
+		shopifyMedia: { nodes: [artworkMedia] },
+		shopifyVariants: { nodes: [{ id: "variant-1", media: { nodes: [] } }] },
+	};
+	const complete = {
+		id: "gid://shopify/Product/123456789",
+		media: { nodes: [artworkMedia] },
+		variants: { nodes: [{ id: "variant-1", media: { nodes: [{ id: "artwork" }] } }] },
+	};
+	const requested = [];
+	const observed = await waitForShopifyArtworkBindings(gelatoProduct, photo, {
+		fetchProduct: async (id) => {
+			requested.push(id);
+			return requested.length === 1 ? gelatoProduct : complete;
+		},
+		sleepImpl: async () => {},
+		timeoutMs: 100,
+		pollIntervalMs: 1,
+	});
+	assert.equal(observed, complete);
+	assert.deepEqual(requested, [
+		"gid://shopify/Product/123456789",
+		"gid://shopify/Product/123456789",
+	]);
 });

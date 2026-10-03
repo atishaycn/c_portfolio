@@ -11,30 +11,26 @@ The connected sales path is:
 
 ## Product Catalog
 
-Commissioned Work is excluded. Every current non-commissioned photograph receives:
+Every CMS photograph with `printEnabled: true` receives one product:
 
 - Fine Art Print: three aspect-ratio-matched sizes.
-- Framed Fine Art Print: the same three sizes, with Black and Natural Wood frames.
-- Canvas Print: three aspect-ratio-matched sizes.
 
 Size groups:
 
-| Photograph ratio | Fine Art | Framed | Canvas |
-| --- | --- | --- | --- |
-| Square | 10x10, 12x12, 16x16 in | 12x12, 16x16, 20x20 in | 8x8, 12x12, 16x16 in |
-| Classic | 8x10, 12x16, 16x20 in | 8x10, 12x16, 16x20 in | 8x10, 12x16, 16x20 in |
-| Wide | 8x12, 12x18, 16x24 in | 8x12, 12x18, 16x24 in | 8x12, 12x18, 16x24 in |
+| Photograph ratio | Fine Art |
+| --- | --- |
+| Square | 10x10, 12x12, 16x16 in |
+| Classic | 8x10, 12x16, 16x20 in |
+| Wide | 8x12, 12x18, 16x24 in |
 
 The fulfillment inventory is CMS-authoritative: only items with `printEnabled: true` are included, and the storefront presents one card per photograph. The script reads `content/portfolio.json` by default or an explicit public CMS snapshot with `--content-file`; it does not use `site.js` as catalog truth.
 
-Create one Gelato master template for each product type. Each template must include both orientations and all nine sizes. The framed template must include Black and Natural Wood variants.
+The Gelato Fine Art master template must include both orientations and all nine sizes.
 
 Add the template IDs to `.env.gelato.local`:
 
 ```text
 GELATO_FINE_ART_TEMPLATE_ID=
-GELATO_FRAMED_TEMPLATE_ID=
-GELATO_CANVAS_TEMPLATE_ID=
 
 # Shopify Admin API: put these in ignored .env.shopify.local, not source control.
 SHOPIFY_STORE_DOMAIN=esf4bj-wk.myshopify.com
@@ -55,10 +51,10 @@ node scripts/gelato-products.mjs --content-file /path/to/cms-snapshot.json
 # Confirm every required template variant and placeholder exists.
 node scripts/gelato-products.mjs --validate-templates
 
-# Preview the three product actions for one photograph (dry-run; no mutation).
+# Preview the Fine Art action for one photograph (dry-run; no mutation).
 node scripts/gelato-products.mjs --reconcile --content-file /path/to/cms-snapshot.json --only the-natural-world-3
 
-# After inspecting those three products in Shopify, create the remaining public catalog.
+# After inspecting that product in Shopify, create the remaining public catalog.
 # Low concurrency lets Gelato drain large background publishing queues.
 node scripts/gelato-products.mjs --reconcile --execute --content-file /path/to/cms-snapshot.json
 
@@ -74,9 +70,9 @@ node scripts/portfolio-print-sync.mjs --execute
 
 The script writes `.gelato-product-state.json` after each product. Re-running reconcile recovers already-existing products, creates only missing enabled items, updates album/photo metadata, and archives products no longer enabled. It retries Gelato throttling responses and monitors publishing through catalog snapshots. A pending Gelato product is quarantined as a Shopify Draft only after Gelato exposes its exact Shopify `externalId`; an `active` response without that mapping remains pending and is polled again. After artwork repair succeeds, reconciliation activates the Shopify product and explicitly publishes it to the Online Store; strict audit fails active products missing that publication. If products are already publishing, reconcile drains and repairs that batch before requesting additional products, preventing a saturated queue from holding one create request in hours of `429` backoff. The admin-triggered workflow uses exit code 75 for bounded Gelato `429`/publishing failures and Shopify asynchronous media/job/binding timeouts, then allows at most five serialized continuations; unrelated failures never self-retry. Stable CMS `item.id` tags prevent album rename, move, or reorder from changing photo identity. Review `.gelato-reconcile-plan.json` before any `--execute` run.
 
-### Full-Bleed Preview Repair
+### Size-Specific Product Preview Repair
 
-Gelato mockup previews can contain baked white margins that CSS cannot remove. On every normal reconcile, the script idempotently uploads the original Cloudinary artwork to the managed Shopify product using the alt marker `Claire Thomas artwork: <print-id>`; newly created or repaired products remain hidden as Shopify drafts until that artwork is ready, first, and bound to every variant. It recognizes both enriched catalog records and direct Shopify `media`/`variants` query results before deciding to upload. If an interrupted older run left duplicate markers, reconcile keeps one ready marker and removes only the extras. Shopify media processing, reorder, and variant binding advance as restart-safe stages: a pending stage is recorded as retryable while the run continues across the rest of the catalog, and a bounded continuation validates and advances the next stage. The Horizon theme override hides non-marker Gelato media from the PDP gallery, including after variant-driven DOM updates; the marker artwork remains available to the existing zoom dialog. A restart after any successful Shopify mutation finds the marker and continues with the missing step instead of uploading another image. Shopify HTTP 429 and GraphQL `THROTTLED` responses use capped exponential backoff.
+The Gelato master template must use portrait image placeholders for every Vertical variant and landscape placeholders for every Horizontal variant; `--validate-templates` rejects mismatches before creation. On every normal reconcile, the script idempotently uploads the original Cloudinary artwork using the alt marker `Claire Thomas artwork: <print-id>`. Each Fine Art Shopify variant is bound to the exact Gelato mockup whose `productVariantIds` contains that variant's Shopify SKU. This avoids Gelato's unreliable external-ID mapping. The Horizon override shows only the selected size's mockup and retains the marker artwork as a secondary zoomable image. Pending media processing, reorder, and binding steps are restart-safe, and interrupted runs do not upload duplicate artwork markers.
 
 Run the migration through the normal CMS-authoritative reconcile:
 
@@ -85,9 +81,9 @@ node scripts/gelato-products.mjs --reconcile --execute --content-file /path/to/c
 node scripts/gelato-products.mjs --strict-audit --content-file /path/to/cms-snapshot.json
 ```
 
-The strict audit must report `mediaRepairKeys: 0` and `unpublishedProducts: 0`. It checks Online Store publication, the product’s first artwork media, and every variant’s media association, so a product can remain flagged even when its primary image looks correct if a selected size or frame can still display a Gelato mockup.
+The strict audit must report `mediaRepairKeys: 0` and `unpublishedProducts: 0`. It checks Online Store publication, the product's artwork marker, and every Fine Art variant's exact size-specific Gelato mockup association.
 
-Archiving is explicit and reversible: reconcile sends Shopify `productUpdate(status: ARCHIVED)` for disabled, stale, duplicate, or superseded products; it never calls a delete endpoint. Missing Shopify mappings block execution for review. The edge-to-edge catalog version archives old `meet` products before creating replacements.
+Archiving is explicit and reversible: reconcile sends Shopify `productUpdate(status: ARCHIVED)` for disabled, stale, duplicate, or superseded products; it never calls a delete endpoint. Missing Shopify mappings block execution for review. Catalog-version changes archive superseded products before creating replacements.
 
 The runner fetches the public CMS revision, writes a pending marker before reconcile, and advances `lastSuccessfulRevision` only after the child reconcile exits successfully. It also records the catalog-sync contract version, so a release that changes reconciliation requirements (such as Online Store publication) reruns once even when the CMS revision is unchanged. It uses an exclusive lock to prevent overlapping manual workflow invocations. If `SHOPIFY_ADMIN_ACCESS_TOKEN` is absent, reconcile requests a 24-hour Shopify Dev Dashboard client-credentials token from `/admin/oauth/access_token`; tokens and secrets are never logged or written to state.
 
@@ -109,8 +105,8 @@ Before creation, inventory is listed by `createdAt` and `updatedAt` in both dire
 1. Buyers open any non-commissioned gallery photo.
 2. The lightbox shows `Order print`.
 3. The link opens the photograph's canonical Fine Art product page directly.
-4. The Horizon theme presents Fine Art, Framed, and Canvas as print-type choices on that page.
-5. Each choice opens its Gelato-connected Shopify product while keeping the same product-detail experience.
+4. The product page offers three composition-matched Fine Art sizes.
+5. The selected size shows its Gelato product mockup; the original artwork remains available as a secondary image.
 
 The live theme code is tracked in `shopify-theme-overrides/ct-product-consolidation.liquid`. Include it before `</body>` in `layout/theme.liquid`.
 
@@ -129,10 +125,10 @@ protests-2
 
 ## Launch Checklist
 
-1. Create and validate the three Gelato master templates.
-2. Create three hidden test products for `the-natural-world-3`.
-3. Inspect composition, mockups, variants, prices, and shipping.
+1. Create and validate the Gelato Fine Art master template.
+2. Create one hidden test product for `the-natural-world-3`.
+3. Inspect composition, size-specific mockups, variants, prices, and shipping.
 4. Create the remaining public catalog.
-5. Verify direct product links and all three print-type choices from each gallery.
+5. Verify direct Fine Art product links and size choices from each gallery.
 6. Archive obsolete test listings.
 7. Place one real test order and verify Gelato fulfillment and tracking.

@@ -24,14 +24,16 @@ const createClassList = (initial = []) => {
 	};
 };
 
-const loadApi = (cards = [], mediaContainers = [], printProduct = false) => {
-	const documentElementClassList = createClassList(printProduct ? ["ct-print-product"] : []);
+const loadApi = (cards = [], mediaContainers = [], printProduct = false, variantPayload = null) => {
+	const documentElementClassList = createClassList(
+		printProduct ? ["ct-print-product", "ct-mockup-preview"] : [],
+	);
 	const document = {
 		documentElement: { classList: documentElementClassList },
 		body: {},
 		addEventListener() {},
-		querySelector() {
-			return null;
+		querySelector(selector) {
+			return selector.includes("variant-picker") ? variantPayload : null;
 		},
 		querySelectorAll(selector) {
 			if (selector.includes("product-media-container--image") || selector.includes("ct-non-artwork-media")) return mediaContainers;
@@ -41,13 +43,14 @@ const loadApi = (cards = [], mediaContainers = [], printProduct = false) => {
 	const window = {
 		location: { origin: "https://shop.test" },
 		requestAnimationFrame() {},
+		setTimeout() {},
 	};
 	class MutationObserver {
 		observe() {}
 	}
 	const testableScript = script.replace(
 		"    enhanceStorefront();\n    document.addEventListener",
-		"    window.__ctTestApi = { artworkKeyFor, baseHandleFor, consolidateProductCards, filterProductMedia, formatForHandle, normalizedHandle, productHandle };\n    document.addEventListener",
+		"    window.__ctTestApi = { artworkKeyFor, baseHandleFor, consolidateProductCards, filterProductMedia, formatForHandle, normalizedHandle, originalPhotoUrlForHandle, productHandle, syncVariantPreview };\n    document.addEventListener",
 	);
 	assert.notEqual(testableScript, script, "theme script test hook must stay aligned with the bootstrap");
 	vm.runInNewContext(testableScript, { MutationObserver, URL, decodeURIComponent, document, window });
@@ -62,6 +65,19 @@ test("normalizes numeric Shopify duplicate suffixes without losing numeric artwo
 	assert.equal(api.formatForHandle("new-album-17-fine-art-print-2").suffix, "-fine-art-print");
 	assert.equal(api.baseHandleFor("new-album-17-fine-art-print-2"), "new-album-17");
 	assert.equal(api.baseHandleFor("artist-2-fine-art-print"), "artist-2");
+});
+
+test("limits the Gelato-only original-photo pilot to San Francisco 93", () => {
+	const api = loadApi();
+
+	assert.equal(
+		api.originalPhotoUrlForHandle("san-francisco-93-fine-art-print"),
+		"https://res.cloudinary.com/dpmdkrggj/image/upload/f_auto,q_auto,w_2400,c_limit/place/california/san-francisco/93",
+	);
+	assert.equal(api.originalPhotoUrlForHandle("the-natural-world-2-fine-art-print"), "");
+	assert.match(liquid, /\.ct-gelato-only-pilot media-gallery \.ct-artwork-media/);
+	assert.match(liquid, /\.ct-gelato-only-pilot media-gallery slideshow-controls/);
+	assert.match(liquid, /View original photograph/);
 });
 
 test("prefers stable artwork tags and supports arbitrary renamed album handles", () => {
@@ -185,7 +201,7 @@ test("hides non-Fine-Art cards across paginated product and resource listings", 
 	assert.equal(predictiveCanvas.classList.has("ct-print-card"), true);
 });
 
-test("keeps only stable-marker artwork media in the PDP gallery", () => {
+test("marks artwork and hides non-selected Gelato mockups in the PDP gallery", () => {
 	const makeMedia = (alt) => ({
 		classList: createClassList(["product-media-container--image"]),
 		querySelector: () => ({ alt }),
@@ -199,6 +215,27 @@ test("keeps only stable-marker artwork media in the PDP gallery", () => {
 	assert.equal(artwork.classList.has("ct-artwork-media"), true);
 	assert.equal(artwork.classList.has("ct-non-artwork-media"), false);
 	assert.equal(mockup.classList.has("ct-non-artwork-media"), true);
+});
+
+test("shows only the exact mockup associated with the selected Fine Art size", () => {
+	const makeMedia = (alt) => ({
+		classList: createClassList(["product-media-container--image"]),
+		querySelector: () => ({ alt }),
+		closest: () => null,
+	});
+	const artwork = makeMedia("Claire Thomas artwork: the-natural-world-1");
+	const smallMockup = makeMedia("gelato-image-small");
+	const largeMockup = makeMedia("gelato-image-large");
+	const variantPayload = {
+		textContent: JSON.stringify({ featured_media: { alt: "gelato-image-small" } }),
+	};
+	const api = loadApi([], [artwork, smallMockup, largeMockup], true, variantPayload);
+
+	api.filterProductMedia();
+	api.syncVariantPreview();
+	assert.equal(artwork.classList.has("ct-artwork-media"), true);
+	assert.equal(smallMockup.classList.has("ct-selected-variant-media"), true);
+	assert.equal(largeMockup.classList.has("ct-selected-variant-media"), false);
 });
 
 test("keeps Gelato media visible until stable-marker artwork exists", () => {

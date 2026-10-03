@@ -69,8 +69,9 @@ const MEDIA = {
 			"<p>Fine art photography by Claire Thomas, printed on canvas and stretched over an FSC-certified wood frame.</p><p>Choose from three sizes matched to the photograph's aspect ratio. Printed and shipped on demand by Gelato.</p>",
 	},
 };
+const ACTIVE_MEDIA = ["fine-art"];
 
-const CATALOG_VERSION = "edge-to-edge-v1";
+const CATALOG_VERSION = "fine-art-mockup-v2";
 const catalogVersionTag = `catalog-${CATALOG_VERSION}`;
 
 const SIZE_GROUPS = {
@@ -123,7 +124,7 @@ const parseArgs = (argv) => {
 		limit: Infinity,
 		concurrency: 3,
 		only: null,
-		media: Object.keys(MEDIA),
+		media: [...ACTIVE_MEDIA],
 		contentFile: process.env.PORTFOLIO_CONTENT_FILE || CONTENT_FILE,
 		contentUrl: process.env.PORTFOLIO_CONTENT_URL || null,
 	};
@@ -172,10 +173,10 @@ const printHelp = () => {
   node scripts/gelato-products.mjs --validate-templates
   node scripts/gelato-products.mjs --audit
   node scripts/gelato-products.mjs --strict-audit
-  node scripts/gelato-products.mjs --reconcile [--only id,id] [--media fine-art,framed,canvas]
-  node scripts/gelato-products.mjs --reconcile --execute [--only id,id] [--media fine-art,framed,canvas]
+  node scripts/gelato-products.mjs --reconcile [--only id,id] [--media fine-art]
+  node scripts/gelato-products.mjs --reconcile --execute [--only id,id] [--media fine-art]
   node scripts/gelato-products.mjs --reconcile --content-file /tmp/claire-live-content.json
-  node scripts/gelato-products.mjs --execute [--visible] [--limit N] [--concurrency N] [--only id,id] [--media fine-art,framed,canvas]
+  node scripts/gelato-products.mjs --execute [--visible] [--limit N] [--concurrency N] [--only id,id] [--media fine-art]
   node scripts/gelato-products.mjs --execute --visible --repair-created [--repair-batch-photos N]
 
 The default command reads the current portfolio and writes a dry-run manifest.
@@ -323,7 +324,7 @@ const buildManifest = (content = readPortfolioContent()) => {
 					orientation: orientationFor(item.width, item.height),
 					aspectGroup,
 					sizesByMedium: Object.fromEntries(
-						Object.keys(MEDIA).map((medium) => [medium, SIZE_GROUPS[medium][aspectGroup]]),
+						ACTIVE_MEDIA.map((medium) => [medium, SIZE_GROUPS[medium][aspectGroup]]),
 					),
 					publicId: item.publicId,
 					fileUrl: cloudinaryUrl(item.publicId),
@@ -334,7 +335,7 @@ const buildManifest = (content = readPortfolioContent()) => {
 	return {
 		generatedAt: new Date().toISOString(),
 		photoCount: photos.length,
-		productCount: photos.length * Object.keys(MEDIA).length,
+		productCount: photos.length * ACTIVE_MEDIA.length,
 		photos,
 	};
 };
@@ -495,13 +496,36 @@ const selectTemplateVariants = (template, photo, medium) => {
 	return selected;
 };
 
+const assertTemplatePlaceholderOrientation = (variant, medium) => {
+	const [sizeWidth, sizeHeight] = String(variant.size || "").split("x").map(Number);
+	const isSquare = Number.isFinite(sizeWidth) && sizeWidth === sizeHeight;
+	for (const placeholder of variant.imagePlaceholders) {
+		assert(
+			Number.isFinite(placeholder.width) && Number.isFinite(placeholder.height),
+			`${medium} template ${variant.title} placeholder dimensions are missing`,
+		);
+		assert(
+			isSquare
+				? placeholder.width === placeholder.height
+				: variant.orientation === "vertical"
+				? placeholder.height > placeholder.width
+				: placeholder.width > placeholder.height,
+			`${medium} template ${variant.title} has a ${placeholder.width}x${placeholder.height} ${
+				placeholder.width > placeholder.height ? "horizontal" : "vertical"
+			} placeholder`,
+		);
+	}
+};
+
 const validateTemplates = (templates, photos, selectedMedia) => {
 	for (const medium of selectedMedia) {
 		const seen = new Set();
 		for (const photo of photos) {
 			const key = `${photo.orientation}:${photo.aspectGroup}`;
 			if (seen.has(key)) continue;
-			selectTemplateVariants(templates[medium], photo, medium);
+			for (const variant of selectTemplateVariants(templates[medium], photo, medium)) {
+				assertTemplatePlaceholderOrientation(variant, medium);
+			}
 			seen.add(key);
 		}
 	}
@@ -715,7 +739,7 @@ const waitForProducts = async (
 	return completedProducts;
 };
 
-const expectedProductKeys = (photos, selectedMedia = Object.keys(MEDIA)) =>
+const expectedProductKeys = (photos, selectedMedia = ACTIVE_MEDIA) =>
 	new Set(photos.flatMap((photo) => selectedMedia.map((medium) => productKey(photo.printId, medium))));
 
 const managedProductKey = (product) => {
@@ -780,6 +804,43 @@ const shopifyVariantNodes = (product) =>
 const artworkMediaNodesFor = (product, photo) =>
 	shopifyMediaNodes(product).filter((media) => media.alt === artworkMediaAltFor(photo));
 
+const isFineArtProduct = (product) => product?.tags?.includes("format-fine-art");
+
+const usesVariantMockupPreview = (product) =>
+	isFineArtProduct(product) &&
+	Array.isArray(product?.productImages) &&
+	product.productImages.length > 0;
+
+const buildShopifyVariantMockupPlan = (product) => {
+	const mediaByAlt = new Map(
+		shopifyMediaNodes(product)
+			.filter((media) => media?.id && media?.alt)
+			.map((media) => [media.alt, media]),
+	);
+	const mediaByGelatoVariantId = new Map();
+	for (const productImage of product?.productImages || []) {
+		const media = mediaByAlt.get(productImage.id);
+		if (!media) continue;
+		for (const gelatoVariantId of productImage.productVariantIds || []) {
+			mediaByGelatoVariantId.set(gelatoVariantId, media);
+		}
+	}
+	const updates = [];
+	const missing = [];
+	for (const variant of shopifyVariantNodes(product)) {
+		const desiredMedia = mediaByGelatoVariantId.get(variant.sku);
+		if (!variant.sku || !desiredMedia) {
+			missing.push({ id: variant.id, sku: variant.sku || null });
+			continue;
+		}
+		const currentMediaIds = (variant.media?.nodes ?? variant.media ?? []).map((media) => media.id);
+		if (currentMediaIds.length !== 1 || currentMediaIds[0] !== desiredMedia.id) {
+			updates.push({ id: variant.id, mediaId: desiredMedia.id });
+		}
+	}
+	return { updates, missing };
+};
+
 const isShopifyMediaReady = (media) => String(media?.status || "").toUpperCase() === "READY";
 
 const findArtworkMedia = (product, photo) => {
@@ -800,6 +861,11 @@ const productNeedsShopifyMediaRepair = (product, photo) => {
 	const artworkMedia = findArtworkMedia(product, photo);
 	if (!artworkMedia || !isShopifyMediaReady(artworkMedia)) return true;
 	if (shopifyMediaNodes(product).findIndex((media) => media.id === artworkMedia.id) !== 0) return true;
+	if (isFineArtProduct(product) && !usesVariantMockupPreview(product)) return true;
+	if (usesVariantMockupPreview(product)) {
+		const plan = buildShopifyVariantMockupPlan(product);
+		return plan.missing.length > 0 || plan.updates.length > 0;
+	}
 	return shopifyVariantNodes(product).some((variant) => {
 		const mediaIds = (variant.media?.nodes ?? variant.media ?? []).map((media) => media.id);
 		return mediaIds.length !== 1 || mediaIds[0] !== artworkMedia.id;
@@ -815,20 +881,34 @@ const artworkMediaInput = (photo) => ({
 const shouldUploadArtworkMedia = (product, photo) =>
 	Boolean(photo && !findArtworkMedia(product, photo));
 
-const buildShopifyVariantMediaUpdates = (product, artworkMedia) =>
-	shopifyVariantNodes(product)
+const buildShopifyVariantMediaUpdates = (product, artworkMedia) => {
+	if (usesVariantMockupPreview(product)) {
+		const plan = buildShopifyVariantMockupPlan(product);
+		assert.equal(
+			plan.missing.length,
+			0,
+			`Missing Gelato mockup mappings for ${plan.missing.map((variant) => variant.sku || variant.id).join(", ")}`,
+		);
+		return plan.updates;
+	}
+	return shopifyVariantNodes(product)
 		.filter((variant) => {
 			const mediaIds = (variant.media?.nodes ?? variant.media ?? []).map((media) => media.id);
 			return mediaIds.length !== 1 || mediaIds[0] !== artworkMedia.id;
 		})
 		.map((variant) => ({ id: variant.id, mediaId: artworkMedia.id }));
+};
 
 const productShopifyId = (product) => {
 	const externalId = product?.externalId;
-	if (!externalId) return null;
-	return String(externalId).startsWith("gid://shopify/Product/")
-		? String(externalId)
-		: `gid://shopify/Product/${externalId}`;
+	if (externalId) {
+		return String(externalId).startsWith("gid://shopify/Product/")
+			? String(externalId)
+			: `gid://shopify/Product/${externalId}`;
+	}
+	return String(product?.id || "").startsWith("gid://shopify/Product/")
+		? String(product.id)
+		: null;
 };
 
 const archivedProductHandle = (product) => {
@@ -862,10 +942,11 @@ const buildReconcilePlan = (
 	photos,
 	state,
 	existingProducts,
-	selectedMedia = Object.keys(MEDIA),
+	selectedMedia = ACTIVE_MEDIA,
 	{ includeStale = true } = {},
 ) => {
 	const selectedMediaSet = new Set(selectedMedia);
+	const expectedPhotoIds = new Set(photos.map((photo) => photo.printId));
 	const expected = new Map(
 		photos.flatMap((photo) => selectedMedia.map((medium) => [productKey(photo.printId, medium), { photo, medium }])),
 	);
@@ -885,7 +966,14 @@ const buildReconcilePlan = (
 		if (!key) continue;
 		const { medium } = splitProductKey(key);
 		if (expected.has(key)) groups.get(key).push(product);
-		else if (includeStale && selectedMediaSet.has(medium)) staleProducts.push({ key, product, reason: "not-in-cms" });
+		else if (includeStale && MEDIA[medium]) {
+			const { printId } = splitProductKey(key);
+			staleProducts.push({
+				key,
+				product,
+				reason: expectedPhotoIds.has(printId) ? "retired-format" : "not-in-cms",
+			});
+		}
 	}
 
 	const plan = {
@@ -1103,6 +1191,7 @@ const enrichProductsWithShopifyState = async (products) => {
 						variants(first: 100) {
 							nodes {
 								id
+								sku
 								media(first: 10) {
 									nodes { id }
 								}
@@ -1165,6 +1254,7 @@ const fetchShopifyProductMedia = async (id) => {
 					variants(first: 100) {
 						nodes {
 							id
+							sku
 							media(first: 10) { nodes { id } }
 						}
 					}
@@ -1203,6 +1293,8 @@ const waitForShopifyArtworkMedia = async (
 		pollIntervalMs = SHOPIFY_MEDIA_POLL_INTERVAL_MS,
 	} = {},
 ) => {
+	const id = productShopifyId(product);
+	assert(id, `Product ${product.id} has no Shopify product ID`);
 	const deadline = nowImpl() + timeoutMs;
 	let observed = product;
 	for (;;) {
@@ -1210,14 +1302,14 @@ const waitForShopifyArtworkMedia = async (
 		if (isShopifyMediaReady(artworkMedia)) return observed;
 		if (nowImpl() >= deadline) {
 			throw retryableReconcileError(
-				`Timed out waiting for Shopify artwork media on ${product.id} to become READY`,
+				`Timed out waiting for Shopify artwork media on ${id} to become READY`,
 			);
 		}
-		observed = await fetchProduct(product.id);
+		observed = await fetchProduct(id);
 		if (isShopifyMediaReady(findArtworkMedia(observed, photo))) return observed;
 		if (nowImpl() >= deadline) {
 			throw retryableReconcileError(
-				`Timed out waiting for Shopify artwork media on ${product.id} to become READY`,
+				`Timed out waiting for Shopify artwork media on ${id} to become READY`,
 			);
 		}
 		await sleepImpl(pollIntervalMs);
@@ -1256,22 +1348,75 @@ const waitForShopifyArtworkBindings = async (
 		pollIntervalMs = SHOPIFY_MEDIA_POLL_INTERVAL_MS,
 	} = {},
 ) => {
+	const id = productShopifyId(product);
+	assert(id, `Product ${product.id} has no Shopify product ID`);
 	const deadline = nowImpl() + timeoutMs;
-	let observed = await fetchProduct(product.id);
+	let observed = await fetchProduct(id);
 	for (;;) {
 		if (!productNeedsShopifyMediaRepair(observed, photo)) return observed;
 		if (nowImpl() >= deadline) {
 			throw retryableReconcileError(
-				`Timed out waiting for Shopify artwork variant bindings on ${product.id}`,
+				`Timed out waiting for Shopify artwork variant bindings on ${id}`,
 			);
 		}
 		await sleepImpl(pollIntervalMs);
-		observed = await fetchProduct(product.id);
+		observed = await fetchProduct(id);
 	}
 };
 
+const fetchGelatoProductDetail = async (
+	product,
+	{
+		apiRequestImpl = apiRequest,
+		storeId = product?.storeId || process.env.GELATO_STORE_ID || DEFAULT_STORE_ID,
+	} = {},
+) => {
+	if (!isFineArtProduct(product) || usesVariantMockupPreview(product)) return product;
+	assert(product?.id && !String(product.id).startsWith("gid://shopify/"), "Fine Art product has no Gelato product ID");
+	const detail = await apiRequestImpl(`/stores/${storeId}/products/${product.id}`);
+	assert(detail?.productImages?.length, `Gelato product ${product.id} has no variant mockup images`);
+	return {
+		...product,
+		productImages: detail.productImages,
+		variants: detail.variants,
+	};
+};
+
+const enrichProductsWithGelatoDetails = async (
+	products,
+	{
+		apiRequestImpl = apiRequest,
+		storeId = process.env.GELATO_STORE_ID || DEFAULT_STORE_ID,
+		concurrency = 4,
+		shouldEnrich = () => true,
+	} = {},
+) => {
+	const enriched = [...products];
+	const indexes = products
+		.map((product, index) => ({ product, index }))
+		.filter(({ product }) =>
+			!isArchivedProduct(product) &&
+			isFineArtProduct(product) &&
+			!usesVariantMockupPreview(product) &&
+			shouldEnrich(product),
+		);
+	let cursor = 0;
+	const worker = async () => {
+		for (;;) {
+			const current = indexes[cursor++];
+			if (!current) return;
+			enriched[current.index] = await fetchGelatoProductDetail(current.product, { apiRequestImpl, storeId });
+		}
+	};
+	await Promise.all(Array.from({ length: Math.min(concurrency, indexes.length) }, () => worker()));
+	return enriched;
+};
+
 const repairShopifyProductMedia = async (product, photo) => {
-	let observed = await fetchShopifyProductMedia(product.id);
+	const detailedProduct = await fetchGelatoProductDetail(product);
+	const id = productShopifyId(product);
+	assert(id, `Product ${product.id} has no Shopify product ID`);
+	let observed = await fetchShopifyProductMedia(id);
 	const duplicateMediaIds = extraArtworkMediaIds(observed, photo);
 	if (duplicateMediaIds.length) {
 		const data = await shopifyGraphql(
@@ -1281,21 +1426,21 @@ const repairShopifyProductMedia = async (product, photo) => {
 					mediaUserErrors { field message }
 				}
 			}`,
-			{ productId: product.id, mediaIds: duplicateMediaIds },
+			{ productId: id, mediaIds: duplicateMediaIds },
 		);
 		const errors = data.productDeleteMedia?.mediaUserErrors || [];
 		if (errors.length) {
-			throw new Error(`Shopify duplicate artwork media deletion failed for ${product.id}: ${JSON.stringify(errors)}`);
+			throw new Error(`Shopify duplicate artwork media deletion failed for ${id}: ${JSON.stringify(errors)}`);
 		}
-		observed = await fetchShopifyProductMedia(product.id);
+		observed = await fetchShopifyProductMedia(id);
 		if (artworkMediaNodesFor(observed, photo).length !== 1) {
-			throw retryableReconcileError(`Shopify duplicate artwork media deletion is still pending on ${product.id}`);
+			throw retryableReconcileError(`Shopify duplicate artwork media deletion is still pending on ${id}`);
 		}
 	}
 	let artworkMedia = findArtworkMedia(observed, photo);
 	if (!isShopifyMediaReady(artworkMedia)) {
 		throw retryableReconcileError(
-			`Shopify artwork media is still processing on ${product.id}`,
+			`Shopify artwork media is still processing on ${id}`,
 		);
 	}
 
@@ -1310,20 +1455,25 @@ const repairShopifyProductMedia = async (product, photo) => {
 				}
 			}`,
 			{
-				id: product.id,
+				id,
 				moves: [{ id: artworkMedia.id, newPosition: "0" }],
 			},
 		);
 		const errors = data.productReorderMedia?.mediaUserErrors || [];
-		if (errors.length) throw new Error(`Shopify media reorder failed for ${product.id}: ${JSON.stringify(errors)}`);
-		observed = await fetchShopifyProductMedia(product.id);
+		if (errors.length) throw new Error(`Shopify media reorder failed for ${id}: ${JSON.stringify(errors)}`);
+		observed = await fetchShopifyProductMedia(id);
 		artworkMedia = findArtworkMedia(observed, photo);
 		if (shopifyMediaNodes(observed).findIndex((media) => media.id === artworkMedia?.id) !== 0) {
-			throw retryableReconcileError(`Shopify artwork media reorder is still pending on ${product.id}`);
+			throw retryableReconcileError(`Shopify artwork media reorder is still pending on ${id}`);
 		}
 	}
 
-	const variants = buildShopifyVariantMediaUpdates(observed, artworkMedia);
+	const repairView = {
+		...detailedProduct,
+		shopifyMedia: observed.media,
+		shopifyVariants: observed.variants,
+	};
+	const variants = buildShopifyVariantMediaUpdates(repairView, artworkMedia);
 	if (variants.length) {
 		const data = await shopifyGraphql(
 			`mutation BindArtworkMediaToVariants($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
@@ -1331,13 +1481,17 @@ const repairShopifyProductMedia = async (product, photo) => {
 					userErrors { field message }
 				}
 			}`,
-			{ productId: product.id, variants },
+			{ productId: id, variants },
 		);
 		const errors = data.productVariantsBulkUpdate?.userErrors || [];
-		if (errors.length) throw new Error(`Shopify variant media update failed for ${product.id}: ${JSON.stringify(errors)}`);
-		observed = await fetchShopifyProductMedia(product.id);
-		if (productNeedsShopifyMediaRepair(observed, photo)) {
-			throw retryableReconcileError(`Shopify artwork variant bindings are still pending on ${product.id}`);
+		if (errors.length) throw new Error(`Shopify variant media update failed for ${id}: ${JSON.stringify(errors)}`);
+		observed = await fetchShopifyProductMedia(id);
+		if (productNeedsShopifyMediaRepair({
+			...detailedProduct,
+			shopifyMedia: observed.media,
+			shopifyVariants: observed.variants,
+		}, photo)) {
+			throw retryableReconcileError(`Shopify artwork variant bindings are still pending on ${id}`);
 		}
 	}
 	return { artworkMediaId: artworkMedia.id, reordered: artworkPosition > 0, variantsUpdated: variants.length };
@@ -1557,7 +1711,7 @@ const updateShopifyProduct = async (
 	if (result.userErrors?.length) {
 		throw new Error(`Shopify product update failed for ${id}: ${JSON.stringify(result.userErrors)}`);
 	}
-	if (photo) await repairShopifyProductMediaImpl(result.product, photo);
+	if (photo) await repairShopifyProductMediaImpl(product, photo);
 	return result.product;
 };
 
@@ -1843,7 +1997,7 @@ const applyReconcilePlan = async ({
 	};
 };
 
-const buildCatalogAudit = (photos, existingProducts, selectedMedia = Object.keys(MEDIA)) => {
+const buildCatalogAudit = (photos, existingProducts, selectedMedia = ACTIVE_MEDIA) => {
 	const expected = expectedProductKeys(photos, selectedMedia);
 	const groups = new Map([...expected].map((key) => [key, []]));
 	const unmanagedProducts = [];
@@ -2190,10 +2344,14 @@ const run = async () => {
 	if (args.reconcile) {
 		const selectedPhotos = manifest.photos.filter((photo) => !args.only || args.only.has(photo.printId));
 		assert(selectedPhotos.length, "No photographs matched --only");
+		const reconcileProducts = await enrichProductsWithGelatoDetails(existingProducts, {
+			storeId,
+			shouldEnrich: (product) => product.tags?.includes(catalogVersionTag),
+		});
 		const plan = buildReconcilePlan(
 			selectedPhotos,
 			state,
-			existingProducts,
+			reconcileProducts,
 			args.media,
 			{ includeStale: !args.only },
 		);
@@ -2237,7 +2395,10 @@ const run = async () => {
 		return;
 	}
 	if (args.audit) {
-		const catalogAudit = buildCatalogAudit(manifest.photos, existingProducts);
+		const auditProducts = args.strictAudit
+			? await enrichProductsWithGelatoDetails(existingProducts, { storeId })
+			: existingProducts;
+		const catalogAudit = buildCatalogAudit(manifest.photos, auditProducts);
 		writeFileSync(
 			CATALOG_AUDIT_FILE,
 			`${JSON.stringify(
@@ -2365,6 +2526,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
 
 export {
 	apiRequest,
+	assertTemplatePlaceholderOrientation,
 	applyReconcilePlan,
 	aspectGroupFor,
 	buildManifest,
@@ -2373,7 +2535,10 @@ export {
 	artworkMediaAltFor,
 	artworkMediaInput,
 	buildShopifyVariantMediaUpdates,
+	buildShopifyVariantMockupPlan,
+	enrichProductsWithGelatoDetails,
 	extraArtworkMediaIds,
+	fetchGelatoProductDetail,
 	gelato429MaxAttempts,
 	isStalledCreatedProduct,
 	hasRetiredShopifyProduct,
