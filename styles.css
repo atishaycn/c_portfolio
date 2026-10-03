@@ -1266,3 +1266,214 @@ body[data-page="protests"] .masonry-grid {
 		gap: 12px;
 	}
 }
+
+/* Portfolio sections: a full-width opening photo with the section name, then
+   the rest of the album as a spacious grid or a full-width stream. */
+.page-main:has(> .section-page) {
+	max-width: none;
+	padding: 0;
+}
+
+/* Like the homepage, the header stays put and the photos scroll up over it. */
+.page-shell:has(.section-page) .home-header {
+	z-index: 1;
+	transform: none;
+}
+
+.page-shell:has(.section-page) .home-header:hover,
+.page-shell:has(.section-page) .home-header:has(:focus-visible, .home-dropdown.is-open) {
+	z-index: 3;
+}
+
+.section-page,
+.page-shell:has(.section-page) .site-footer {
+	position: relative;
+	z-index: 2;
+	background: #fff;
+}
+
+.page-shell:has(.section-page) .site-footer {
+	background: var(--brand-brown);
+}
+
+.section-page .gallery-trigger {
+	cursor: zoom-in;
+}
+
+.section-hero {
+	position: relative;
+	margin: 0;
+}
+
+.section-hero-photo {
+	margin: 0;
+}
+
+/* The opening photo fits in the first screen below the header, so the section
+   name is always visible without scrolling. */
+.section-hero-photo img {
+	width: 100%;
+	height: auto;
+	max-height: calc(var(--photo-max-height, 100svh) - var(--header-offset, 0px));
+	object-fit: cover;
+}
+
+/* Soft shade at the bottom so the white title stays readable on any photo. */
+.section-hero::after {
+	content: "";
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	height: 45%;
+	background: linear-gradient(to top, rgba(20, 10, 6, 0.55), rgba(20, 10, 6, 0));
+	pointer-events: none;
+}
+
+.section-hero-photo figcaption {
+	display: none;
+}
+
+.section-hero-caption {
+	position: absolute;
+	bottom: clamp(28px, 6vw, 72px);
+	left: clamp(24px, 6vw, 88px);
+	z-index: 1;
+	color: #fff;
+	pointer-events: none;
+}
+
+.section-hero-eyebrow,
+.section-hero-count {
+	margin: 0;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.28em;
+	text-transform: uppercase;
+	opacity: 0.85;
+}
+
+.section-hero-caption h1 {
+	margin: 10px 0 12px;
+	font-size: clamp(2.6rem, 7vw, 6rem);
+	font-weight: 700;
+	line-height: 0.95;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.section-hero-caption h1.preserve-case {
+	text-transform: none;
+}
+
+.section-hero-caption h1::after {
+	content: "";
+	display: block;
+	width: 64px;
+	height: 3px;
+	margin-top: 18px;
+	background: var(--brand-gradient);
+}
+
+.section-photos {
+	margin: 0 auto;
+}
+
+.section-photo {
+	position: relative;
+	margin: 0;
+	transition:
+		opacity 700ms ease,
+		transform 700ms ease;
+}
+
+.section-photo.is-waiting {
+	opacity: 0;
+	transform: translateY(28px);
+}
+
+.section-photo img {
+	width: 100%;
+	height: auto;
+	background: var(--cream);
+	transition:
+		filter 0.3s ease,
+		transform 0.6s ease;
+}
+
+.section-photo figcaption {
+	margin-top: 12px;
+	color: var(--ink-soft);
+	font-size: 12px;
+	line-height: 1.5;
+	letter-spacing: 0.04em;
+}
+
+.section-photo figcaption span {
+	display: block;
+	color: var(--brand-brown);
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+.section-photo figcaption small {
+	display: block;
+	margin-top: 2px;
+	font-size: 12px;
+}
+
+/* Grid: two airy columns with a slight lift on hover. */
+.section-page[data-layout="grid"] .section-photos {
+	max-width: 1560px;
+	padding: clamp(48px, 7vw, 112px) clamp(20px, 5vw, 80px);
+	column-count: 2;
+	column-gap: clamp(28px, 4vw, 64px);
+}
+
+.section-page[data-layout="grid"] .section-photo {
+	break-inside: avoid;
+	margin-bottom: clamp(36px, 5vw, 80px);
+}
+
+.section-page[data-layout="grid"] .gallery-trigger {
+	overflow: hidden;
+}
+
+.section-page[data-layout="grid"] .section-photo:hover img {
+	transform: scale(1.015);
+}
+
+/* Stream: one photo after another, full width, each up to a screen tall. */
+.section-page[data-layout="stream"] .section-photos {
+	display: grid;
+	gap: clamp(10px, 1.5vw, 24px);
+	padding-top: clamp(10px, 1.5vw, 24px);
+	padding-bottom: clamp(48px, 7vw, 112px);
+}
+
+.section-page[data-layout="stream"] .section-photo img {
+	max-height: var(--photo-max-height, 100svh);
+	object-fit: cover;
+}
+
+.section-page[data-layout="stream"] .section-photo figcaption {
+	padding: 0 clamp(20px, 5vw, 80px);
+}
+
+@media (max-width: 820px) {
+	.section-page[data-layout="grid"] .section-photos {
+		column-count: 1;
+	}
+
+	.section-hero-photo img {
+		min-height: 62svh;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.section-photo,
+	.section-photo img {
+		transition: none;
+	}
+}

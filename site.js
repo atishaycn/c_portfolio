@@ -578,7 +578,6 @@ const imageSrcSet = (item, widths = responsiveWidths) => {
 	if (!item?.publicId) return "";
 	return widths.map((width) => `${resolveImageUrl(item, { width })} ${width}w`).join(", ");
 };
-const galleryImageSizes = "(max-width: 820px) 100vw, (max-width: 1400px) 50vw, 33vw";
 const lightboxImageSizes = "100vw";
 
 const currentPageKey = document.body.dataset.page || "the-natural-world";
@@ -586,49 +585,86 @@ const currentPageKey = document.body.dataset.page || "the-natural-world";
 const galleryTitleFor = (page) =>
 	homeConfig.portfolioLinks.find((link) => link.key === page.key)?.label || navLabelOverrides[page.key] || page.label;
 
-const renderGallery = (page) => `
-	<section class="gallery-page">
-		<header class="page-title">
-			<h1 class="${page.preserveCase ? "preserve-case" : ""}">${escapeHtml(galleryTitleFor(page))}</h1>
-		</header>
-		${
-			page.items.length
-				? `<div class="masonry-grid">
-					${page.items
-						.map((item, index) => {
-							const imageSrc = placeholderUrl(item);
-							const highResSrc = item.publicId || item.image ? galleryImageUrl(item) : placeholderUrl(item);
-							const highResSrcSet = item.publicId ? imageSrcSet(item) : "";
-							const hasCaption = item.title || item.location;
-							const eager = index < 4;
-							return `
-								<figure class="gallery-card">
-									<button
-										class="gallery-trigger"
-										type="button"
-										data-gallery-key="${page.key}"
-										data-gallery-index="${index}"
-										aria-label="Open image ${index + 1} from ${escapeHtml(page.label)}"
-									>
-										<img class="progressive-image" src="${imageSrc}" data-high-src="${highResSrc}" data-high-srcset="${highResSrcSet}" data-sizes="${galleryImageSizes}" data-local-src="${localImageUrl(item)}" alt="${escapeHtml(item.title || page.label)}" width="${item.width}" height="${item.height}" loading="${eager ? "eager" : "lazy"}" fetchpriority="${eager ? "high" : "low"}" decoding="async" />
-									</button>
-									${
-										hasCaption
-											? `<figcaption>
-												${item.title ? `<span>${escapeHtml(item.title)}</span>` : ""}
-												${item.location ? `<small>${escapeHtml(item.location)}</small>` : ""}
-											</figcaption>`
-											: ""
-									}
-								</figure>
-							`;
-						})
-						.join("")}
-				</div>`
-				: `<div class="empty-gallery"><p>No images added yet.</p></div>`
-		}
-	</section>
-`;
+// Portfolio sections open with their first photo full width (like the homepage)
+// and continue in either a spacious two-column grid or a full-width stream.
+const galleryConfig = {
+	layout: "grid",
+	// Which photo opens each section (0 = first in the album); defaults to the first.
+	coverIndex: {
+		protests: 1,
+	},
+};
+
+const galleryHeroSizes = "100vw";
+const galleryLayoutSizes = {
+	grid: "(max-width: 820px) 100vw, 50vw",
+	stream: "100vw",
+};
+
+const renderGalleryCard = (page, item, index, className, sizes) => {
+	const highResSrc = item.publicId || item.image ? galleryImageUrl(item) : placeholderUrl(item);
+	const highResSrcSet = item.publicId ? imageSrcSet(item) : "";
+	const hasCaption = item.title || item.location;
+	const eager = index < 3;
+	return `
+		<figure class="${className}">
+			<button
+				class="gallery-trigger"
+				type="button"
+				data-gallery-key="${page.key}"
+				data-gallery-index="${index}"
+				aria-label="Open image ${index + 1} from ${escapeHtml(galleryTitleFor(page))}"
+			>
+				<img class="progressive-image" src="${placeholderUrl(item)}" data-high-src="${highResSrc}" data-high-srcset="${highResSrcSet}" data-sizes="${sizes}" data-local-src="${localImageUrl(item)}" alt="${escapeHtml(item.title || galleryTitleFor(page))}" width="${item.width}" height="${item.height}" loading="${eager ? "eager" : "lazy"}" fetchpriority="${eager ? "high" : "low"}" decoding="async" />
+			</button>
+			${
+				hasCaption
+					? `<figcaption>
+						${item.title ? `<span>${escapeHtml(item.title)}</span>` : ""}
+						${item.location ? `<small>${escapeHtml(item.location)}</small>` : ""}
+					</figcaption>`
+					: ""
+			}
+		</figure>
+	`;
+};
+
+const renderGallery = (page) => {
+	const title = galleryTitleFor(page);
+	if (!page.items.length) {
+		return `
+			<section class="gallery-page">
+				<header class="page-title"><h1 class="${page.preserveCase ? "preserve-case" : ""}">${escapeHtml(title)}</h1></header>
+				<div class="empty-gallery"><p>No images added yet.</p></div>
+			</section>
+		`;
+	}
+	const requestedCover = galleryConfig.coverIndex[page.key] ?? 0;
+	const coverIndex = page.items[requestedCover] ? requestedCover : 0;
+	const hero = page.items[coverIndex];
+	// Keep each photo's album position so the lightbox still steps through the album in order.
+	const rest = page.items.map((item, index) => ({ item, index })).filter(({ index }) => index !== coverIndex);
+	const count = page.items.length;
+	return `
+		<section class="section-page" data-layout="${galleryConfig.layout}">
+			<header class="section-hero">
+				${renderGalleryCard(page, hero, coverIndex, "section-hero-photo", galleryHeroSizes)}
+				<div class="section-hero-caption">
+					<p class="section-hero-eyebrow">Portfolio</p>
+					<h1 class="${page.preserveCase ? "preserve-case" : ""}">${escapeHtml(title)}</h1>
+					<p class="section-hero-count">${count} photograph${count === 1 ? "" : "s"}</p>
+				</div>
+			</header>
+			${
+				rest.length
+					? `<div class="section-photos">
+						${rest.map(({ item, index }) => renderGalleryCard(page, item, index, "section-photo", galleryLayoutSizes[galleryConfig.layout] || galleryLayoutSizes.grid)).join("")}
+					</div>`
+					: ""
+			}
+		</section>
+	`;
+};
 
 const renderWorkshops = () => `
 	<section class="detail-page workshops-page">
@@ -1224,14 +1260,6 @@ const startHomeSlideshow = () => {
 		});
 	};
 
-	// The header's height varies with screen width; the slideshow sizes itself to the space below it.
-	const header = document.querySelector(".home-header");
-	const syncHeaderOffset = () => {
-		if (header) document.documentElement.style.setProperty("--header-offset", `${header.offsetHeight}px`);
-	};
-	syncHeaderOffset();
-	window.addEventListener("resize", syncHeaderOffset);
-
 	let activeIndex = 0;
 	let timer = 0;
 	const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1326,10 +1354,41 @@ const setupAutoHideHeader = () => {
 	header.addEventListener("focusin", () => header.classList.remove("is-hidden"));
 };
 
+// Photos in a portfolio section fade up gently as they scroll into view.
+const setupSectionReveal = () => {
+	const photos = Array.from(document.querySelectorAll(".section-photo"));
+	if (!photos.length || !("IntersectionObserver" in window)) return;
+	if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+	photos.forEach((photo) => photo.classList.add("is-waiting"));
+	const observer = new IntersectionObserver(
+		(entries) => {
+			entries.forEach((entry) => {
+				if (!entry.isIntersecting) return;
+				entry.target.classList.remove("is-waiting");
+				observer.unobserve(entry.target);
+			});
+		},
+		{ rootMargin: "0px 0px -8% 0px" },
+	);
+	photos.forEach((photo) => observer.observe(photo));
+};
+
 setupHomeDropdown();
+
+const isSectionPage = Boolean(document.querySelector(".section-page"));
+
+// The header's height varies with screen width; full-screen photos size themselves to the space below it.
+const syncHeaderOffset = () => {
+	const header = document.querySelector(".home-header");
+	if (header) document.documentElement.style.setProperty("--header-offset", `${header.offsetHeight}px`);
+};
+syncHeaderOffset();
+window.addEventListener("resize", syncHeaderOffset);
 
 if (isHomePage) {
 	startHomeSlideshow();
+} else if (isSectionPage) {
+	setupSectionReveal();
 } else {
 	setupAutoHideHeader();
 }
