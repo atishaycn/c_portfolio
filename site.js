@@ -41,12 +41,16 @@ const navLabelOverrides = {
 	"commissioned-work": "portraits",
 };
 
-const navOrderOverrides = {
-	protests: -1,
-	"the-natural-world": 0,
-	"commissioned-work": 1,
-	place: 2,
-	"shapes-and-shadows": 3,
+const homeConfig = {
+	slideshowAlbumKey: "protests",
+	slideIntervalMs: 5000,
+	portfolioLinks: [
+		{ label: "Events", path: "./protests.html", key: "protests" },
+		{ label: "Nature", path: "./the-natural-world.html", key: "the-natural-world" },
+		{ label: "Street", path: "./shapes-and-shadows.html", key: "shapes-and-shadows" },
+	],
+	bookingUrl: "./booking.html",
+	inquiryEmail: "contact@clairethomas.art",
 };
 
 const buildCloudinaryUrl = (publicId, options = {}) => {
@@ -422,7 +426,7 @@ let galleryPages = [
 	{
 		key: "the-natural-world",
 		label: "the natural world",
-		path: "./index.html",
+		path: "./the-natural-world.html",
 		items: naturalWorldSpecs.map(([file, width, height, publicId]) => ({
 			id: `the-natural-world-${pathBasename(file)}`,
 			title: "",
@@ -489,33 +493,6 @@ let galleryPages = [
 	},
 ];
 
-let portfolioLinks = [
-	{ label: "events", path: "./protests.html", key: "protests" },
-	{ label: "the natural world", path: "./index.html", key: "the-natural-world" },
-	{ label: "portraits", path: "./commissioned-work.html", key: "commissioned-work" },
-	{
-		label: "place",
-		key: "place",
-		children: [
-			{
-				label: "California",
-				path: "./california.html",
-				key: "california",
-				preserveCase: true,
-				children: [{ label: "San Francisco", path: "./san-francisco.html", key: "san-francisco", preserveCase: true }],
-			},
-			{ label: "India", path: "./india.html", key: "india", preserveCase: true },
-		],
-	},
-	{ label: "shapes & shadows", path: "./shapes-and-shadows.html", key: "shapes-and-shadows" },
-];
-
-const secondaryLinks = [
-	{ label: "newsletter", path: "https://photosoftheweek.substack.com/", external: true },
-	{ label: "prints", path: "./prints.html", key: "prints" },
-	{ label: "about + contact", path: "./about-contact.html", key: "about-contact" },
-];
-
 const applyCmsContent = (content) => {
 	if (!content || !Array.isArray(content.albums) || !content.albums.length) return;
 	const albums = content.albums
@@ -531,44 +508,6 @@ const applyCmsContent = (content) => {
 		}))
 		.sort((left, right) => left.order - right.order);
 	galleryPages = albums;
-
-	const nodes = new Map();
-	for (const group of content.groups || []) {
-		nodes.set(group.id, {
-			label: group.label,
-			key: group.id,
-			order: group.order,
-			parentId: group.parentId || null,
-			children: [],
-		});
-	}
-	for (const album of albums) {
-		nodes.set(album.id, {
-			label: navLabelOverrides[album.key] || album.label,
-			key: album.key,
-			path: album.path,
-			order: album.order,
-			parentId: album.parentId || null,
-			preserveCase: album.preserveCase,
-			children: [],
-		});
-	}
-	for (const node of nodes.values()) {
-		if (Object.hasOwn(navOrderOverrides, node.key)) node.order = navOrderOverrides[node.key];
-	}
-	for (const node of nodes.values()) {
-		if (node.parentId && nodes.has(node.parentId)) {
-			nodes.get(node.parentId).children.push(node);
-		}
-	}
-	const sortNodes = (entries) => {
-		entries.sort((left, right) => left.order - right.order || left.label.localeCompare(right.label));
-		entries.forEach((entry) => sortNodes(entry.children));
-		return entries;
-	};
-	portfolioLinks = sortNodes(
-		[...nodes.values()].filter((node) => !node.parentId),
-	);
 };
 
 applyCmsContent(window.__PORTFOLIO_CONTENT__);
@@ -642,40 +581,14 @@ const lightboxImageSizes = "100vw";
 
 const currentPageKey = document.body.dataset.page || "the-natural-world";
 
-const linkHasActiveChild = (link) => link.children?.some((child) => child.key === currentPageKey || linkHasActiveChild(child));
-
-const renderSidebarNav = (links, nested = false) => `
-	<ul class="${nested ? "subnav-list" : "nav-list"}">
-		${links
-			.map((link) => {
-				if (link.children?.length) {
-					const isCurrentPage = link.key === currentPageKey;
-					const isOpen = isCurrentPage || linkHasActiveChild(link);
-					const hasDirectPage = Boolean(link.path);
-					return `
-						<li class="folder-link ${isOpen ? "active-folder" : ""} ${isCurrentPage ? "active-link" : ""}">
-							<details class="sidebar-folder" ${isOpen ? "open" : ""}>
-								<summary class="${link.preserveCase ? "preserve-case" : ""}">
-									${hasDirectPage ? `<a class="folder-label-link ${link.preserveCase ? "preserve-case" : ""}" href="${link.path}" ${link.external ? 'target="_blank" rel="noreferrer"' : ""}>${escapeHtml(link.label)}</a>` : escapeHtml(link.label)}
-								</summary>
-								<div class="subnav">${renderSidebarNav(link.children, true)}</div>
-							</details>
-						</li>
-					`;
-				}
-
-				return `
-					<li class="${link.key === currentPageKey ? "active-link" : ""}">
-						<a class="${link.preserveCase ? "preserve-case" : ""}" href="${link.path}" ${link.external ? 'target="_blank" rel="noreferrer"' : ""}>${escapeHtml(link.label)}</a>
-					</li>
-				`;
-			})
-			.join("")}
-	</ul>
-`;
+const galleryTitleFor = (page) =>
+	homeConfig.portfolioLinks.find((link) => link.key === page.key)?.label || navLabelOverrides[page.key] || page.label;
 
 const renderGallery = (page) => `
 	<section class="gallery-page">
+		<header class="page-title">
+			<h1 class="${page.preserveCase ? "preserve-case" : ""}">${escapeHtml(galleryTitleFor(page))}</h1>
+		</header>
 		${
 			page.items.length
 				? `<div class="masonry-grid">
@@ -727,19 +640,127 @@ const renderWorkshops = () => `
 	</section>
 `;
 
+const aboutPortrait = { image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" };
+
 const renderAbout = () => `
 	<section class="detail-page about-page">
 		<div class="about-image-wrap">
-			<img src="${resolveImageUrl({ image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" }, { width: 1200 })}" srcset="${imageSrcSet({ image: "./fqs 2025-12-19 161703.086.jpg", publicId: "about/portrait" })}" sizes="(max-width: 1100px) 100vw, 520px" data-local-src="${localImageUrl("./fqs 2025-12-19 161703.086.jpg")}" alt="Claire Thomas portrait" width="3024" height="4536" loading="eager" fetchpriority="high" decoding="async" />
+			<img src="${resolveImageUrl(aboutPortrait, { width: 1200 })}" srcset="${imageSrcSet(aboutPortrait)}" sizes="(max-width: 1100px) 100vw, 520px" data-local-src="${localImageUrl(aboutPortrait.image)}" alt="Claire Thomas portrait" width="3024" height="4536" loading="eager" fetchpriority="high" decoding="async" />
 		</div>
 		<div class="about-copy">
-			<p>Hi! I’m Claire. I’m a San Francisco based event photographer. I’ve loved being behind a camera since I first picked up my mom’s DSLR at age 14. When I’m not shooting events, I’m out capturing beauty as it unfolds through nature and street photography.</p>
+			<p class="about-eyebrow">About</p>
+			<h1>Hi! I’m Claire.</h1>
+			<p>I’m a San Francisco based event photographer. I’ve loved being behind a camera since I first picked up my mom’s DSLR at age 14. When I’m not shooting events, I’m out capturing beauty as it unfolds through nature and street photography.</p>
 			<p>With every project, I bring a candid documentary approach, an easygoing energy, and a dedication to ensuring your vision is realized.</p>
 			<p>If you’d like to work with me, please get in touch at the email below!</p>
-			<p><a href="mailto:contact@clairethomas.art?subject=Inquiry">contact@clairethomas.art</a></p>
+			<div class="about-actions">
+				<a class="brand-button" href="${homeConfig.bookingUrl}">Book a shoot</a>
+				<a class="about-email" href="mailto:contact@clairethomas.art?subject=Inquiry">contact@clairethomas.art</a>
+			</div>
 		</div>
 	</section>
 `;
+
+// The packages and testimonials below are sample content and stay hidden until
+// Claire's real ones replace them; flip `showPackagesAndTestimonials` to publish.
+const bookingConfig = {
+	showPackagesAndTestimonials: false,
+	packages: [
+		{
+			name: "Mini Session",
+			price: "$350",
+			summary: "Portraits, headshots, or a small gathering.",
+			features: ["Up to 1 hour of coverage", "One location", "40+ edited photographs", "Online gallery within 1 week"],
+		},
+		{
+			name: "Event Coverage",
+			price: "$1,200",
+			summary: "Parties, launches, rallies, and performances.",
+			features: ["Up to 4 hours of coverage", "200+ edited photographs", "Sneak peek within 48 hours", "Online gallery within 2 weeks", "Personal print release"],
+			featured: true,
+		},
+		{
+			name: "Full Day",
+			price: "$2,400",
+			summary: "Conferences, festivals, and multi-part days.",
+			features: ["Up to 8 hours of coverage", "400+ edited photographs", "Sneak peek within 24 hours", "Priority gallery delivery in 5 days", "Second shooter available"],
+		},
+	],
+	testimonials: [
+		{
+			quote: "Claire blended into the room and still caught every moment that mattered. Our team keeps asking where the photos came from.",
+			name: "Sample Client",
+			context: "Company launch, San Francisco",
+		},
+		{
+			quote: "Easygoing, fast, and incredibly thoughtful. The gallery arrived early and told the story of the whole day.",
+			name: "Sample Client",
+			context: "Community event, Oakland",
+		},
+		{
+			quote: "She captured the energy of the march without ever getting in the way. These images are now part of our archive.",
+			name: "Sample Client",
+			context: "Advocacy organization",
+		},
+	],
+};
+
+const inquiryUrl = (subject) => `mailto:${homeConfig.inquiryEmail}?subject=${encodeURIComponent(subject)}`;
+
+const renderPackages = () => `
+	<div class="package-grid">
+		${bookingConfig.packages
+			.map(
+				(item) => `
+					<article class="package-card ${item.featured ? "is-featured" : ""}">
+						${item.featured ? `<p class="package-badge">Most booked</p>` : ""}
+						<h2>${escapeHtml(item.name)}</h2>
+						<p class="package-price">${escapeHtml(item.price)}</p>
+						<p class="package-summary">${escapeHtml(item.summary)}</p>
+						<ul>${item.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("")}</ul>
+						<a class="${item.featured ? "brand-button" : "outline-button"}" href="${inquiryUrl(`Booking inquiry: ${item.name}`)}">Inquire</a>
+					</article>
+				`,
+			)
+			.join("")}
+	</div>
+`;
+
+const renderTestimonials = () => `
+	<section class="testimonials" aria-labelledby="testimonials-heading">
+		<h2 id="testimonials-heading" class="section-eyebrow">Kind words</h2>
+		<div class="testimonial-grid">
+			${bookingConfig.testimonials
+				.map(
+					(item) => `
+						<figure class="testimonial">
+							<blockquote>${escapeHtml(item.quote)}</blockquote>
+							<figcaption><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.context)}</span></figcaption>
+						</figure>
+					`,
+				)
+				.join("")}
+		</div>
+	</section>
+`;
+
+const renderBooking = () => {
+	const showDetails = bookingConfig.showPackagesAndTestimonials;
+	return `
+		<section class="detail-page booking-page">
+			<header class="page-title">
+				<h1>Booking</h1>
+				<p class="page-intro">Candid, documentary coverage for events, gatherings, and portraits around the Bay Area.${showDetails ? " Pick a starting point below and every package can be tailored to your day." : ""}</p>
+			</header>
+			${showDetails ? renderPackages() + renderTestimonials() : ""}
+			<aside class="booking-cta ${showDetails ? "" : "is-standalone"}">
+				<h2>${showDetails ? "Have something else in mind?" : "Let’s plan your shoot"}</h2>
+				<p>Tell me about your date, location, and what you'd like covered, and I'll put together a custom quote.</p>
+				<a class="brand-button" href="${inquiryUrl("Booking inquiry")}">Get in touch</a>
+			</aside>
+		</section>
+	`;
+};
 
 const renderPrints = () => `
 	<section class="detail-page prints-page">
@@ -795,41 +816,132 @@ const renderMain = () => {
 	if (currentPageKey === "workshops") return renderWorkshops();
 	if (currentPageKey === "prints") return renderPrints();
 	if (currentPageKey === "about-contact") return renderAbout();
+	if (currentPageKey === "booking") return renderBooking();
 	if (currentPageKey === "bts") return renderBts();
 	return renderGallery(galleryPages[0]);
 };
 
+const homeSlides = () => galleryPages.find((page) => page.key === homeConfig.slideshowAlbumKey)?.items ?? [];
+
+const renderHomeSlide = (item, index) => {
+	const orientation = item.width && item.height && item.height > item.width ? "portrait" : "landscape";
+	const src = resolveImageUrl(item, { width: 1600 });
+	const srcset = imageSrcSet(item);
+	// Only the first slide loads up front; the slideshow fills in the rest just before each one shows.
+	const sourceAttributes =
+		index === 0
+			? `src="${src}" srcset="${srcset}" sizes="100vw" fetchpriority="high"`
+			: `data-src="${src}" data-srcset="${srcset}" data-sizes="100vw"`;
+	return `
+		<figure class="home-slide ${index === 0 ? "is-active" : ""}" data-orientation="${orientation}" aria-hidden="${index !== 0}">
+			<img class="home-slide-backdrop" ${index === 0 ? `src="${placeholderUrl(item)}"` : `data-src="${placeholderUrl(item)}"`} alt="" />
+			<img class="home-slide-image" ${sourceAttributes} data-local-src="${localImageUrl(item)}" alt="${escapeHtml(item.title || "Event photograph by Claire Thomas")}" width="${item.width}" height="${item.height}" decoding="async" />
+		</figure>
+	`;
+};
+
+const footerIcon = (paths) =>
+	`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+
+const footerLinks = [
+	{
+		label: "Email",
+		path: "mailto:contact@clairethomas.art?subject=Inquiry",
+		icon: footerIcon('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/>'),
+	},
+	{
+		label: "Writing",
+		path: "https://clarityincatastrophe.substack.com/",
+		external: true,
+		icon: footerIcon('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
+	},
+	{
+		label: "Photos of the Week on Substack",
+		path: "https://photosoftheweek.substack.com/",
+		external: true,
+		// Substack's mark is a filled shape, so it skips the outline icon wrapper.
+		icon: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M22.54 8.24H1.46V5.41h21.08v2.83ZM1.46 10.81V24L12 18.11 22.54 24V10.81H1.46ZM22.54 0H1.46v2.84h21.08V0Z"/></svg>',
+	},
+	{
+		label: "Instagram",
+		path: "https://www.instagram.com/cet.samoht/",
+		external: true,
+		icon: footerIcon('<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.5" cy="6.5" r="0.6" fill="currentColor"/>'),
+	},
+];
+
+const isPortfolioPage = homeConfig.portfolioLinks.some((link) => link.key === currentPageKey);
+const currentAttribute = (isCurrent) => (isCurrent ? 'aria-current="page"' : "");
+
+const renderSiteHeader = () => `
+	<header class="home-header">
+		<nav class="home-nav home-nav-left" aria-label="Primary">
+			<a href="./about-contact.html" ${currentAttribute(currentPageKey === "about-contact")}>About</a>
+			<div class="home-dropdown ${isPortfolioPage ? "is-current" : ""}">
+				<button class="home-dropdown-toggle" type="button" aria-expanded="false" aria-controls="home-portfolio-menu">
+					Portfolio <span class="home-dropdown-caret" aria-hidden="true"></span>
+				</button>
+				<ul class="home-dropdown-menu" id="home-portfolio-menu">
+					${homeConfig.portfolioLinks
+						.map((link) => `<li><a href="${link.path}" ${currentAttribute(link.key === currentPageKey)}>${escapeHtml(link.label)}</a></li>`)
+						.join("")}
+				</ul>
+			</div>
+		</nav>
+		<a class="home-logo" href="./index.html"><img src="${siteLogoPath}" alt="${siteTitle}" /></a>
+		<nav class="home-nav home-nav-right" aria-label="Secondary">
+			<a href="${homeConfig.bookingUrl}" ${currentAttribute(currentPageKey === "booking")}>Booking</a>
+			<a href="${printShopConfig.shopUrl}" target="_blank" rel="noreferrer">Shop</a>
+		</nav>
+	</header>
+`;
+
+const renderSiteFooter = () => `
+	<footer class="site-footer">
+		<nav class="site-footer-links" aria-label="Elsewhere">
+			${footerLinks
+				.map(
+					(link) =>
+						`<a href="${link.path}" aria-label="${link.label}" title="${link.label}" ${link.external ? 'target="_blank" rel="noreferrer"' : ""}>${link.icon}</a>`,
+				)
+				.join("")}
+		</nav>
+		<p>© ${new Date().getFullYear()} Claire Thomas</p>
+	</footer>
+`;
+
+const renderHome = () => {
+	const slides = homeSlides();
+	return `
+		<div class="home-shell">
+			${renderSiteHeader()}
+			<main class="home-slideshow" aria-roledescription="carousel" aria-label="Event photographs">
+				${slides.map(renderHomeSlide).join("")}
+				${
+					slides.length > 1
+						? `<button class="home-slide-nav home-slide-prev" type="button" aria-label="Previous photograph">‹</button>
+							<button class="home-slide-nav home-slide-next" type="button" aria-label="Next photograph">›</button>`
+						: ""
+				}
+			</main>
+			${renderSiteFooter()}
+		</div>
+	`;
+};
+
+const renderPage = () => `
+	<div class="page-shell">
+		${renderSiteHeader()}
+		<main class="page-main">${renderMain()}</main>
+		${renderSiteFooter()}
+	</div>
+`;
+
 const app = document.getElementById("app");
+const isHomePage = currentPageKey === "home";
 
 app.innerHTML = `
-	<div class="site-shell">
-		<aside class="sidebar">
-			<div class="sidebar-inner">
-				<header class="site-header">
-					<h1><a href="./index.html"><img class="site-logo" src="${siteLogoPath}" alt="${siteTitle}" /></a></h1>
-				</header>
-				<nav class="sidebar-nav" aria-label="Portfolio navigation">
-					<ul class="nav-list folder-list">
-						<li class="folder-link active-folder">
-							<details class="portfolio-folder" open>
-								<summary>portfolio</summary>
-								<div class="subnav">${renderSidebarNav(portfolioLinks, true)}</div>
-							</details>
-						</li>
-					</ul>
-					${renderSidebarNav(secondaryLinks)}
-				</nav>
-				<footer class="sidebar-footer">
-					<a href="mailto:contact@clairethomas.art?subject=Inquiry" aria-label="Email">Email</a>
-					<a href="https://clarityincatastrophe.substack.com/" aria-label="Writing" target="_blank" rel="noreferrer">Writing</a>
-					<a class="social-link" href="https://www.instagram.com/cet.samoht/" aria-label="Instagram" target="_blank" rel="noreferrer">
-						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
-					</a>
-				</footer>
-			</div>
-		</aside>
-		<main class="content-area">${renderMain()}</main>
-	</div>
+	${isHomePage ? renderHome() : renderPage()}
 	<div class="lightbox" hidden aria-hidden="true">
 		<button class="lightbox-dismiss" type="button" aria-label="Close expanded image">Close</button>
 		<button class="lightbox-nav lightbox-prev" type="button" aria-label="Previous image">‹</button>
@@ -853,12 +965,6 @@ app.innerHTML = `
 document.addEventListener("submit", (event) => {
 	if (!(event.target instanceof HTMLFormElement)) return;
 	event.preventDefault();
-});
-
-document.addEventListener("click", (event) => {
-	const folderLink = event.target instanceof Element ? event.target.closest(".folder-label-link") : null;
-	if (!(folderLink instanceof HTMLAnchorElement)) return;
-	event.stopPropagation();
 });
 
 const lightbox = document.querySelector(".lightbox");
@@ -1099,3 +1205,115 @@ document.addEventListener(
 	},
 	true,
 );
+
+const startHomeSlideshow = () => {
+	const slideshow = document.querySelector(".home-slideshow");
+	const slides = Array.from(document.querySelectorAll(".home-slide"));
+	if (!slideshow || slides.length < 2) return;
+
+	const loadSlide = (slide) => {
+		slide?.querySelectorAll("img[data-src]").forEach((image) => {
+			if (image.dataset.srcset) image.srcset = image.dataset.srcset;
+			if (image.dataset.sizes) image.sizes = image.dataset.sizes;
+			image.src = image.dataset.src;
+			image.removeAttribute("data-src");
+		});
+	};
+
+	let activeIndex = 0;
+	let timer = 0;
+	const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+	const showSlide = (index) => {
+		const nextIndex = (index + slides.length) % slides.length;
+		loadSlide(slides[nextIndex]);
+		slides[activeIndex].classList.remove("is-active");
+		slides[activeIndex].setAttribute("aria-hidden", "true");
+		slides[nextIndex].classList.add("is-active");
+		slides[nextIndex].setAttribute("aria-hidden", "false");
+		activeIndex = nextIndex;
+		// Warm the following slide so the crossfade never reveals a blank frame.
+		loadSlide(slides[(activeIndex + 1) % slides.length]);
+	};
+
+	const restartTimer = () => {
+		window.clearInterval(timer);
+		if (!reduceMotion) timer = window.setInterval(() => showSlide(activeIndex + 1), homeConfig.slideIntervalMs);
+	};
+
+	loadSlide(slides[1]);
+	restartTimer();
+
+	slideshow.querySelector(".home-slide-prev")?.addEventListener("click", () => {
+		showSlide(activeIndex - 1);
+		restartTimer();
+	});
+	slideshow.querySelector(".home-slide-next")?.addEventListener("click", () => {
+		showSlide(activeIndex + 1);
+		restartTimer();
+	});
+	document.addEventListener("keydown", (event) => {
+		if (event.key === "ArrowLeft") showSlide(activeIndex - 1);
+		else if (event.key === "ArrowRight") showSlide(activeIndex + 1);
+		else return;
+		restartTimer();
+	});
+	document.addEventListener("visibilitychange", () => {
+		if (document.hidden) window.clearInterval(timer);
+		else restartTimer();
+	});
+};
+
+const setupHomeDropdown = () => {
+	const dropdown = document.querySelector(".home-dropdown");
+	const toggle = dropdown?.querySelector(".home-dropdown-toggle");
+	if (!dropdown || !toggle) return;
+	const setOpen = (isOpen) => {
+		dropdown.classList.toggle("is-open", isOpen);
+		toggle.setAttribute("aria-expanded", String(isOpen));
+	};
+	toggle.addEventListener("click", () => setOpen(!dropdown.classList.contains("is-open")));
+	document.addEventListener("click", (event) => {
+		if (event.target instanceof Node && !dropdown.contains(event.target)) setOpen(false);
+	});
+	document.addEventListener("keydown", (event) => {
+		if (event.key === "Escape") setOpen(false);
+	});
+};
+
+const setupAutoHideHeader = () => {
+	const header = document.querySelector(".page-shell .home-header");
+	const dropdown = header?.querySelector(".home-dropdown");
+	if (!header) return;
+	let lastY = window.scrollY;
+	let ticking = false;
+	const update = () => {
+		ticking = false;
+		const y = window.scrollY;
+		const delta = y - lastY;
+		// Ignore tiny jitters, keep it visible near the top and while the menu is open.
+		if (Math.abs(delta) < 6) return;
+		const hide = delta > 0 && y > header.offsetHeight && !dropdown?.classList.contains("is-open");
+		header.classList.toggle("is-hidden", hide);
+		lastY = y;
+	};
+	window.addEventListener(
+		"scroll",
+		() => {
+			if (ticking) return;
+			ticking = true;
+			window.requestAnimationFrame(update);
+		},
+		{ passive: true },
+	);
+	// Keyboard users tabbing into the header should always see it.
+	header.addEventListener("focusin", () => header.classList.remove("is-hidden"));
+};
+
+setupHomeDropdown();
+
+if (isHomePage) {
+	startHomeSlideshow();
+} else {
+	setupAutoHideHeader();
+}
