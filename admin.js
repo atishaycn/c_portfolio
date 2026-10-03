@@ -29,6 +29,7 @@ const state = {
 	saving: false,
 	shopSyncing: false,
 	uploading: false,
+	emptyingTrash: false,
 	draggedPhotoId: null,
 };
 
@@ -577,6 +578,66 @@ const restoreTrashItem = (entry) => {
 	render();
 };
 
+// The Trash view re-renders between batches, so look the button up each time.
+const setEmptyTrashLabel = (label) => {
+	const button = elements.albumEditor.querySelector('[data-testid="empty-trash"]');
+	if (button) button.textContent = label;
+};
+
+const emptyTrash = async () => {
+	if (state.emptyingTrash) return;
+	if (state.dirty || state.saving || state.uploading) {
+		showMessage("Save your other changes before emptying Trash.", true);
+		return;
+	}
+	const count = state.content.trash.length;
+	const answer = window.prompt(
+		`Permanently delete the ${count} photo${count === 1 ? "" : "s"} in Trash?\n\n` +
+			"Their original files will be deleted from Cloudinary and cannot be recovered. " +
+			"Photos still shown on the site are never deleted.\n\nType DELETE to confirm.",
+	);
+	if (answer?.trim() !== "DELETE") {
+		if (answer !== null) showMessage("Trash was not emptied. Type DELETE to confirm.", true);
+		return;
+	}
+	state.emptyingTrash = true;
+	render();
+	const totals = { deleted: 0, alreadyGone: 0, failed: 0 };
+	try {
+		// The server works through Trash in batches; keep going until nothing is left
+		// or a batch stops making progress.
+		while (state.content.trash.length) {
+			const before = state.content.trash.length;
+			setEmptyTrashLabel(`Deleting… ${before} left`);
+			const result = await request("/api/admin/empty-trash", {
+				method: "POST",
+				body: JSON.stringify({ revision: state.content.revision }),
+			});
+			state.content = result.content;
+			totals.deleted += result.deleted;
+			totals.alreadyGone += result.alreadyGone;
+			totals.failed += result.failed;
+			render();
+			if (result.remaining >= before) break;
+		}
+		const removed = totals.deleted + totals.alreadyGone;
+		if (state.content.trash.length) {
+			showMessage(
+				`Deleted ${removed} file${removed === 1 ? "" : "s"}; ${state.content.trash.length} could not be deleted and remain in Trash.`,
+				true,
+			);
+		} else {
+			showMessage(`Trash emptied. ${removed} original file${removed === 1 ? "" : "s"} deleted from Cloudinary.`);
+		}
+	} catch (error) {
+		showMessage(error.message, true);
+		render();
+	} finally {
+		state.emptyingTrash = false;
+		render();
+	}
+};
+
 const renderTrash = () => {
 	const heading = document.createElement("div");
 	heading.className = "editor-heading";
@@ -588,6 +649,12 @@ const renderTrash = () => {
 	title.textContent = "Trash";
 	copy.append(eyebrow, title);
 	heading.append(copy);
+	if (state.content.trash.length) {
+		const empty = createButton("Empty Trash", "danger-button", emptyTrash);
+		empty.dataset.testid = "empty-trash";
+		empty.disabled = state.emptyingTrash;
+		heading.append(empty);
+	}
 	const list = document.createElement("div");
 	list.className = "trash-list";
 	if (!state.content.trash.length) {

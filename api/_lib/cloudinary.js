@@ -111,6 +111,32 @@ const writeRemoteContent = async (content, previousContent) => {
 	return uploadRawJson(CLOUDINARY_CONTENT_ID, content);
 };
 
+// Permanently deletes image originals (and their derived versions). Cloudinary
+// accepts at most 100 public IDs per call; each reports "deleted" or "not_found".
+const deleteImageResources = async (publicIds) => {
+	if (!publicIds.length) return {};
+	if (publicIds.length > 100) throw new Error("Cloudinary deletes at most 100 images per request");
+	const { apiKey, apiSecret, cloudName } = requireCloudinary();
+	const url = new URL(`https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload`);
+	for (const publicId of publicIds) url.searchParams.append("public_ids[]", publicId);
+	url.searchParams.set("invalidate", "true");
+	const response = await fetch(url, {
+		method: "DELETE",
+		headers: {
+			Accept: "application/json",
+			Authorization: `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString("base64")}`,
+		},
+		signal: AbortSignal.timeout(API_TIMEOUT_MS),
+	});
+	const body = await response.json().catch(() => ({}));
+	if (!response.ok) {
+		const error = new Error(`Cloudinary delete failed: ${body.error?.message || response.status}`);
+		error.statusCode = 502;
+		throw error;
+	}
+	return body.deleted || {};
+};
+
 const createImageUploadSignature = (publicId) => {
 	const { apiKey, apiSecret, cloudName } = requireCloudinary();
 	const timestamp = Math.floor(Date.now() / 1000);
@@ -131,6 +157,7 @@ const createImageUploadSignature = (publicId) => {
 
 module.exports = {
 	createImageUploadSignature,
+	deleteImageResources,
 	fetchAuthoritativeContent,
 	fetchRemoteContent,
 	writeRemoteContent,
