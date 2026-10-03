@@ -42,7 +42,9 @@ const navLabelOverrides = {
 };
 
 const homeConfig = {
-	slideshowAlbumKey: "protests",
+	// Homepage photos come from the CMS "slideshow" album; Events fills in if it's missing or empty.
+	slideshowAlbumKey: "slideshow",
+	slideshowFallbackAlbumKey: "protests",
 	slideIntervalMs: 5000,
 	portfolioLinks: [
 		{ label: "Events", path: "./protests.html", key: "protests" },
@@ -821,10 +823,13 @@ const renderMain = () => {
 	return renderGallery(galleryPages[0]);
 };
 
-const homeSlides = () => galleryPages.find((page) => page.key === homeConfig.slideshowAlbumKey)?.items ?? [];
+const albumItems = (key) => galleryPages.find((page) => page.key === key)?.items ?? [];
+const homeSlides = () => {
+	const slides = albumItems(homeConfig.slideshowAlbumKey);
+	return slides.length ? slides : albumItems(homeConfig.slideshowFallbackAlbumKey);
+};
 
 const renderHomeSlide = (item, index) => {
-	const orientation = item.width && item.height && item.height > item.width ? "portrait" : "landscape";
 	const src = resolveImageUrl(item, { width: 1600 });
 	const srcset = imageSrcSet(item);
 	// Only the first slide loads up front; the slideshow fills in the rest just before each one shows.
@@ -833,9 +838,8 @@ const renderHomeSlide = (item, index) => {
 			? `src="${src}" srcset="${srcset}" sizes="100vw" fetchpriority="high"`
 			: `data-src="${src}" data-srcset="${srcset}" data-sizes="100vw"`;
 	return `
-		<figure class="home-slide ${index === 0 ? "is-active" : ""}" data-orientation="${orientation}" aria-hidden="${index !== 0}">
-			<img class="home-slide-backdrop" ${index === 0 ? `src="${placeholderUrl(item)}"` : `data-src="${placeholderUrl(item)}"`} alt="" />
-			<img class="home-slide-image" ${sourceAttributes} data-local-src="${localImageUrl(item)}" alt="${escapeHtml(item.title || "Event photograph by Claire Thomas")}" width="${item.width}" height="${item.height}" decoding="async" />
+		<figure class="home-slide ${index === 0 ? "is-active" : ""}" aria-hidden="${index !== 0}">
+			<img class="home-slide-image" ${sourceAttributes} data-local-src="${localImageUrl(item)}" alt="${escapeHtml(item.title || "Photograph by Claire Thomas")}" width="${item.width}" height="${item.height}" decoding="async" />
 		</figure>
 	`;
 };
@@ -915,7 +919,7 @@ const renderHome = () => {
 	return `
 		<div class="home-shell">
 			${renderSiteHeader()}
-			<main class="home-slideshow" aria-roledescription="carousel" aria-label="Event photographs">
+			<main class="home-slideshow" aria-roledescription="carousel" aria-label="Featured photographs">
 				${slides.map(renderHomeSlide).join("")}
 				${
 					slides.length > 1
@@ -1220,6 +1224,14 @@ const startHomeSlideshow = () => {
 		});
 	};
 
+	// The header's height varies with screen width; the slideshow sizes itself to the space below it.
+	const header = document.querySelector(".home-header");
+	const syncHeaderOffset = () => {
+		if (header) document.documentElement.style.setProperty("--header-offset", `${header.offsetHeight}px`);
+	};
+	syncHeaderOffset();
+	window.addEventListener("resize", syncHeaderOffset);
+
 	let activeIndex = 0;
 	let timer = 0;
 	const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1238,7 +1250,11 @@ const startHomeSlideshow = () => {
 
 	const restartTimer = () => {
 		window.clearInterval(timer);
-		if (!reduceMotion) timer = window.setInterval(() => showSlide(activeIndex + 1), homeConfig.slideIntervalMs);
+		if (reduceMotion) return;
+		timer = window.setInterval(() => {
+			// Hold the current photo while someone has scrolled down to look at it.
+			if (window.scrollY < 40) showSlide(activeIndex + 1);
+		}, homeConfig.slideIntervalMs);
 	};
 
 	loadSlide(slides[1]);
@@ -1282,7 +1298,7 @@ const setupHomeDropdown = () => {
 };
 
 const setupAutoHideHeader = () => {
-	const header = document.querySelector(".page-shell .home-header");
+	const header = document.querySelector(".home-header");
 	const dropdown = header?.querySelector(".home-dropdown");
 	if (!header) return;
 	let lastY = window.scrollY;
@@ -1291,9 +1307,9 @@ const setupAutoHideHeader = () => {
 		ticking = false;
 		const y = window.scrollY;
 		const delta = y - lastY;
-		// Ignore tiny jitters, keep it visible near the top and while the menu is open.
-		if (Math.abs(delta) < 6) return;
-		const hide = delta > 0 && y > header.offsetHeight && !dropdown?.classList.contains("is-open");
+		// Hide as soon as scrolling down starts; ignore sub-pixel jitter and keep it while the menu is open.
+		if (Math.abs(delta) < 2) return;
+		const hide = delta > 0 && y > 0 && !dropdown?.classList.contains("is-open");
 		header.classList.toggle("is-hidden", hide);
 		lastY = y;
 	};

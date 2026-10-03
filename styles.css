@@ -560,10 +560,6 @@ body[data-page="protests"] .masonry-grid {
 }
 
 .home-shell {
-	display: flex;
-	flex-direction: column;
-	height: 100vh;
-	height: 100svh;
 	color: var(--brand-brown);
 	background: #fff;
 }
@@ -625,7 +621,7 @@ body[data-page="protests"] .masonry-grid {
 .home-nav > a:hover::after,
 .home-nav > a:focus-visible::after,
 .home-nav > a[aria-current="page"]::after,
-.home-dropdown.is-current:not(:hover, :focus-within, .is-open) .home-dropdown-toggle::after {
+.home-dropdown.is-current:not(:hover, :has(:focus-visible), .is-open) .home-dropdown-toggle::after {
 	transform: scaleX(1);
 }
 
@@ -693,7 +689,7 @@ body[data-page="protests"] .masonry-grid {
 }
 
 .home-dropdown:hover .home-dropdown-menu,
-.home-dropdown:focus-within .home-dropdown-menu,
+.home-dropdown:has(:focus-visible) .home-dropdown-menu,
 .home-dropdown.is-open .home-dropdown-menu {
 	opacity: 1;
 	visibility: visible;
@@ -725,69 +721,43 @@ body[data-page="protests"] .masonry-grid {
 	height: calc(var(--home-header-height) - 16px);
 }
 
+/* Each photo spans the full width. Its height follows the photo's shape up to
+   --photo-max-height (by default one screen); taller photos are trimmed top and
+   bottom to that limit rather than letterboxed. */
 .home-slideshow {
 	position: relative;
-	flex: 1;
+	z-index: 2;
 	overflow: hidden;
-	background: var(--brand-brown);
+	background: #fff;
 }
 
 .home-slide {
 	position: absolute;
-	inset: 0;
+	top: 0;
+	right: 0;
+	left: 0;
 	margin: 0;
 	opacity: 0;
 	transition: opacity 1200ms ease;
 }
 
+/* The active slide sits in the flow and sets the slideshow's height. */
 .home-slide.is-active {
+	position: relative;
 	opacity: 1;
 }
 
-.home-slide img {
-	position: absolute;
-	inset: 0;
+.home-slide-image {
 	width: 100%;
-	height: 100%;
+	height: auto;
+	min-height: var(--photo-min-height, 0px);
+	max-height: var(--photo-max-height, 100svh);
 	object-fit: cover;
-}
-
-/* A photo fills the frame when its orientation matches the screen; otherwise it
-   sits whole over a blurred, darkened copy instead of being heavily cropped. */
-.home-slide-backdrop {
-	filter: blur(28px) brightness(0.55);
-	transform: scale(1.15);
-}
-
-.home-slide[data-orientation="landscape"] .home-slide-backdrop {
-	display: none;
-}
-
-.home-slide[data-orientation="portrait"] .home-slide-image {
-	object-fit: contain;
-}
-
-@media (orientation: portrait) {
-	.home-slide[data-orientation="landscape"] .home-slide-backdrop {
-		display: block;
-	}
-
-	.home-slide[data-orientation="landscape"] .home-slide-image {
-		object-fit: contain;
-	}
-
-	.home-slide[data-orientation="portrait"] .home-slide-backdrop {
-		display: none;
-	}
-
-	.home-slide[data-orientation="portrait"] .home-slide-image {
-		object-fit: cover;
-	}
 }
 
 .home-slide-nav {
 	position: absolute;
-	top: 50%;
+	top: min(50%, 45vh);
 	z-index: 1;
 	width: 52px;
 	height: 52px;
@@ -825,7 +795,7 @@ body[data-page="protests"] .masonry-grid {
 @media (prefers-reduced-motion: reduce) {
 	.home-slide,
 	.home-dropdown-menu,
-	.page-shell .home-header {
+	.home-header {
 		transition: none;
 	}
 }
@@ -879,11 +849,28 @@ body[data-page="protests"] .masonry-grid {
 .page-shell .home-header {
 	position: sticky;
 	top: 0;
-	transition: transform 280ms ease;
+	transition: transform 200ms ease;
+}
+
+/* Homepage: the header stays put and the photo and footer scroll up over it. */
+.home-shell .home-header {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+}
+
+/* Lift it back above the photo while it's in use so the dropdown isn't covered. */
+.home-shell .home-header:hover,
+.home-shell .home-header:has(:focus-visible, .home-dropdown.is-open) {
+	z-index: 3;
+}
+
+.home-shell .site-footer {
+	z-index: 2;
 }
 
 /* Slides away while scrolling down; scrolling up brings it back. */
-.page-shell .home-header.is-hidden {
+.home-header.is-hidden {
 	transform: translateY(-100%);
 }
 
@@ -995,7 +982,7 @@ body[data-page="protests"] .masonry-grid {
 	color: var(--ink-soft);
 }
 
-/* The homepage keeps everything in one screen, so its footer is a slim row. */
+/* The homepage footer is a slim row under the photo. */
 .home-shell .site-footer {
 	flex-direction: row;
 	justify-content: center;
