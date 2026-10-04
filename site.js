@@ -611,7 +611,6 @@ const renderAlbumSwitcher = (page) => {
 					(album) => `
 						<a class="album-switcher-link" href="${albumPathFor(album)}" ${album.key === page.key ? 'aria-current="page"' : ""}>
 							<span>${escapeHtml(galleryTitleFor(album))}</span>
-							<small>${album.items.length}</small>
 						</a>
 					`,
 				)
@@ -679,7 +678,6 @@ const renderGallery = (page) => {
 	const hero = page.items[coverIndex];
 	// Keep each photo's album position so the lightbox still steps through the album in order.
 	const rest = page.items.map((item, index) => ({ item, index })).filter(({ index }) => index !== coverIndex);
-	const count = page.items.length;
 	return `
 		<section class="section-page" data-layout="${galleryConfig.layout}">
 			<header class="section-hero">
@@ -687,7 +685,6 @@ const renderGallery = (page) => {
 				<div class="section-hero-caption">
 					<p class="section-hero-eyebrow">Portfolio</p>
 					<h1 class="${page.preserveCase ? "preserve-case" : ""}">${escapeHtml(title)}</h1>
-					<p class="section-hero-count">${count} photograph${count === 1 ? "" : "s"}</p>
 				</div>
 			</header>
 			${renderAlbumSwitcher(page)}
@@ -751,7 +748,10 @@ const bookingConfig = {
 		"Full gallery of professionally edited, high resolution images delivered within 5 business days",
 		"On average, I deliver 50 edited photos per hour of coverage",
 	],
-	notes: ["A travel fee of $0.76 per mile will be applied if the event is beyond the limits of SF"],
+	notes: [
+		"My standard event rate is $150 per hour. For special occasions such as proposals or courthouse weddings, please fill out my {contact form} to get a quote!",
+		"A travel fee of $0.76 per mile will be applied if the event is beyond the limits of SF",
+	],
 	testimonials: [
 		{
 			quote: "Claire blended into the room and still caught every moment that mattered. Our team keeps asking where the photos came from.",
@@ -798,7 +798,7 @@ const renderPackages = () => `
 			? `<section class="package-included" aria-labelledby="package-included-heading">
 				<h2 id="package-included-heading" class="section-eyebrow">What’s included</h2>
 				${bookingConfig.included?.length ? `<ul class="package-included-list">${bookingConfig.included.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>` : ""}
-				${bookingConfig.notes?.length ? `<div class="package-notes">${bookingConfig.notes.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>` : ""}
+				${bookingConfig.notes?.length ? `<div class="package-notes">${bookingConfig.notes.map((line) => `<p>${escapeHtml(line).replace(/\{(.+?)\}/g, '<a href="#booking-form">$1</a>')}</p>`).join("")}</div>` : ""}
 			</section>`
 			: ""
 	}
@@ -903,7 +903,8 @@ const renderBooking = () => {
 		<section class="detail-page booking-page">
 			<header class="page-title">
 				<h1>Booking</h1>
-				<p class="page-intro">My standard event rate is $150 per hour. For special occasions such as proposals or courthouse weddings, please fill out my <a href="#booking-form">contact form</a> to get a quote!</p>
+				<p class="page-lead">Comprehensive, documentary-style coverage of key interactions and candid moments</p>
+				<p class="page-intro">Whether it’s a company event, birthday party, holiday party, reunion, personal event, or something else, I am passionate about capturing the authentic energy and highlights of your event.</p>
 			</header>
 			${showPackages ? renderPackages() : ""}
 			${showTestimonials ? renderTestimonials() : ""}
