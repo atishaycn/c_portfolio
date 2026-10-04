@@ -815,6 +815,10 @@ const renderBookingForm = () => `
 			<p>I usually get back to you within 24 hours.</p>
 		</div>
 		<form class="booking-form" id="booking-form" novalidate>
+			<label class="booking-honeypot" aria-hidden="true">
+				Leave this empty
+				<input name="website" type="text" tabindex="-1" autocomplete="off" />
+			</label>
 			<label class="booking-field">
 				<span>Name</span>
 				<input name="name" type="text" autocomplete="name" required />
@@ -849,7 +853,6 @@ const renderBookingForm = () => `
 			</label>
 			<div class="booking-form-actions booking-field-wide">
 				<button class="brand-button" type="submit">Send inquiry</button>
-				<p class="booking-form-note">This opens your email app with everything filled in, ready to send to ${homeConfig.inquiryEmail}.</p>
 			</div>
 			<p class="booking-form-status booking-field-wide" role="status" aria-live="polite" hidden></p>
 		</form>
@@ -1425,8 +1428,8 @@ const setupAutoHideHeader = () => {
 	header.addEventListener("focusin", () => header.classList.remove("is-hidden"));
 };
 
-// The booking form has no server behind it yet, so sending opens the visitor's
-// email app with a message composed from the form.
+// The booking form posts to /api/inquiry, which emails Claire through Resend.
+// If that can't send, the visitor's email app opens with the inquiry instead.
 // An email address or a phone number with at least seven digits.
 const looksLikeContact = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.replace(/\D/g, "").length >= 7;
 
@@ -1461,7 +1464,44 @@ const setupBookingForm = () => {
 		});
 	});
 
-	form.addEventListener("submit", (event) => {
+	const showStatus = (text, tone = "info") => {
+		if (!status) return;
+		status.hidden = false;
+		status.dataset.tone = tone;
+		status.textContent = text;
+	};
+
+	const readForm = () => ({
+		name: value("name"),
+		contact: value("contact"),
+		date: value("date"),
+		location: value("location"),
+		projectType: value("projectType"),
+		projectTypeOther: value("projectTypeOther"),
+		referral: value("referral"),
+		message: value("message"),
+		website: value("website"),
+	});
+
+	// Used only if the server can't send: opens the visitor's email app instead.
+	const openEmailFallback = (inquiry) => {
+		const projectType = inquiry.projectType === "Other" && inquiry.projectTypeOther ? `Other: ${inquiry.projectTypeOther}` : inquiry.projectType;
+		const details = [
+			["Name", inquiry.name],
+			["Email or phone", inquiry.contact],
+			["Project date", inquiry.date],
+			["Project location", inquiry.location],
+			["Project type", projectType],
+			["Found me through", inquiry.referral],
+		]
+			.filter(([, answer]) => answer)
+			.map(([label, answer]) => `${label}: ${answer}`);
+		const lines = inquiry.message ? [inquiry.message, "", ...details] : details;
+		const subject = `Inquiry from ${inquiry.name}${projectType ? ` (${projectType})` : ""}`;
+		window.location.href = `mailto:${homeConfig.inquiryEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join("\n"))}`;
+	};
+
+	form.addEventListener("submit", async (event) => {
 		event.preventDefault();
 		if (contact instanceof HTMLInputElement) {
 			contact.setCustomValidity(
@@ -1472,23 +1512,35 @@ const setupBookingForm = () => {
 			form.reportValidity();
 			return;
 		}
-		const projectType = value("projectType") === "Other" && value("projectTypeOther") ? `Other: ${value("projectTypeOther")}` : value("projectType");
-		const details = [
-			["Name", value("name")],
-			["Email or phone", value("contact")],
-			["Project date", value("date")],
-			["Project location", value("location")],
-			["Project type", projectType],
-			["Found me through", value("referral")],
-		]
-			.filter(([, answer]) => answer)
-			.map(([label, answer]) => `${label}: ${answer}`);
-		const lines = value("message") ? [value("message"), "", ...details] : details;
-		const subject = `Inquiry from ${value("name")}${projectType ? ` (${projectType})` : ""}`;
-		window.location.href = `mailto:${homeConfig.inquiryEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join("\n"))}`;
-		if (status) {
-			status.hidden = false;
-			status.textContent = `Your email app should open with this inquiry ready to send. If it doesn't, write to ${homeConfig.inquiryEmail}.`;
+
+		const submitButton = form.querySelector('button[type="submit"]');
+		const inquiry = readForm();
+		if (submitButton) submitButton.disabled = true;
+		showStatus("Sending…");
+		try {
+			const response = await fetch("/api/inquiry", {
+				method: "POST",
+				headers: { "Content-Type": "application/json", Accept: "application/json" },
+				body: JSON.stringify(inquiry),
+			});
+			const result = await response.json().catch(() => ({}));
+			if (response.ok && result.sent) {
+				form.reset();
+				if (otherProject) otherProject.hidden = true;
+				showStatus("Thank you! Your inquiry is on its way, and I'll get back to you within 24 hours.", "success");
+				return;
+			}
+			// Anything other than a clear validation answer means sending isn't available.
+			if (result.fallback || response.status >= 500 || !result.error) throw new Error("send unavailable");
+			const fieldName = result.fields ? Object.keys(result.fields)[0] : "";
+			const fieldElement = fieldName ? field(fieldName) : null;
+			if (fieldElement instanceof HTMLElement) fieldElement.focus();
+			showStatus(result.fields?.[fieldName] || result.error || "Something went wrong. Please try again.", "error");
+		} catch {
+			showStatus(`Sorry, the form couldn't send just now. Your email app should open with your inquiry filled in; if it doesn't, write to ${homeConfig.inquiryEmail}.`, "error");
+			openEmailFallback(inquiry);
+		} finally {
+			if (submitButton) submitButton.disabled = false;
 		}
 	});
 };

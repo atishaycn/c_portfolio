@@ -1,0 +1,13 @@
+# Upload only what the site serves. Everything else in this folder (local
+# credentials, .env files, sync state, original photos, scripts) stays local.
+# CLI deploys previously served .admin-credentials.local.json; keep this an allowlist.
+/*
+!/api
+!/assets
+!/content
+!/*.html
+!/*.js
+!/*.css
+!/*.JPG
+!/vercel.json
+!/package.json

@@ -1364,19 +1364,36 @@ body[data-page="protests"] .masonry-grid {
 	cursor: pointer;
 }
 
-.booking-form-note,
 .booking-form-status {
 	margin: 0;
-	color: var(--ink-soft);
-	font-size: 13px;
-	line-height: 1.5;
-}
-
-.booking-form-status {
 	padding: 12px 14px;
 	color: var(--brand-brown);
 	background: #fff;
 	border-left: 3px solid #5b4bc4;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.booking-form-status[data-tone="success"] {
+	border-left-color: #2f8f5b;
+}
+
+.booking-form-status[data-tone="error"] {
+	border-left-color: #c0392b;
+}
+
+.booking-form-actions .brand-button:disabled {
+	cursor: progress;
+	opacity: 0.6;
+}
+
+/* Spam trap: off-screen for people, still present for form-filling bots. */
+.booking-honeypot {
+	position: absolute;
+	left: -9999px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
 }
 
 @media (max-width: 1000px) {
