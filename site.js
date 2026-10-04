@@ -47,9 +47,9 @@ const homeConfig = {
 	slideshowFallbackAlbumKey: "protests",
 	slideIntervalMs: 5000,
 	portfolioLinks: [
-		{ label: "Events", path: "./protests.html", key: "protests" },
-		{ label: "Nature", path: "./the-natural-world.html", key: "the-natural-world" },
-		{ label: "Street", path: "./shapes-and-shadows.html", key: "shapes-and-shadows" },
+		{ label: "Events", path: "./events.html", key: "protests" },
+		{ label: "Nature", path: "./nature.html", key: "the-natural-world" },
+		{ label: "Street", path: "./street.html", key: "shapes-and-shadows" },
 	],
 	bookingUrl: "./booking.html",
 	inquiryEmail: "contact@clairethomas.art",
@@ -428,7 +428,7 @@ let galleryPages = [
 	{
 		key: "the-natural-world",
 		label: "the natural world",
-		path: "./the-natural-world.html",
+		path: "./nature.html",
 		items: naturalWorldSpecs.map(([file, width, height, publicId]) => ({
 			id: `the-natural-world-${pathBasename(file)}`,
 			title: "",
@@ -460,7 +460,7 @@ let galleryPages = [
 	{
 		key: "shapes-and-shadows",
 		label: "shapes & shadows",
-		path: "./shapes-and-shadows.html",
+		path: "./street.html",
 		items: createLocalGalleryItems("shapes-and-shadows", "Shapes & Shadows", shapesAndShadowsSpecs, {
 			publicIdBase: "shapes-and-shadows",
 		}),
@@ -468,7 +468,7 @@ let galleryPages = [
 	{
 		key: "protests",
 		label: "events",
-		path: "./protests.html",
+		path: "./events.html",
 		items: [
 			...createLocalGalleryItems("protests", "Protests", protestsSpecs, { publicIdBase: "protests" }).map((item, index) => ({
 				...item,
@@ -699,10 +699,11 @@ const renderAbout = () => `
 	</section>
 `;
 
-// The packages and testimonials below are sample content and stay hidden until
-// Claire's real ones replace them; flip `showPackagesAndTestimonials` to publish.
+// The packages and testimonials below are still sample content. Each section can be
+// switched on or off independently; testimonials stay hidden until real ones exist.
 const bookingConfig = {
-	showPackagesAndTestimonials: false,
+	showPackages: true,
+	showTestimonials: false,
 	packages: [
 		{
 			name: "Mini Session",
@@ -729,21 +730,23 @@ const bookingConfig = {
 			quote: "Claire blended into the room and still caught every moment that mattered. Our team keeps asking where the photos came from.",
 			name: "Sample Client",
 			context: "Company launch, San Francisco",
+			// Photo shown beside the quote: an album and the photo's position in it (0 = first).
+			photo: { album: "protests", index: 4 },
 		},
 		{
 			quote: "Easygoing, fast, and incredibly thoughtful. The gallery arrived early and told the story of the whole day.",
 			name: "Sample Client",
 			context: "Community event, Oakland",
+			photo: { album: "protests", index: 9 },
 		},
 		{
 			quote: "She captured the energy of the march without ever getting in the way. These images are now part of our archive.",
 			name: "Sample Client",
 			context: "Advocacy organization",
+			photo: { album: "protests", index: 14 },
 		},
 	],
 };
-
-const inquiryUrl = (subject) => `mailto:${homeConfig.inquiryEmail}?subject=${encodeURIComponent(subject)}`;
 
 const renderPackages = () => `
 	<div class="package-grid">
@@ -756,7 +759,7 @@ const renderPackages = () => `
 						<p class="package-price">${escapeHtml(item.price)}</p>
 						<p class="package-summary">${escapeHtml(item.summary)}</p>
 						<ul>${item.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("")}</ul>
-						<a class="${item.featured ? "brand-button" : "outline-button"}" href="${inquiryUrl(`Booking inquiry: ${item.name}`)}">Inquire</a>
+						<a class="${item.featured ? "brand-button" : "outline-button"}" href="#booking-form" data-package="${escapeHtml(item.name)}">Inquire</a>
 					</article>
 				`,
 			)
@@ -764,38 +767,106 @@ const renderPackages = () => `
 	</div>
 `;
 
+const testimonialPhoto = (photo) => {
+	if (!photo) return null;
+	const album = galleryPages.find((page) => page.key === photo.album);
+	return album?.items[photo.index] ?? null;
+};
+
+const renderTestimonial = (item) => {
+	const photo = testimonialPhoto(item.photo);
+	return `
+		<figure class="testimonial ${photo ? "has-photo" : ""}">
+			${
+				photo
+					? `<div class="testimonial-photo">
+						<img src="${resolveImageUrl(photo, { width: 900 })}" srcset="${imageSrcSet(photo, [400, 800, 1200])}" sizes="(max-width: 820px) 100vw, 40vw" data-local-src="${localImageUrl(photo)}" alt="${escapeHtml(item.context ? `Photograph from ${item.context}` : "Photograph by Claire Thomas")}" width="${photo.width}" height="${photo.height}" loading="lazy" decoding="async" />
+					</div>`
+					: ""
+			}
+			<div class="testimonial-body">
+				<blockquote>${escapeHtml(item.quote)}</blockquote>
+				<figcaption><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.context)}</span></figcaption>
+			</div>
+		</figure>
+	`;
+};
+
 const renderTestimonials = () => `
 	<section class="testimonials" aria-labelledby="testimonials-heading">
 		<h2 id="testimonials-heading" class="section-eyebrow">Kind words</h2>
-		<div class="testimonial-grid">
-			${bookingConfig.testimonials
-				.map(
-					(item) => `
-						<figure class="testimonial">
-							<blockquote>${escapeHtml(item.quote)}</blockquote>
-							<figcaption><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.context)}</span></figcaption>
-						</figure>
-					`,
-				)
-				.join("")}
+		<div class="testimonial-list">
+			${bookingConfig.testimonials.map(renderTestimonial).join("")}
 		</div>
 	</section>
 `;
 
+const bookingProjectTypes = ["Corporate", "Personal", "Other"];
+const bookingReferralSources = ["Google", "Instagram", "Referral", "Other"];
+
+const renderSelectOptions = (options, placeholder) =>
+	`<option value="">${escapeHtml(placeholder)}</option>${options.map((option) => `<option>${escapeHtml(option)}</option>`).join("")}`;
+
+const renderBookingForm = () => `
+	<section class="booking-form-section" aria-labelledby="booking-form-heading">
+		<div class="booking-form-intro">
+			<h2 id="booking-form-heading">I'd love to hear from you!</h2>
+			<p>Use the form below or email me at <a href="mailto:${homeConfig.inquiryEmail}">${homeConfig.inquiryEmail}</a></p>
+			<p>I usually get back to you within 24 hours.</p>
+		</div>
+		<form class="booking-form" id="booking-form" novalidate>
+			<label class="booking-field">
+				<span>Name</span>
+				<input name="name" type="text" autocomplete="name" required />
+			</label>
+			<label class="booking-field">
+				<span>Email or phone number</span>
+				<input name="contact" type="text" inputmode="email" autocomplete="email" required />
+			</label>
+			<label class="booking-field">
+				<span>Project date <em>(optional)</em></span>
+				<input name="date" type="date" />
+			</label>
+			<label class="booking-field">
+				<span>Project location <em>(optional)</em></span>
+				<input name="location" type="text" autocomplete="address-level2" />
+			</label>
+			<label class="booking-field">
+				<span>What type of project is this?</span>
+				<select name="projectType">${renderSelectOptions(bookingProjectTypes, "Choose one")}</select>
+			</label>
+			<label class="booking-field">
+				<span>How did you find me?</span>
+				<select name="referral" required>${renderSelectOptions(bookingReferralSources, "Choose one")}</select>
+			</label>
+			<label class="booking-field booking-field-wide" data-other-project hidden>
+				<span>Tell me what kind of project</span>
+				<input name="projectTypeOther" type="text" />
+			</label>
+			<label class="booking-field booking-field-wide">
+				<span>Tell me more! <em>(optional)</em></span>
+				<textarea name="message" rows="5"></textarea>
+			</label>
+			<div class="booking-form-actions booking-field-wide">
+				<button class="brand-button" type="submit">Send inquiry</button>
+				<p class="booking-form-note">This opens your email app with everything filled in, ready to send to ${homeConfig.inquiryEmail}.</p>
+			</div>
+			<p class="booking-form-status booking-field-wide" role="status" aria-live="polite" hidden></p>
+		</form>
+	</section>
+`;
+
 const renderBooking = () => {
-	const showDetails = bookingConfig.showPackagesAndTestimonials;
+	const { showPackages, showTestimonials } = bookingConfig;
 	return `
 		<section class="detail-page booking-page">
 			<header class="page-title">
 				<h1>Booking</h1>
-				<p class="page-intro">Candid, documentary coverage for events, gatherings, and portraits around the Bay Area.${showDetails ? " Pick a starting point below and every package can be tailored to your day." : ""}</p>
+				<p class="page-intro">Candid, documentary coverage for events, gatherings, and portraits around the Bay Area.${showPackages ? " Pick a starting point below and every package can be tailored to your day." : ""}</p>
 			</header>
-			${showDetails ? renderPackages() + renderTestimonials() : ""}
-			<aside class="booking-cta ${showDetails ? "" : "is-standalone"}">
-				<h2>${showDetails ? "Have something else in mind?" : "Let’s plan your shoot"}</h2>
-				<p>Tell me about your date, location, and what you'd like covered, and I'll put together a custom quote.</p>
-				<a class="brand-button" href="${inquiryUrl("Booking inquiry")}">Get in touch</a>
-			</aside>
+			${showPackages ? renderPackages() : ""}
+			${showTestimonials ? renderTestimonials() : ""}
+			${renderBookingForm()}
 		</section>
 	`;
 };
@@ -1354,6 +1425,74 @@ const setupAutoHideHeader = () => {
 	header.addEventListener("focusin", () => header.classList.remove("is-hidden"));
 };
 
+// The booking form has no server behind it yet, so sending opens the visitor's
+// email app with a message composed from the form.
+// An email address or a phone number with at least seven digits.
+const looksLikeContact = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.replace(/\D/g, "").length >= 7;
+
+const setupBookingForm = () => {
+	const form = document.getElementById("booking-form");
+	if (!(form instanceof HTMLFormElement)) return;
+	const field = (name) => form.elements.namedItem(name);
+	const value = (name) => String(field(name)?.value ?? "").trim();
+	const status = form.querySelector(".booking-form-status");
+	const otherProject = form.querySelector("[data-other-project]");
+	const contact = field("contact");
+	const message = field("message");
+
+	// "Other" project type reveals a box to describe it.
+	field("projectType")?.addEventListener("change", () => {
+		const isOther = value("projectType") === "Other";
+		if (otherProject) otherProject.hidden = !isOther;
+		if (isOther) field("projectTypeOther")?.focus();
+	});
+
+	contact?.addEventListener("input", () => contact.setCustomValidity(""));
+
+	// Package "Inquire" buttons jump here and start the message with that package.
+	document.querySelectorAll("[data-package]").forEach((link) => {
+		link.addEventListener("click", (event) => {
+			event.preventDefault();
+			if (message instanceof HTMLTextAreaElement && !message.value.trim()) {
+				message.value = `I'm interested in the ${link.dataset.package} package.`;
+			}
+			form.scrollIntoView({ behavior: "smooth", block: "start" });
+			field("name")?.focus({ preventScroll: true });
+		});
+	});
+
+	form.addEventListener("submit", (event) => {
+		event.preventDefault();
+		if (contact instanceof HTMLInputElement) {
+			contact.setCustomValidity(
+				value("contact") && !looksLikeContact(value("contact")) ? "Please enter an email address or a phone number." : "",
+			);
+		}
+		if (!form.checkValidity()) {
+			form.reportValidity();
+			return;
+		}
+		const projectType = value("projectType") === "Other" && value("projectTypeOther") ? `Other: ${value("projectTypeOther")}` : value("projectType");
+		const details = [
+			["Name", value("name")],
+			["Email or phone", value("contact")],
+			["Project date", value("date")],
+			["Project location", value("location")],
+			["Project type", projectType],
+			["Found me through", value("referral")],
+		]
+			.filter(([, answer]) => answer)
+			.map(([label, answer]) => `${label}: ${answer}`);
+		const lines = value("message") ? [value("message"), "", ...details] : details;
+		const subject = `Inquiry from ${value("name")}${projectType ? ` (${projectType})` : ""}`;
+		window.location.href = `mailto:${homeConfig.inquiryEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join("\n"))}`;
+		if (status) {
+			status.hidden = false;
+			status.textContent = `Your email app should open with this inquiry ready to send. If it doesn't, write to ${homeConfig.inquiryEmail}.`;
+		}
+	});
+};
+
 // Photos in a portfolio section fade up gently as they scroll into view.
 const setupSectionReveal = () => {
 	const photos = Array.from(document.querySelectorAll(".section-photo"));
@@ -1374,6 +1513,7 @@ const setupSectionReveal = () => {
 };
 
 setupHomeDropdown();
+setupBookingForm();
 
 const isSectionPage = Boolean(document.querySelector(".section-page"));
 

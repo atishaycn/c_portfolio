@@ -38,5 +38,22 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/protests.html",
+      "destination": "/events.html",
+      "permanent": true
+    },
+    {
+      "source": "/the-natural-world.html",
+      "destination": "/nature.html",
+      "permanent": true
+    },
+    {
+      "source": "/shapes-and-shadows.html",
+      "destination": "/street.html",
+      "permanent": true
+    }
   ]
 }
