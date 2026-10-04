@@ -18,6 +18,13 @@ const cloudinaryConfig = {
 	placeholderWidth: 80,
 };
 
+// Photos from a Drive-backed album are served by Google's image host; "-rw" asks for WebP.
+const googleDriveConfig = {
+	imageHost: "https://lh3.googleusercontent.com/d/",
+	fallbackHost: "https://drive.google.com/thumbnail",
+	maxWidth: 2400,
+};
+
 const printShopConfig = {
 	shopUrl: "https://shop.clairethomas.art/collections/all",
 	email: "contact@clairethomas.art",
@@ -67,9 +74,15 @@ const buildCloudinaryUrl = (publicId, options = {}) => {
 	return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transforms.join(",")}/${encodedSegments}`;
 };
 
+const driveWidth = (options) => Math.min(googleDriveConfig.maxWidth, Math.max(80, Math.round(Number(options.width) || googleDriveConfig.maxWidth)));
+
+const buildGoogleDriveUrl = (fileId, options = {}) =>
+	`${googleDriveConfig.imageHost}${encodeURIComponent(fileId)}=w${driveWidth(options)}-rw`;
+
 const resolveImageUrl = (itemOrPath, options = {}) => {
 	if (!itemOrPath) return itemOrPath;
 	if (typeof itemOrPath === "string") return encodeURI(itemOrPath);
+	if (itemOrPath.driveFileId) return buildGoogleDriveUrl(itemOrPath.driveFileId, options);
 	if (itemOrPath.publicId) return buildCloudinaryUrl(itemOrPath.publicId, options);
 	return encodeURI(itemOrPath.image);
 };
@@ -77,6 +90,9 @@ const resolveImageUrl = (itemOrPath, options = {}) => {
 const localImageUrl = (itemOrPath) => {
 	if (!itemOrPath) return itemOrPath;
 	if (typeof itemOrPath === "string") return encodeURI(itemOrPath);
+	if (itemOrPath.driveFileId && !itemOrPath.image) {
+		return `${googleDriveConfig.fallbackHost}?id=${encodeURIComponent(itemOrPath.driveFileId)}&sz=w1600`;
+	}
 	return itemOrPath.image ? encodeURI(itemOrPath.image) : "";
 };
 
@@ -516,6 +532,7 @@ const applyCmsContent = (content) => {
 applyCmsContent(window.__PORTFOLIO_CONTENT__);
 
 const placeholderUrl = (item) => {
+	if (item.driveFileId) return resolveImageUrl(item, { width: cloudinaryConfig.placeholderWidth });
 	if (item.publicId) {
 		return resolveImageUrl(item, {
 			width: cloudinaryConfig.placeholderWidth,
@@ -576,7 +593,7 @@ const printOrderUrl = (item, page) => {
 };
 const responsiveWidths = [400, 800, 1200, 1600, 2400];
 const imageSrcSet = (item, widths = responsiveWidths) => {
-	if (!item?.publicId) return "";
+	if (!item?.publicId && !item?.driveFileId) return "";
 	return widths.map((width) => `${resolveImageUrl(item, { width })} ${width}w`).join(", ");
 };
 const lightboxImageSizes = "100vw";
@@ -636,8 +653,8 @@ const galleryLayoutSizes = {
 };
 
 const renderGalleryCard = (page, item, index, className, sizes) => {
-	const highResSrc = item.publicId || item.image ? galleryImageUrl(item) : placeholderUrl(item);
-	const highResSrcSet = item.publicId ? imageSrcSet(item) : "";
+	const highResSrc = item.publicId || item.driveFileId || item.image ? galleryImageUrl(item) : placeholderUrl(item);
+	const highResSrcSet = item.publicId || item.driveFileId ? imageSrcSet(item) : "";
 	const hasCaption = item.title || item.location;
 	const eager = index < 3;
 	return `
@@ -1151,9 +1168,9 @@ const lightboxImageCache = new Map();
 
 const getCurrentLightboxItems = () => lightboxState.page?.items ?? [];
 const getLightboxItemSources = (item) => ({
-	src: item.publicId || item.image ? lightboxImageUrl(item) : placeholderUrl(item),
-	srcset: item.publicId ? imageSrcSet(item) : "",
-	sizes: item.publicId ? lightboxImageSizes : "",
+	src: item.publicId || item.driveFileId || item.image ? lightboxImageUrl(item) : placeholderUrl(item),
+	srcset: item.publicId || item.driveFileId ? imageSrcSet(item) : "",
+	sizes: item.publicId || item.driveFileId ? lightboxImageSizes : "",
 	fallbackSrc: localImageUrl(item),
 });
 const getLightboxCacheKey = ({ src, srcset, sizes }) => [src, srcset, sizes].join("|");
