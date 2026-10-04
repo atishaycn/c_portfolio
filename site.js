@@ -38,6 +38,7 @@ const SHOPIFY_SERIES_HANDLES = {
 
 const navLabelOverrides = {
 	protests: "events",
+	"special-occasion": "special occasions",
 	"commissioned-work": "portraits",
 };
 
@@ -585,6 +586,40 @@ const currentPageKey = document.body.dataset.page || "the-natural-world";
 const galleryTitleFor = (page) =>
 	homeConfig.portfolioLinks.find((link) => link.key === page.key)?.label || navLabelOverrides[page.key] || page.label;
 
+// Albums nested under a portfolio section in the CMS (e.g. Special occasions under
+// Events) are reached from that section's switcher rather than the Portfolio menu.
+const sectionRootFor = (page) =>
+	(page?.parentId && galleryPages.find((candidate) => candidate.id === page.parentId)) || page;
+
+const sectionFamilyFor = (page) => {
+	const root = sectionRootFor(page);
+	if (!root) return [];
+	const children = galleryPages.filter((candidate) => candidate.parentId === root.id && candidate.items.length);
+	return children.length ? [root, ...children] : [];
+};
+
+const albumPathFor = (page) =>
+	homeConfig.portfolioLinks.find((link) => link.key === page.key)?.path || `./gallery.html?album=${encodeURIComponent(page.key)}`;
+
+const renderAlbumSwitcher = (page) => {
+	const family = sectionFamilyFor(page);
+	if (family.length < 2) return "";
+	return `
+		<nav class="album-switcher" aria-label="${escapeHtml(galleryTitleFor(family[0]))} albums">
+			${family
+				.map(
+					(album) => `
+						<a class="album-switcher-link" href="${albumPathFor(album)}" ${album.key === page.key ? 'aria-current="page"' : ""}>
+							<span>${escapeHtml(galleryTitleFor(album))}</span>
+							<small>${album.items.length}</small>
+						</a>
+					`,
+				)
+				.join("")}
+		</nav>
+	`;
+};
+
 // Portfolio sections open with their first photo full width (like the homepage)
 // and continue in either a spacious two-column grid or a full-width stream.
 const galleryConfig = {
@@ -655,6 +690,7 @@ const renderGallery = (page) => {
 					<p class="section-hero-count">${count} photograph${count === 1 ? "" : "s"}</p>
 				</div>
 			</header>
+			${renderAlbumSwitcher(page)}
 			${
 				rest.length
 					? `<div class="section-photos">
@@ -699,32 +735,23 @@ const renderAbout = () => `
 	</section>
 `;
 
-// The packages and testimonials below are still sample content. Each section can be
-// switched on or off independently; testimonials stay hidden until real ones exist.
+// Packages and what's included are Claire's event pricing. The testimonials are still
+// sample content and stay hidden (showTestimonials) until real ones exist.
 const bookingConfig = {
 	showPackages: true,
 	showTestimonials: false,
 	packages: [
-		{
-			name: "Mini Session",
-			price: "$350",
-			summary: "Portraits, headshots, or a small gathering.",
-			features: ["Up to 1 hour of coverage", "One location", "40+ edited photographs", "Online gallery within 1 week"],
-		},
-		{
-			name: "Event Coverage",
-			price: "$1,200",
-			summary: "Parties, launches, rallies, and performances.",
-			features: ["Up to 4 hours of coverage", "200+ edited photographs", "Sneak peek within 48 hours", "Online gallery within 2 weeks", "Personal print release"],
-			featured: true,
-		},
-		{
-			name: "Full Day",
-			price: "$2,400",
-			summary: "Conferences, festivals, and multi-part days.",
-			features: ["Up to 8 hours of coverage", "400+ edited photographs", "Sneak peek within 24 hours", "Priority gallery delivery in 5 days", "Second shooter available"],
-		},
+		{ name: "Standard Event", duration: "3 hrs", price: "$450", features: ["150+ digital images"] },
+		{ name: "Half Day Event", duration: "4 hrs", price: "$600", features: ["200+ digital images"] },
+		{ name: "Full Day Event", duration: "8 hrs", price: "$1200", features: ["400+ digital images"] },
 	],
+	// Applies to every package; shown under the package cards.
+	included: [
+		"Sneak peeks for immediate social media use within 24 hrs",
+		"Full gallery of professionally edited, high resolution images delivered within 5 business days",
+		"On average, I deliver 50 edited photos per hour of coverage",
+	],
+	notes: ["A travel fee of $0.76 per mile will be applied if the event is beyond the limits of SF"],
 	testimonials: [
 		{
 			quote: "Claire blended into the room and still caught every moment that mattered. Our team keeps asking where the photos came from.",
@@ -756,8 +783,9 @@ const renderPackages = () => `
 					<article class="package-card ${item.featured ? "is-featured" : ""}">
 						${item.featured ? `<p class="package-badge">Most booked</p>` : ""}
 						<h2>${escapeHtml(item.name)}</h2>
+						${item.duration ? `<p class="package-duration">${escapeHtml(item.duration)}</p>` : ""}
 						<p class="package-price">${escapeHtml(item.price)}</p>
-						<p class="package-summary">${escapeHtml(item.summary)}</p>
+						${item.summary ? `<p class="package-summary">${escapeHtml(item.summary)}</p>` : ""}
 						<ul>${item.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("")}</ul>
 						<a class="${item.featured ? "brand-button" : "outline-button"}" href="#booking-form" data-package="${escapeHtml(item.name)}">Inquire</a>
 					</article>
@@ -765,6 +793,15 @@ const renderPackages = () => `
 			)
 			.join("")}
 	</div>
+	${
+		bookingConfig.included?.length || bookingConfig.notes?.length
+			? `<section class="package-included" aria-labelledby="package-included-heading">
+				<h2 id="package-included-heading" class="section-eyebrow">What’s included</h2>
+				${bookingConfig.included?.length ? `<ul class="package-included-list">${bookingConfig.included.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>` : ""}
+				${bookingConfig.notes?.length ? `<div class="package-notes">${bookingConfig.notes.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>` : ""}
+			</section>`
+			: ""
+	}
 `;
 
 const testimonialPhoto = (photo) => {
@@ -801,7 +838,7 @@ const renderTestimonials = () => `
 	</section>
 `;
 
-const bookingProjectTypes = ["Corporate", "Personal", "Other"];
+const bookingProjectTypes = ["Corporate", "Personal", "Special occasion", "Other"];
 const bookingReferralSources = ["Google", "Instagram", "Referral", "Other"];
 
 const renderSelectOptions = (options, placeholder) =>
@@ -820,19 +857,19 @@ const renderBookingForm = () => `
 				<input name="website" type="text" tabindex="-1" autocomplete="off" />
 			</label>
 			<label class="booking-field">
-				<span>Name</span>
+				<span>Name <abbr class="booking-required" title="required" aria-hidden="true">*</abbr></span>
 				<input name="name" type="text" autocomplete="name" required />
 			</label>
 			<label class="booking-field">
-				<span>Email or phone number</span>
+				<span>Email or phone number <abbr class="booking-required" title="required" aria-hidden="true">*</abbr></span>
 				<input name="contact" type="text" inputmode="email" autocomplete="email" required />
 			</label>
 			<label class="booking-field">
-				<span>Project date <em>(optional)</em></span>
+				<span>Project date</span>
 				<input name="date" type="date" />
 			</label>
 			<label class="booking-field">
-				<span>Project location <em>(optional)</em></span>
+				<span>Project location</span>
 				<input name="location" type="text" autocomplete="address-level2" />
 			</label>
 			<label class="booking-field">
@@ -840,7 +877,7 @@ const renderBookingForm = () => `
 				<select name="projectType">${renderSelectOptions(bookingProjectTypes, "Choose one")}</select>
 			</label>
 			<label class="booking-field">
-				<span>How did you find me?</span>
+				<span>How did you find me? <abbr class="booking-required" title="required" aria-hidden="true">*</abbr></span>
 				<select name="referral" required>${renderSelectOptions(bookingReferralSources, "Choose one")}</select>
 			</label>
 			<label class="booking-field booking-field-wide" data-other-project hidden>
@@ -848,11 +885,12 @@ const renderBookingForm = () => `
 				<input name="projectTypeOther" type="text" />
 			</label>
 			<label class="booking-field booking-field-wide">
-				<span>Tell me more! <em>(optional)</em></span>
+				<span>Tell me more!</span>
 				<textarea name="message" rows="5"></textarea>
 			</label>
 			<div class="booking-form-actions booking-field-wide">
 				<button class="brand-button" type="submit">Send inquiry</button>
+				<p class="booking-form-legend"><span aria-hidden="true">*</span> Required</p>
 			</div>
 			<p class="booking-form-status booking-field-wide" role="status" aria-live="polite" hidden></p>
 		</form>
@@ -865,7 +903,7 @@ const renderBooking = () => {
 		<section class="detail-page booking-page">
 			<header class="page-title">
 				<h1>Booking</h1>
-				<p class="page-intro">Candid, documentary coverage for events, gatherings, and portraits around the Bay Area.${showPackages ? " Pick a starting point below and every package can be tailored to your day." : ""}</p>
+				<p class="page-intro">My standard event rate is $150 per hour. For special occasions such as proposals or courthouse weddings, please fill out my <a href="#booking-form">contact form</a> to get a quote!</p>
 			</header>
 			${showPackages ? renderPackages() : ""}
 			${showTestimonials ? renderTestimonials() : ""}
@@ -984,7 +1022,8 @@ const footerLinks = [
 	},
 ];
 
-const isPortfolioPage = homeConfig.portfolioLinks.some((link) => link.key === currentPageKey);
+const currentSectionKey = sectionRootFor(galleryPages.find((page) => page.key === currentPageKey))?.key || currentPageKey;
+const isPortfolioPage = homeConfig.portfolioLinks.some((link) => link.key === currentSectionKey);
 const currentAttribute = (isCurrent) => (isCurrent ? 'aria-current="page"' : "");
 
 const renderSiteHeader = () => `
@@ -997,7 +1036,7 @@ const renderSiteHeader = () => `
 				</button>
 				<ul class="home-dropdown-menu" id="home-portfolio-menu">
 					${homeConfig.portfolioLinks
-						.map((link) => `<li><a href="${link.path}" ${currentAttribute(link.key === currentPageKey)}>${escapeHtml(link.label)}</a></li>`)
+						.map((link) => `<li><a href="${link.path}" ${currentAttribute(link.key === currentSectionKey)}>${escapeHtml(link.label)}</a></li>`)
 						.join("")}
 				</ul>
 			</div>

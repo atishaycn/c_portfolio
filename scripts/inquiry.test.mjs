@@ -54,6 +54,12 @@ test("parseInquiry requires name, a usable contact, and a known referral", () =>
 	assert.deepEqual(Object.keys(result.errors).sort(), ["contact", "name", "referral"]);
 });
 
+test("parseInquiry accepts every project type the form offers", () => {
+	for (const projectType of ["Corporate", "Personal", "Special occasion", "Other", ""]) {
+		assert.equal(parseInquiry({ ...valid, projectType }).ok, true, projectType || "(none)");
+	}
+});
+
 test("parseInquiry rejects unknown project types and drops the Other detail unless Other is chosen", () => {
 	assert.equal(parseInquiry({ ...valid, projectType: "Wedding" }).ok, false);
 	const { inquiry } = parseInquiry({ ...valid, projectType: "Personal", projectTypeOther: "ignored" });

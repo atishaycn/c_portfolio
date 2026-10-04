@@ -1,4 +1,4 @@
-const PROJECT_TYPES = ["Corporate", "Personal", "Other"];
+const PROJECT_TYPES = ["Corporate", "Personal", "Special occasion", "Other"];
 const REFERRAL_SOURCES = ["Google", "Instagram", "Referral", "Other"];
 
 const LIMITS = {
