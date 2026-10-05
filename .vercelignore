@@ -11,3 +11,9 @@
 !/*.JPG
 !/vercel.json
 !/package.json
+# Convex functions and the build step that deploys them (ADR 0002).
+!/convex
+!/package-lock.json
+!/scripts
+/scripts/*
+!/scripts/vercel-build.mjs

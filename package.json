@@ -2,6 +2,10 @@
   "name": "claire-thomas-portfolio",
   "private": true,
   "scripts": {
-    "check": "node --check site.js && node --check cms-loader.js && node --check admin.js && node --test scripts/*.test.mjs"
+    "check": "node --check site.js && node --check cms-loader.js && node --check admin.js && node --check intake.js && node --check intake-admin.js && node --test scripts/*.test.mjs",
+    "dev": "node scripts/dev-server.mjs"
+  },
+  "dependencies": {
+    "convex": "1.46.0"
   }
 }

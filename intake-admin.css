@@ -1,0 +1,457 @@
+/* Client intake admin. Builds on admin.css. */
+
+.ia-tabs {
+	display: flex;
+	gap: 6px;
+	padding: 14px 28px 0;
+	overflow-x: auto;
+}
+
+.ia-tabs a {
+	padding: 8px 14px;
+	border-radius: 999px;
+	color: #52524d;
+	font-size: 13px;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.ia-tabs a[aria-current="page"] {
+	background: #111;
+	color: #fff;
+}
+
+.ia-view {
+	padding: 18px 28px 60px;
+}
+
+.ia-stack {
+	display: grid;
+	gap: 18px;
+	max-width: 1100px;
+}
+
+.ia-card {
+	padding: 22px;
+	border: 1px solid #deded8;
+	border-radius: 16px;
+	background: #fff;
+}
+
+.ia-card h2,
+.ia-section-title,
+.ia-title {
+	margin: 0 0 12px;
+	font-size: 20px;
+	font-weight: 400;
+}
+
+.ia-title {
+	margin: 4px 0 2px;
+	font-size: 28px;
+}
+
+.ia-card h3 {
+	margin: 22px 0 10px;
+	font-size: 14px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.ia-card h4 {
+	margin: 0 0 6px;
+	font-size: 13px;
+}
+
+.ia-form {
+	display: grid;
+	gap: 14px;
+}
+
+.ia-inline-form {
+	padding: 16px;
+	border-radius: 12px;
+	background: #f6f6f2;
+}
+
+.ia-field {
+	display: grid;
+	gap: 6px;
+	font-size: 12px;
+}
+
+.ia-field > span {
+	color: #52524d;
+	font-weight: bold;
+}
+
+.ia-field small,
+.ia-muted {
+	color: #71716b;
+	font-size: 12px;
+}
+
+.ia-grid-2 {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 14px;
+}
+
+.ia-fieldset {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 18px;
+	margin: 0;
+	padding: 12px 14px 14px;
+	border: 1px solid #deded8;
+	border-radius: 12px;
+}
+
+.ia-fieldset legend {
+	padding: 0 6px;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.ia-fieldset .ia-field {
+	flex: 1 1 100%;
+}
+
+.ia-tag-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.ia-tag-grid .ia-field {
+	flex: initial;
+}
+
+.ia-check {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 13px;
+}
+
+.ia-check input {
+	width: auto;
+	height: auto;
+}
+
+.ia-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	margin-top: 8px;
+}
+
+.ia-actions select {
+	width: auto;
+	min-width: 220px;
+}
+
+.ia-heading-row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.ia-back {
+	color: #52524d;
+	font-size: 12px;
+}
+
+.ia-danger {
+	color: #a51f1f !important;
+}
+
+.ia-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.ia-table th {
+	padding: 8px;
+	border-bottom: 1px solid #deded8;
+	color: #71716b;
+	font-weight: normal;
+	text-align: left;
+}
+
+.ia-table td {
+	padding: 10px 8px;
+	border-bottom: 1px solid #efefea;
+}
+
+.ia-table tbody tr {
+	cursor: pointer;
+}
+
+.ia-table tbody tr:hover {
+	background: #fafaf6;
+}
+
+.ia-pill {
+	display: inline-block;
+	margin-left: 6px;
+	padding: 2px 9px;
+	border-radius: 999px;
+	background: #efefea;
+	color: #3d3d39;
+	font-size: 11px;
+	white-space: nowrap;
+}
+
+.ia-pill:first-child {
+	margin-left: 0;
+}
+
+.ia-pill-submitted {
+	background: #e7f5eb;
+	color: #184c2b;
+}
+
+.ia-pill-started {
+	background: #fffbea;
+	color: #5e542e;
+}
+
+.ia-pill-needs-update {
+	background: #fff0e6;
+	color: #8a3d00;
+}
+
+.ia-choice-must {
+	background: #fff4d6;
+}
+
+.ia-choice-like {
+	background: #e7f5eb;
+}
+
+.ia-choice-dislike {
+	background: #fff0f0;
+}
+
+.ia-removed {
+	opacity: 0.45;
+}
+
+.ia-q-list {
+	display: grid;
+	gap: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ia-q-list > li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 12px 0;
+	border-top: 1px solid #efefea;
+}
+
+.ia-q-list > li > form {
+	flex: 1;
+}
+
+.ia-q-list .ia-actions {
+	margin: 0;
+}
+
+.ia-add {
+	margin-top: 14px;
+}
+
+.ia-add summary {
+	margin-bottom: 12px;
+	cursor: pointer;
+	font-size: 13px;
+}
+
+.ia-deck,
+.ia-pose-grid,
+.ia-shotlist {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+	gap: 14px;
+}
+
+.ia-pose-grid {
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.ia-deck figure,
+.ia-pose,
+.ia-shotlist figure {
+	margin: 0;
+	font-size: 12px;
+}
+
+.ia-deck img,
+.ia-pose img,
+.ia-shotlist img {
+	width: 100%;
+	aspect-ratio: 4 / 5;
+	border-radius: 10px;
+	background: #efefea;
+	object-fit: cover;
+}
+
+.ia-deck figcaption,
+.ia-pose figcaption {
+	display: grid;
+	gap: 4px;
+	margin-top: 6px;
+}
+
+.ia-pose-edit {
+	grid-column: 1 / -1;
+}
+
+.ia-pose-edit > img {
+	width: 180px;
+	border-radius: 10px;
+}
+
+.ia-upload {
+	display: flex;
+	align-items: flex-end;
+	gap: 16px;
+}
+
+.ia-upload .ia-field {
+	flex: 1;
+}
+
+.ia-upload input[type="file"] {
+	height: auto;
+	padding: 9px;
+}
+
+.ia-preview {
+	width: 96px;
+	height: 120px;
+	border-radius: 10px;
+	object-fit: cover;
+}
+
+.ia-leanings {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 16px;
+}
+
+.ia-leanings ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-size: 13px;
+	line-height: 1.7;
+}
+
+.ia-reading-loves strong,
+.ia-reading-likes strong {
+	color: #1f6b3d;
+}
+
+.ia-reading-avoid strong {
+	color: #a51f1f;
+}
+
+.ia-answers {
+	margin: 0;
+}
+
+.ia-answers > div {
+	padding: 10px 0;
+	border-top: 1px solid #efefea;
+}
+
+.ia-answers dt {
+	margin-bottom: 4px;
+	color: #52524d;
+	font-size: 12px;
+}
+
+.ia-answers dd {
+	margin: 0;
+	font-size: 14px;
+}
+
+.ia-answer {
+	white-space: pre-line;
+}
+
+.ia-row-form {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 0;
+	border-top: 1px solid #efefea;
+}
+
+.ia-row-form > input {
+	flex: 1 1 200px;
+}
+
+.ia-inline {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 12px;
+}
+
+.ia-inline input {
+	width: 72px;
+}
+
+.ia-values {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.ia-values input {
+	width: 150px;
+}
+
+@media (max-width: 700px) {
+	.ia-view,
+	.ia-tabs {
+		padding-right: 14px;
+		padding-left: 14px;
+	}
+
+	.ia-table th:nth-child(5),
+	.ia-table td:nth-child(5) {
+		display: none;
+	}
+}
+
+@media print {
+	.admin-header,
+	.ia-tabs,
+	.system-message,
+	.ia-stack > :not(.ia-heading-row):not(.ia-results),
+	.ia-results button {
+		display: none !important;
+	}
+
+	.ia-card {
+		border: 0;
+		padding: 0;
+	}
+
+	.ia-shotlist {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
