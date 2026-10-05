@@ -16,5 +16,5 @@ Pushing `main` deploys clairethomas.art to production. Branches get Vercel previ
 ## Consequences
 
 - The site and its Convex functions cannot drift apart in production.
-- The project gains a build command; static files are still served unchanged.
+- The project gains a build command; static files are still served unchanged. The build copies root HTML, browser JS, CSS, JPG photos, `assets/`, and `content/` into `public/`, the configured Vercel output directory. Backend code, dependencies, scripts, and credentials are not copied. Vercel builds `api/` separately as functions.
 - All previews share dev data, so a schema change on one branch affects other previews.

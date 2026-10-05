@@ -133,5 +133,6 @@
       "destination": "/intake.html"
     }
   ],
-  "buildCommand": "node scripts/vercel-build.mjs"
+  "buildCommand": "node scripts/vercel-build.mjs",
+  "outputDirectory": "public"
 }
