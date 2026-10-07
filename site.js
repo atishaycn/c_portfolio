@@ -916,18 +916,12 @@ const renderBooking = () => {
 const renderPrints = () => `
 	<section class="detail-page prints-page">
 		<div class="prints-copy">
-			<p class="prints-eyebrow">Prints</p>
-			<h2>Order photography prints.</h2>
-			<p>Choose a photograph, use the order link, and complete payment and delivery through the print shop.</p>
+			<p class="prints-eyebrow">Shop</p>
+			<h2>Coming soon.</h2>
+			<p>Prints of my photographs will be available here soon.</p>
 			<div class="prints-actions">
-				<a class="print-button" href="${printOrderUrl()}">Open print shop</a>
 				<a href="mailto:${printShopConfig.email}?subject=Print%20Inquiry">Ask about a print</a>
 			</div>
-			<ol class="prints-steps">
-				<li>Pick a photograph from any portfolio gallery.</li>
-				<li>Open it and select <span>Order print</span>.</li>
-				<li>Complete size, payment, printing, and delivery in the shop.</li>
-			</ol>
 		</div>
 	</section>
 `;
@@ -1045,7 +1039,7 @@ const renderSiteHeader = () => `
 		<a class="home-logo" href="./index.html"><img src="${siteLogoPath}" alt="${siteTitle}" /></a>
 		<nav class="home-nav home-nav-right" aria-label="Secondary">
 			<a href="${homeConfig.bookingUrl}" ${currentAttribute(currentPageKey === "booking")}>Booking</a>
-			<a href="${printShopConfig.shopUrl}" target="_blank" rel="noreferrer">Shop</a>
+			<a href="./prints.html" ${currentAttribute(currentPageKey === "prints")}>Shop</a>
 		</nav>
 	</header>
 `;
