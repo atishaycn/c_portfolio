@@ -71,6 +71,7 @@ input {
 }
 
 .prints-page {
+	max-width: none;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -79,11 +80,9 @@ input {
 }
 
 .prints-copy {
-	max-width: 540px;
-}
-
-.prints-copy p:not(.prints-eyebrow) {
-	margin-inline: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 .prints-eyebrow {
