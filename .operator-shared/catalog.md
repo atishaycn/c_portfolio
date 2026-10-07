@@ -32,3 +32,6 @@
 - `site-design.md`
   - Description: Public site navigation, homepage, section pages and colour decisions the user settled.
   - Read If: Changing any public page layout, navigation or styling.
+- `shop-store.md`
+  - Description: Shop page store contract: v1 scope, screens (store home, product page, photo picker, customize, cart), live CSS mockup rules, style.
+  - Read If: Working on the Shop/prints page, print products, mockups or cart.
