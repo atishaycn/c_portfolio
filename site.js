@@ -744,7 +744,7 @@ const bookingConfig = {
 	],
 	// Applies to every package; shown under the package cards.
 	included: [
-		"Sneak peeks for immediate social media use within 24 hrs",
+		"Sneak peeks for immediate social media use within 48 hours",
 		"Full gallery of professionally edited, high resolution images delivered within 2 weeks",
 		"On average, I deliver 50 edited photos per hour of coverage",
 	],
