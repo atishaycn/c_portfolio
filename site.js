@@ -913,18 +913,11 @@ const renderBooking = () => {
 	`;
 };
 
-const renderPrints = () => `
-	<section class="detail-page prints-page">
-		<div class="prints-copy">
-			<p class="prints-eyebrow">Shop</p>
-			<h2>Coming soon.</h2>
-			<p>Prints of my photographs will be available soon.</p>
-			<div class="prints-actions">
-				<a href="mailto:${printShopConfig.email}?subject=Print%20Inquiry">Ask about a print</a>
-			</div>
-		</div>
-	</section>
-`;
+const renderPrints = () =>
+	window.PortfolioShop.renderPage({
+		albums: galleryPages,
+		imageUrl: (item) => resolveImageUrl(item, { width: cloudinaryConfig.galleryWidth }),
+	});
 
 const renderBts = () => {
 	const items = createGalleryItems("bts", [
@@ -1109,6 +1102,8 @@ app.innerHTML = `
 		<button class="lightbox-nav lightbox-next" type="button" aria-label="Next image">›</button>
 	</div>
 `;
+
+if (currentPageKey === "prints") window.PortfolioShop.mount(app);
 
 document.addEventListener("submit", (event) => {
 	if (!(event.target instanceof HTMLFormElement)) return;
