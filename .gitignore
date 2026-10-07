@@ -32,3 +32,5 @@ Shapes & Shadows/
 .gelato-catalog-resume.log
 .gelato-catalog-resume.pid
 .vercel
+# One-time Drive migration OAuth credentials and tokens. Never deploy these.
+.drive-migration.local/
