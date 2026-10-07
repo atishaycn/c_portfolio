@@ -72,12 +72,12 @@ input {
 
 .prints-page {
 	display: flex;
-	align-items: center;
-	min-height: calc(100vh - 80px);
+	justify-content: center;
 }
 
 .prints-copy {
-	max-width: 540px;
+	width: 100%;
+	max-width: 1080px;
 }
 
 .prints-eyebrow {
@@ -129,6 +129,58 @@ input {
 	background: #111;
 	color: #fff;
 	text-decoration: none;
+}
+
+.prints-copy .print-test-notice {
+	max-width: none;
+	margin-top: 20px;
+	padding: 12px 16px;
+	border: 1px solid #b6a16b;
+	background: #faf7ed;
+}
+
+.print-pilot-card {
+	display: grid;
+	grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+	gap: 32px;
+	margin-top: 24px;
+}
+
+.print-pilot-details {
+	display: grid;
+	align-content: center;
+	gap: 16px;
+}
+
+.print-pilot-card img {
+	display: block;
+	width: 100%;
+	height: auto;
+	max-height: 60vh;
+	object-fit: contain;
+	background: #f5f5f5;
+}
+
+.print-pilot-button {
+	min-height: 44px;
+	padding: 12px 18px;
+	border: 1px solid #111;
+	background: #111;
+	color: #fff;
+	font: inherit;
+	cursor: pointer;
+}
+
+.print-pilot-button:disabled {
+	background: #eee;
+	border-color: #ccc;
+	color: #555;
+	cursor: not-allowed;
+}
+
+.print-pilot-button:focus-visible {
+	outline: 2px solid #111;
+	outline-offset: 4px;
 }
 
 .prints-steps {
@@ -505,6 +557,11 @@ body[data-page="protests"] .masonry-grid {
 	.prints-actions {
 		align-items: flex-start;
 		flex-direction: column;
+	}
+
+	.print-pilot-card {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 24px;
 	}
 
 	.masonry-grid {

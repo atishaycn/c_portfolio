@@ -2,6 +2,10 @@
   "name": "claire-thomas-portfolio",
   "private": true,
   "scripts": {
-    "check": "node --check site.js && node --check cms-loader.js && node --check admin.js && node --test scripts/*.test.mjs"
+    "check": "node --check site.js && node --check cms-loader.js && node --check admin.js && node --check prints-pilot.js && node --test scripts/*.test.mjs",
+    "dev:prints": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --env-file-if-exists=.env.stripe.local scripts/serve-print-pilot.mjs"
+  },
+  "dependencies": {
+    "stripe": "18.5.0"
   }
 }

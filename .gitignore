@@ -32,3 +32,4 @@ Shapes & Shadows/
 .gelato-catalog-resume.log
 .gelato-catalog-resume.pid
 .vercel
+node_modules/

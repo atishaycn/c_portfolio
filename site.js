@@ -19,21 +19,9 @@ const cloudinaryConfig = {
 };
 
 const printShopConfig = {
-	shopUrl: "https://shop.clairethomas.art/collections/all",
+	shopUrl: "./prints.html",
 	email: "contact@clairethomas.art",
-	productUrls: {
-		"the-natural-world-3":
-			"https://shop.clairethomas.art/products/the-natural-world-3-fine-art-print?variant=53830433439928&_pos=1&_sid=52b689322&_ss=r",
-	},
-};
-
-const SHOPIFY_SERIES_HANDLES = {
-	"the-natural-world": "the-natural-world",
-	california: "california",
-	"san-francisco": "san-francisco",
-	india: "india",
-	"shapes-and-shadows": "shapes-shadows",
-	protests: "reportage",
+	pilotPhotoId: "the-natural-world-10",
 };
 
 const navLabelOverrides = {
@@ -537,38 +525,8 @@ const printInquiryUrl = (item, page) => {
 	);
 	return `mailto:${printShopConfig.email}?subject=${subject}&body=${body}`;
 };
-const referenceLabelFor = (printId, albumKey) => {
-	const prefix = `${albumKey}-`;
-	const reference = printId.startsWith(prefix) ? printId.slice(prefix.length) : printId;
-	return reference
-		.split("-")
-		.map((part) => (/^\d+$/.test(part) ? part : `${part.charAt(0).toUpperCase()}${part.slice(1)}`))
-		.join(" ");
-};
-
-const shopifyHandleize = (value) =>
-	value
-		.normalize("NFKD")
-		.replace(/[\u0300-\u036f]/g, "")
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-+|-+$/g, "");
-
-const shopifyFineArtHandleFor = (item, album) => {
-	if (!item?.id || !album?.key) return "";
-	const seriesHandle = SHOPIFY_SERIES_HANDLES[album.key] || shopifyHandleize(album.key);
-	const referenceHandle = shopifyHandleize(referenceLabelFor(item.id, album.key));
-	return seriesHandle && referenceHandle ? `${seriesHandle}-${referenceHandle}-fine-art-print` : "";
-};
-
 const printOrderUrl = (item, page) => {
-	const printId = item && page ? item.id : "";
-	if (!printShopConfig.shopUrl) return printInquiryUrl(item, page);
-	if (printId) {
-		if (printShopConfig.productUrls[printId]) return printShopConfig.productUrls[printId];
-		const productHandle = shopifyFineArtHandleFor(item, page);
-		if (productHandle) return `https://shop.clairethomas.art/products/${productHandle}`;
-	}
+	if (item?.id && item.id !== printShopConfig.pilotPhotoId) return printInquiryUrl(item, page);
 	return printShopConfig.shopUrl;
 };
 const responsiveWidths = [400, 800, 1200, 1600, 2400];
@@ -766,17 +724,11 @@ const renderPrints = () => `
 	<section class="detail-page prints-page">
 		<div class="prints-copy">
 			<p class="prints-eyebrow">Prints</p>
-			<h2>Order photography prints.</h2>
-			<p>Choose a photograph, use the order link, and complete payment and delivery through the print shop.</p>
+			<h2>Photography prints.</h2>
+			<div id="print-pilot" aria-live="polite"><p>Loading print availability…</p></div>
 			<div class="prints-actions">
-				<a class="print-button" href="${printOrderUrl()}">Open print shop</a>
 				<a href="mailto:${printShopConfig.email}?subject=Print%20Inquiry">Ask about a print</a>
 			</div>
-			<ol class="prints-steps">
-				<li>Pick a photograph from any portfolio gallery.</li>
-				<li>Open it and select <span>Order print</span>.</li>
-				<li>Complete size, payment, printing, and delivery in the shop.</li>
-			</ol>
 		</div>
 	</section>
 `;
@@ -891,7 +843,7 @@ const renderSiteHeader = () => `
 		<a class="home-logo" href="./index.html"><img src="${siteLogoPath}" alt="${siteTitle}" /></a>
 		<nav class="home-nav home-nav-right" aria-label="Secondary">
 			<a href="${homeConfig.bookingUrl}" ${currentAttribute(currentPageKey === "booking")}>Booking</a>
-			<a href="${printShopConfig.shopUrl}" target="_blank" rel="noreferrer">Shop</a>
+			<a href="${printShopConfig.shopUrl}" ${currentAttribute(currentPageKey === "prints")}>Prints</a>
 		</nav>
 	</header>
 `;
@@ -955,7 +907,7 @@ app.innerHTML = `
 					<div class="lightbox-meta"></div>
 					<div class="lightbox-caption" hidden></div>
 				</div>
-				<a class="lightbox-print-link" href="${printOrderUrl()}" target="_blank" rel="noreferrer" hidden>Order print</a>
+				<a class="lightbox-print-link" href="${printOrderUrl()}" hidden>Ask about a print</a>
 			</div>
 		</div>
 		<button class="lightbox-nav lightbox-next" type="button" aria-label="Next image">›</button>
@@ -1075,6 +1027,7 @@ const updateLightboxMeta = (state = "") => {
 		const printEnabled = item.printEnabled === true;
 		lightboxPrintLink.hidden = !printEnabled;
 		lightboxPrintLink.href = printEnabled ? printOrderUrl(item, lightboxState.page) : printOrderUrl();
+		lightboxPrintLink.textContent = item.id === printShopConfig.pilotPhotoId ? "Print availability" : "Ask about a print";
 	}
 };
 
@@ -1311,6 +1264,12 @@ const setupAutoHideHeader = () => {
 };
 
 setupHomeDropdown();
+
+if (currentPageKey === "prints") {
+	const script = document.createElement("script");
+	script.src = "./prints-pilot.js";
+	document.body.append(script);
+}
 
 if (isHomePage) {
 	startHomeSlideshow();

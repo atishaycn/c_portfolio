@@ -1,4 +1,6 @@
-# Print Shop Setup
+# Legacy Shopify print shop setup
+
+On `shop/stripe-print-pilot`, public print links use the local Stripe sandbox instead. See [STRIPE_PRINT_SETUP.md](./STRIPE_PRINT_SETUP.md). The commands below describe the existing Shopify/Gelato integration and can mutate its catalog; they are not part of the sandbox test.
 
 ## Connected Setup
 

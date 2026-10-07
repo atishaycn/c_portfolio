@@ -25,17 +25,23 @@ The portfolio sidebar now includes a collapsible `place` section with `Californi
 - `san-francisco.html`
 - `commissioned-work.html`
 
-## Run locally
+## Print checkout sandbox
+
+This branch has a one-photograph Stripe sandbox, not a live print shop. See [STRIPE_PRINT_SETUP.md](./STRIPE_PRINT_SETUP.md) for configuration and the one-product test. No Gelato orders are submitted.
+
+```bash
+npm ci
+npm run check
+npm run dev:prints
+```
+
+Open `http://localhost:8091/prints.html`. The local server does not serve credential files or admin mutation endpoints. Stripe and Cloudinary setup are required for checkout; a static server alone cannot run its APIs.
+
+## Run static pages locally
 
 Open any html file in browser.
 
-Or serve folder:
-
-```bash
-python3 -m http.server 8080
-```
-
-Then open `http://localhost:8080`.
+Or use `npm run dev:prints` and open `http://localhost:8091`. If you use a generic static server, serve a separate directory of public files only, never the checkout containing `.env` credentials.
 
 ## Cloudinary setup
 
