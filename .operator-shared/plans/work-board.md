@@ -25,6 +25,7 @@ Last updated: 2026-10-06. The CEO thread keeps this current. Every row's code is
 3. Booking testimonials: waiting on real quotes and photos from Claire.
 4. Orphaned album pages (`california`, `san-francisco`, `india`, `commissioned-work`) still render Nature photos. User deferred cleanup.
 5. `README.md` and `program.md` describe the pre-overhaul site; refresh or fold into this brain.
+7. Shop is "Coming soon" (header Shop → `prints.html`, since 2026-10-06), but the "Order print" links on photos with prints switched on still open the Shopify store. Decide whether to hide them until the shop opens.
 6. Fold the useful parts of `APP_OPERATIONS.md` / `APP_REFERENCE.md` (only on `work/local-changes-handoff`) into the brain, then retire that branch.
 
 ## Archived branches (kept for reference, do not build on)

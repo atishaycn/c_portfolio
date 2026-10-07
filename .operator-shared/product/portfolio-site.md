@@ -14,7 +14,7 @@
 | Photos and CMS content | Cloudinary cloud `dpmdkrggj`, Free plan | Content is one raw JSON asset with revisions. ~20% of 25 monthly credits after the 2026-10-04 Trash cleanup. Full backup: `~/Developer/cloudinary-backup-2026-10-04/`. |
 | Inquiry email | Resend, domain `clairethomas.art` | Key `RESEND_API_KEY` in Vercel. |
 | DNS, `contact@` forwarding | Namecheap | Never switch Mail Settings to Custom MX; it breaks `contact@` forwarding. |
-| Print shop (live) | Shopify `shop.clairethomas.art` + Gelato fulfilment | Header "Shop" links here. Sync: `.github/workflows/portfolio-shop-sync.yml`, `PRINT_SHOP_SETUP.md`. |
+| Print shop (paused) | Shopify `shop.clairethomas.art` + Gelato fulfilment | Not linked from the header; the site Shop page says "Coming soon". Sync: `.github/workflows/portfolio-shop-sync.yml`, `PRINT_SHOP_SETUP.md`. |
 | Print checkout pilot | Stripe (test mode only) | Branch `shop/stripe-print-pilot`; refuses live keys. |
 | Client intake backend | Convex (team "Atishay Jain's team"; dev `veracious-partridge-753`) | Branch `feature/client-intake`. Browser never talks to Convex directly; Vercel functions sit in front (ADR 0001 on that branch). |
 | Photo source of truth (planned) | Google Drive folder `1j_p4uDzt0QPy18iu5K9uKnkoYVphUzaD` (`cporfltiopiocsog`), owner sunnyjaincn@gmail.com | GCP project `clairethomas-site`; `GOOGLE_DRIVE_API_KEY` in Vercel. Drive images load ~3× slower than Cloudinary and Google gives no delivery guarantee. |
