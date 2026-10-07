@@ -162,6 +162,11 @@
 			productionTime: "3-5 business days",
 			sizes: ["8 x 10", "10 x 10", "11 x 14", "16 x 16", "16 x 20", "16 x 24", "20 x 24", "20 x 30", "24 x 36", "30 x 40"],
 			sizePrices: [82, 96, 137, 146, 154, 168, 190, 212, 275, 335],
+			matWindows: {
+				"8 x 10": "5 x 7", "10 x 10": "6 x 6", "11 x 14": "8 x 10", "16 x 16": "12 x 12",
+				"16 x 20": "11 x 14", "16 x 24": "11 x 17", "20 x 24": "16 x 20", "20 x 30": "16 x 24",
+				"24 x 36": "18 x 27", "30 x 40": "24 x 32",
+			},
 			optionGroups: [
 				optionGroup("size", "SIZE", ["8 x 10", "10 x 10", "11 x 14", "16 x 16", "16 x 20", "16 x 24", "20 x 24", "20 x 30", "24 x 36", "30 x 40"].map((v) => option(v)), { required: true, defaultValue: "8 x 10" }),
 				optionGroup("frame", "FRAME", [
@@ -183,7 +188,7 @@
 			optionSurcharges: {
 				frame: { "Gallery Black": 0, "Gallery White": 0, "Distressed Black": 8, "Distressed White": 8 },
 				paper: { Lustre: 0, "Deep Matte": 0 },
-				mat: { "No mat": 0, "White mat": 0, "Black mat": 0 },
+				mat: { "No mat": 0, "White mat": 0, "Black mat": 15 },
 			},
 		}),
 		makeProduct({
@@ -198,6 +203,7 @@
 			productionTime: "3-5 business days",
 			sizes: ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"],
 			sizePrices: [121, 148, 185, 205, 268, 352],
+			matWindows: { "8 x 10": "5 x 7", "11 x 14": "8 x 10", "16 x 20": "11 x 14", "16 x 24": "11 x 17", "20 x 30": "16 x 24", "24 x 36": "18 x 27" },
 			optionGroups: [
 				optionGroup("size", "SIZE", ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"].map((v) => option(v)), { required: true, defaultValue: "8 x 10" }),
 				optionGroup("frame", "FRAME", [
@@ -260,6 +266,7 @@
 			productionTime: "3-5 business days",
 			sizes: ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"],
 			sizePrices: [137, 162, 198, 220, 288, 378],
+			matWindows: { "8 x 10": "5 x 7", "11 x 14": "8 x 10", "16 x 20": "11 x 14", "16 x 24": "11 x 17", "20 x 30": "16 x 24", "24 x 36": "18 x 27" },
 			optionGroups: [
 				optionGroup("size", "SIZE", ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"].map((v) => option(v)), { required: true, defaultValue: "8 x 10" }),
 				optionGroup("frame", "FRAME", [
@@ -431,6 +438,110 @@
 		return "$" + Number(value).toFixed(2);
 	}
 
+	const CART_STORAGE_KEY = "ct-shop-cart-v1";
+	const CROP_OFFSET_LIMIT = 50;
+
+	function matWindowFor(product, size) {
+		return product && product.matWindows ? product.matWindows[size] || null : null;
+	}
+
+	function clampCrop(crop) {
+		const offset = crop && typeof crop === "object" ? crop : {};
+		const clamp = (value) => Math.max(-CROP_OFFSET_LIMIT, Math.min(CROP_OFFSET_LIMIT, Number.isFinite(Number(value)) ? Number(value) : 0));
+		return { x: clamp(offset.x), y: clamp(offset.y) };
+	}
+
+	function lineTotal(line) {
+		const unitPrice = Number(line && line.unitPrice);
+		const quantity = Number(line && line.quantity);
+		return Number.isFinite(unitPrice) && Number.isFinite(quantity) && quantity > 0
+			? Math.round(unitPrice * quantity * 100) / 100
+			: 0;
+	}
+
+	function cartSubtotal(cart) {
+		return (Array.isArray(cart) ? cart : []).reduce((sum, line) => sum + lineTotal(line), 0);
+	}
+
+	function serializeCart(cart) {
+		return JSON.stringify((Array.isArray(cart) ? cart : []).map((line) => ({
+			lineId: String(line.lineId || ""),
+			productSlug: String(line.productSlug || ""),
+			selections: Object.assign({}, line.selections || {}),
+			photoId: String(line.photoId || ""),
+			crop: clampCrop(line.crop),
+			quantity: Math.max(1, Math.floor(Number(line.quantity) || 1)),
+			unitPrice: Math.round(Number(line.unitPrice || 0) * 100) / 100,
+		})));
+	}
+
+	function parseCart(serialized, photos) {
+		let entries;
+		try {
+			entries = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
+		} catch {
+			return [];
+		}
+		if (!Array.isArray(entries)) return [];
+		const photoIds = new Set((Array.isArray(photos) ? photos : []).map(photoIdFor));
+		const usedIds = new Set();
+		return entries.flatMap((entry, index) => {
+			if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
+			const product = productForSlug(entry.productSlug);
+			const photoId = String(entry.photoId || "");
+			const quantity = Number(entry.quantity);
+			if (!product || !photoIds.has(photoId) || !Number.isInteger(quantity) || quantity < 1) return [];
+			const sourceSelections = entry.selections && typeof entry.selections === "object" && !Array.isArray(entry.selections)
+				? entry.selections
+				: {};
+			const selections = defaultSelections(product);
+			for (const group of product.optionGroups || []) {
+				const selected = sourceSelections[group.key];
+				if (selected !== undefined && selected !== "") {
+					if (!group.options.some((candidate) => candidate.value === selected)) return [];
+					selections[group.key] = selected;
+				} else if (group.required && !selections[group.key]) {
+					return [];
+				}
+			}
+			if (missingRequiredOptions(product, selections).length) return [];
+			let lineId = String(entry.lineId || "");
+			if (!lineId || usedIds.has(lineId)) lineId = "cart-" + index + "-" + slugPart(product.slug) + "-" + slugPart(photoId);
+			usedIds.add(lineId);
+			return [{
+				lineId,
+				productSlug: product.slug,
+				selections,
+				photoId,
+				crop: clampCrop(entry.crop),
+				quantity,
+				unitPrice: priceFor(product, selections),
+			}];
+		});
+	}
+
+	function photoIdFor(photo) {
+		if (!photo) return "";
+		return String(photo.id || photo.key || photo.url || photo.image || "");
+	}
+
+	function readCart(storage, photos) {
+		try {
+			return parseCart(storage ? storage.getItem(CART_STORAGE_KEY) : "[]", photos);
+		} catch {
+			return [];
+		}
+	}
+
+	function writeCart(storage, cart) {
+		try {
+			if (storage) storage.setItem(CART_STORAGE_KEY, serializeCart(cart));
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
 	function sizeDimensions(size) {
 		const match = String(size || "").match(/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)/i);
 		if (match) return { width: Number(match[1]), height: Number(match[2]) };
@@ -476,6 +587,12 @@
 		const frameClass = "shop-finish--" + slugPart(finishValue || "classic");
 		const matValue = optionValue(selections, "mat", "No mat");
 		const matClass = "shop-mat--" + slugPart(matValue);
+		const matWindow = matValue && matValue !== "No mat" ? matWindowFor(product, (selections || {}).size || product.sizes[0]) : null;
+		const outerDimensions = dimensionsFor((selections || {}).size || product.sizes[0], photo);
+		const windowDimensions = matWindow ? dimensionsFor(matWindow, photo) : null;
+		const matInsetX = windowDimensions ? Math.max(0, (1 - windowDimensions.width / outerDimensions.width) * 50) : 0;
+		const matInsetY = windowDimensions ? Math.max(0, (1 - windowDimensions.height / outerDimensions.height) * 50) : 0;
+		const crop = clampCrop(settings.crop);
 		const edgeValue = optionValue(selections, "edge", "Photo wrap");
 		const edgeClass = "shop-edge--" + slugPart(edgeValue);
 		const photoSource = typeof settings.imageUrl === "function"
@@ -532,7 +649,7 @@
 		const extraClass = settings.className ? " " + escapeHtml(settings.className) : "";
 		const wallWidth = Math.min(78, dimensions.width / 36 * 72);
 		const scene = view === "wall" ? '<span class="shop-mockup__room" aria-hidden="true"><span class="shop-mockup__furniture"></span></span>' : "";
-		return '<div class="shop-mockup shop-mockup--' + escapeHtml(product.slug) + ' shop-mockup--view-' + view + extraClass + '" style="--shop-art-ratio:' + ratio.toFixed(4) + ';--shop-wall-art-width:' + wallWidth.toFixed(2) + '%" data-shop-view="' + view + '" data-shop-orientation="' + dimensions.orientation + '">' +
+		return '<div class="shop-mockup shop-mockup--' + escapeHtml(product.slug) + ' shop-mockup--view-' + view + extraClass + '" style="--shop-art-ratio:' + ratio.toFixed(4) + ';--shop-wall-art-width:' + wallWidth.toFixed(2) + '%;--shop-crop-x:' + crop.x + '%;--shop-crop-y:' + crop.y + '%;--shop-mat-inset-x:' + matInsetX.toFixed(2) + '%;--shop-mat-inset-y:' + matInsetY.toFixed(2) + '%" data-shop-view="' + view + '" data-shop-orientation="' + dimensions.orientation + '">' +
 			scene + '<span class="shop-mockup__object ' + objectClass.replace("shop-mockup__object ", "") + '"><span class="shop-mockup__side ' + sideClass + '">' + side + '</span><span class="shop-mockup__front">' + front + overlay + '</span></span></div>';
 	}
 
@@ -646,6 +763,106 @@
 			related.map((item) => renderProductCard(item, state)).join("") + '</div></section></div></section>';
 	}
 
+	function cartCount(cart) {
+		return (cart || []).reduce((count, line) => count + line.quantity, 0);
+	}
+
+	function renderStoreBar(state) {
+		const count = cartCount(state.cart);
+		return '<div class="shop-storebar"><span class="shop-storebar__label">CLAIRE THOMAS ART <span>/</span> PRINT STORE</span><a class="shop-storebar__cart" href="./prints.html?view=cart" aria-label="Cart, ' + count + ' items">' +
+			'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.1a2 2 0 0 0 2 1.6h8.5a2 2 0 0 0 1.9-1.4L21 8H6"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg><span>Cart</span><span class="shop-storebar__count">' + count + '</span></a></div>';
+	}
+
+	function selectedOptions(product, selections) {
+		return product.optionGroups.filter((group) => group.key !== "size" && selections[group.key]).map((group) => selections[group.key]).join(" / ");
+	}
+
+	function photoForId(photos, id) {
+		return photos.find((photo) => photoIdFor(photo) === String(id)) || null;
+	}
+
+	function renderCartPage(state) {
+		if (!state.cart.length) return '<section class="shop-page shop-cart-page"><div class="shop-shell"><header class="shop-cart-heading"><p class="shop-eyebrow">SHOPPING CART</p><h1>Your cart is empty</h1></header><a class="shop-primary-button shop-cart-browse" href="./prints.html">Browse products</a></div></section>';
+		const lines = state.cart.map((line) => {
+			const product = productForSlug(line.productSlug);
+			const photo = photoForId(state.photos, line.photoId);
+			const summary = [line.selections.size, selectedOptions(product, line.selections)].filter(Boolean).join(" / ");
+			return '<article class="shop-cart-line" data-shop-cart-line="' + escapeHtml(line.lineId) + '"><div class="shop-cart-line__art">' + renderMockup(product, line.selections, photo, { imageUrl: state.imageUrl, eager: true, crop: line.crop, view: "front" }) + '</div>' +
+				'<div class="shop-cart-line__details"><h2>' + escapeHtml(product.name) + '</h2><p>' + escapeHtml(summary) + '</p><div class="shop-cart-line__tools"><div class="shop-quantity"><button type="button" data-shop-action="quantity-down" data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Decrease quantity">−</button><input type="number" min="1" step="1" value="' + line.quantity + '" data-shop-quantity data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Quantity"/><button type="button" data-shop-action="quantity-up" data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Increase quantity">+</button></div>' +
+				'<button class="shop-cart-remove" type="button" data-shop-action="remove-line" data-line-id="' + escapeHtml(line.lineId) + '">Remove</button></div></div><strong class="shop-cart-line__total">' + formatPrice(lineTotal(line)) + '</strong></article>';
+		}).join("");
+		const emailText = state.cart.map((line) => {
+			const product = productForSlug(line.productSlug);
+			return product.name + " — " + [line.selections.size, selectedOptions(product, line.selections)].filter(Boolean).join(" / ") + " × " + line.quantity + " — " + formatPrice(lineTotal(line));
+		}).join("\n");
+		const mailto = "mailto:contact@clairethomas.art?subject=" + encodeURIComponent("Print order inquiry") + "&body=" + encodeURIComponent("Hello Claire,\n\nI would like to order:\n" + emailText + "\n\nSubtotal: " + formatPrice(cartSubtotal(state.cart)));
+		return '<section class="shop-page shop-cart-page"><div class="shop-shell"><header class="shop-cart-heading"><p class="shop-eyebrow">SHOPPING CART</p><h1>Your cart</h1></header><div class="shop-cart-lines">' + lines + '</div>' +
+			'<div class="shop-cart-summary"><div><span>Subtotal</span><strong>' + formatPrice(cartSubtotal(state.cart)) + '</strong></div><p>Shipping and taxes are confirmed by email.</p><button class="shop-primary-button" type="button" data-shop-action="checkout">Checkout</button>' +
+			'<p class="shop-checkout-message" data-shop-checkout tabindex="-1"' + (state.checkoutOpen ? '' : ' hidden') + ' role="status">Checkout coming soon — email <a href="' + escapeHtml(mailto) + '">contact@clairethomas.art</a> to order.</p></div></div></section>';
+	}
+
+	function renderPicker(state) {
+		const tiles = state.photos.map((photo) => {
+			const id = photoIdFor(photo);
+			const selected = state.selectedPhotoIds.has(id);
+			const source = state.imageUrl(photo);
+			const ratio = (Number(photo.width) || 1) / (Number(photo.height) || 1);
+			return '<button class="shop-picker-photo' + (selected ? ' is-selected' : '') + '" type="button" data-shop-action="picker-toggle" data-photo-id="' + escapeHtml(id) + '" aria-pressed="' + selected + '" aria-label="' + escapeHtml(photo.title || photo.alt || "Photograph") + '" style="--shop-photo-ratio:' + ratio.toFixed(4) + '"><span class="shop-picker-photo__image">' +
+				(source ? '<img src="' + escapeHtml(source) + '" alt="" loading="lazy"/>' : '<span class="shop-mockup__placeholder"></span>') + '</span><span class="shop-picker-photo__check" aria-hidden="true">✓</span>' + (photo.title ? '<span class="shop-picker-photo__title">' + escapeHtml(photo.title) + '</span>' : '') + '</button>';
+		}).join("");
+		return '<div class="shop-picker-overlay" data-shop-picker-backdrop><section class="shop-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="shop-picker-title" tabindex="-1"><header class="shop-picker-header"><button class="shop-icon-button" type="button" data-shop-action="picker-close" aria-label="Close">×</button><div><h1 id="shop-picker-title">Select photos</h1><p>' + state.selectedPhotoIds.size + ' ' + (state.selectedPhotoIds.size === 1 ? 'photo' : 'photos') + ' selected</p></div><a class="shop-picker-cart" href="./prints.html?view=cart" aria-label="Cart, ' + cartCount(state.cart) + ' items">Cart <span>' + cartCount(state.cart) + '</span></a><button class="shop-picker-next" type="button" data-shop-action="picker-next"' + (state.selectedPhotoIds.size ? '' : ' disabled') + '>Next</button></header>' +
+			(state.photos.length ? '<div class="shop-picker-grid">' + tiles + '</div>' : '<p class="shop-picker-empty">No print-enabled photos are available yet.</p>') + '</section></div>';
+	}
+
+	function customizePrice(product, selections) {
+		const options = selectedOptions(product, selections);
+		return (options ? options + " - " : "") + formatPrice(priceFor(product, selections));
+	}
+
+	function renderCustomizeLine(line, state, index) {
+		const product = state.product;
+		const photo = photoForId(state.photos, line.photoId);
+		const windowSize = state.selections.mat && state.selections.mat !== "No mat" ? matWindowFor(product, state.selections.size) : null;
+		const window = windowSize ? dimensionsFor(windowSize, photo) : null;
+		const caption = window ? 'Your photo is ' + window.width + ' x ' + window.height + '" with the ' + escapeHtml(state.selections.mat) + ' option.' : '';
+		const sizes = product.sizes.map((size) => '<option value="' + escapeHtml(size) + '"' + (size === state.selections.size ? ' selected' : '') + '>' + escapeHtml(size) + '</option>').join("");
+		const cropping = state.cropActiveLineId === line.lineId;
+		return '<article class="shop-customize-card"><header class="shop-customize-card__heading"><p>PHOTO ' + (index + 1) + ' OF ' + state.lines.length + '</p><h2>' + escapeHtml(photo && (photo.title || photo.alt) || 'Selected photograph') + '</h2></header>' +
+			'<div class="shop-customize-art-wrap"><div class="shop-customize-art' + (cropping ? ' is-crop-active' : '') + '" data-shop-crop-id="' + escapeHtml(line.lineId) + '" tabindex="0" role="group" aria-label="' + (cropping ? 'Drag or use arrow keys to adjust crop' : 'Photograph preview') + '">' + renderMockup(product, state.selections, photo, { imageUrl: state.imageUrl, eager: true, view: "front", crop: line.crop }) + '</div></div>' +
+			(caption ? '<p class="shop-mat-caption">' + caption + '</p>' : '') + '<div class="shop-customize-line-controls"><div class="shop-customize-crop-actions"><button type="button" data-shop-action="crop-toggle" data-line-id="' + escapeHtml(line.lineId) + '">' + (cropping ? 'Done cropping' : 'Edit crop') + '</button><button type="button" data-shop-action="change-photo" data-line-id="' + escapeHtml(line.lineId) + '">Change</button></div>' +
+			(cropping ? '<p class="shop-crop-help">Drag the photo or use arrow keys to reposition it.</p>' : '') + '<div class="shop-customize-size-quantity"><label>Size<select data-shop-size-select aria-label="Print size">' + sizes + '</select></label>' +
+			'<label class="shop-quantity-field">Quantity<span class="shop-quantity"><button type="button" data-shop-action="quantity-down" data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Decrease quantity">−</button><input type="number" min="1" step="1" value="' + line.quantity + '" data-shop-quantity data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Quantity"/><button type="button" data-shop-action="quantity-up" data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Increase quantity">+</button></span></label></div></div></article>';
+	}
+
+	function renderEditPanel(state) {
+		if (!state.editPanelOpen) return "";
+		const product = state.product;
+		return '<div class="shop-edit-product-backdrop"><aside class="shop-edit-product-panel" role="dialog" aria-modal="true" aria-labelledby="shop-edit-product-title" tabindex="-1"><header><div><p class="shop-eyebrow">CUSTOMIZE</p><h2 id="shop-edit-product-title">Edit product</h2></div><button class="shop-icon-button" type="button" data-shop-action="close-edit-product" aria-label="Close product options">×</button></header>' +
+			'<div class="shop-product-options">' + product.optionGroups.map((group) => renderOptionGroup(product, group, state)).join("") + '</div></aside></div>';
+	}
+
+	function renderCustomize(state) {
+		const product = state.product;
+		const size = state.selections.size || product.sizes[0];
+		const line = state.lines.find((entry) => entry.lineId === state.previewLineId) || state.lines[0];
+		const photo = line && photoForId(state.photos, line.photoId);
+		const preview = state.previewLineId && line ? '<div class="shop-preview-overlay" data-shop-preview-backdrop><section class="shop-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="shop-preview-title" tabindex="-1"><header><h2 id="shop-preview-title">Preview on the wall</h2><button class="shop-icon-button" type="button" data-shop-action="preview-close" aria-label="Close preview">×</button></header><div class="shop-preview-wall">' + renderMockup(product, state.selections, photo, { imageUrl: state.imageUrl, eager: true, view: "wall", crop: line.crop }) + '</div></section></div>' : '';
+		return '<section class="shop-page shop-customize-page"><header class="shop-customize-bar"><button class="shop-customize-back" type="button" data-shop-action="customize-back" aria-label="Back to photo selection">←</button><div class="shop-customize-bar__title"><h1 tabindex="-1">' + escapeHtml(size) + '" ' + escapeHtml(product.name) + '</h1><p>' + escapeHtml(customizePrice(product, state.selections)) + '</p></div><div class="shop-customize-bar__actions"><button type="button" data-shop-action="preview">Preview</button><button type="button" data-shop-action="edit-product">Edit product</button><button class="shop-customize-add" type="button" data-shop-action="add-to-cart">Add to cart</button></div></header>' +
+			'<div class="shop-shell shop-customize-shell"><div class="shop-customize-lines">' + state.lines.map((entry, index) => renderCustomizeLine(entry, state, index)).join("") + '</div></div>' + renderEditPanel(state) + preview + '</section>';
+	}
+
+	function renderStoreContent(state) {
+		let content;
+		if (state.screen === "cart") content = renderCartPage(state);
+		else if (state.screen === "customize") content = renderCustomize(state);
+		else {
+			content = state.product ? renderProductPage(state.product, state) : renderStoreHome(state);
+			if (state.pageNotFound) content = content.replace('<div class="shop-shell">', '<div class="shop-shell"><p class="shop-not-found">That product is unavailable. Browse all prints and wall art below.</p>');
+			if (state.screen === "picker") content += renderPicker(state);
+		}
+		return renderStoreBar(state) + content;
+	}
+
 	let activeState = null;
 	let activeRoot = null;
 	let heroTimer = null;
@@ -653,10 +870,11 @@
 	function renderPage(context) {
 		const safeContext = context || {};
 		const photos = selectStorePhotos(safeContext.albums || []);
-		const url = safeContext.productSlug === undefined
-			? (global.location ? new URLSearchParams(global.location.search).get("product") : "")
-			: safeContext.productSlug;
+		const params = global.location && global.URLSearchParams ? new global.URLSearchParams(global.location.search) : null;
+		const url = safeContext.productSlug === undefined ? (params ? params.get("product") : "") : safeContext.productSlug;
 		const product = productForSlug(url);
+		let storage = null;
+		try { storage = global.localStorage || null; } catch { storage = null; }
 		activeState = {
 			photos,
 			imageUrl: typeof safeContext.imageUrl === "function"
@@ -668,19 +886,59 @@
 			view: "angle",
 			selections: product ? defaultSelections(product) : {},
 			invalid: new Set(),
+			cart: readCart(storage, photos),
+			storage,
+			screen: params && params.get("view") === "cart" ? "cart" : "page",
+			pageNotFound: Boolean(url && !product),
+			selectedPhotoIds: new Set(),
+			pickerMode: "new",
+			pickerReturnScreen: "page",
+			lines: [],
+			cropActiveLineId: "",
+			cropDrag: null,
+			editPanelOpen: false,
+			previewLineId: "",
+			checkoutOpen: false,
 		};
-		const page = product ? renderProductPage(product, activeState) : renderStoreHome(activeState);
-		if (url && !product) {
-			return page.replace('<div class="shop-shell">', '<div class="shop-shell"><p class="shop-not-found">That product is unavailable. Browse all prints and wall art below.</p>');
-		}
-		return page;
+		return '<div class="shop-store">' + renderStoreContent(activeState) + '</div>';
 	}
 
-	function openPhotoPicker(product, selections) {
-		void product;
-		void selections;
-		const note = activeRoot && activeRoot.querySelector("[data-shop-photo-note]");
-		if (note) note.textContent = "Photo selection is coming in the next step.";
+	function renderStore() {
+		const store = activeRoot && activeRoot.querySelector(".shop-store");
+		if (store) store.innerHTML = renderStoreContent(activeState);
+	}
+
+	function focusShop(selector) {
+		const element = activeRoot && activeRoot.querySelector(selector);
+		if (element && element.focus) element.focus();
+	}
+
+	function openPhotoPicker(product, selections, settings) {
+		if (!activeState || !product) return;
+		const options = settings || {};
+		activeState.product = product;
+		activeState.selections = resolveSelections(product, selections || activeState.selections);
+		activeState.pickerMode = options.mode || "new";
+		activeState.pickerReturnScreen = options.returnScreen || "page";
+		activeState.changeLineId = options.lineId || "";
+		if (activeState.pickerMode === "replace") {
+			const line = activeState.lines.find((entry) => entry.lineId === activeState.changeLineId);
+			activeState.selectedPhotoIds = new Set(line ? [line.photoId] : []);
+		} else if (activeState.pickerMode === "review") activeState.selectedPhotoIds = new Set(activeState.lines.map((line) => line.photoId));
+		else activeState.selectedPhotoIds = new Set();
+		activeState.screen = "picker";
+		renderStore();
+		focusShop('[data-shop-action="picker-close"]');
+	}
+
+	function closePhotoPicker() {
+		if (!activeState) return;
+		const returnScreen = activeState.pickerReturnScreen;
+		activeState.screen = returnScreen === "customize" ? "customize" : "page";
+		activeState.selectedPhotoIds.clear();
+		activeState.changeLineId = "";
+		renderStore();
+		focusShop(returnScreen === "customize" ? '[data-shop-action="change-photo"]' : '[data-shop-action="open-picker"]');
 	}
 
 	function updateHero() {
@@ -764,9 +1022,142 @@
 		updateProductPriceAndOptions();
 	}
 
+	function newLineId() {
+		try { if (global.crypto && global.crypto.randomUUID) return global.crypto.randomUUID(); } catch { /* use fallback */ }
+		return "line-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+	}
+
+	function saveCart() {
+		try { if (activeState.storage) activeState.storage.setItem(CART_STORAGE_KEY, serializeCart(activeState.cart)); } catch { /* keep the in-memory cart available */ }
+	}
+
+	function focusPhoto(id) {
+		const button = activeRoot && Array.from(activeRoot.querySelectorAll("[data-photo-id]")).find((entry) => entry.dataset.photoId === id);
+		if (button) button.focus();
+	}
+
+	function finishPhotoSelection() {
+		if (!activeState.selectedPhotoIds.size) return;
+		const ids = Array.from(activeState.selectedPhotoIds);
+		if (activeState.pickerMode === "replace") {
+			const line = activeState.lines.find((entry) => entry.lineId === activeState.changeLineId);
+			if (line) line.photoId = ids[0];
+		} else if (activeState.pickerMode === "review") {
+			const oldLines = activeState.lines.slice();
+			activeState.lines = ids.map((photoId) => oldLines.find((line) => line.photoId === photoId) || ({ lineId: newLineId(), photoId, crop: { x: 0, y: 0 }, quantity: 1 }));
+		} else activeState.lines = ids.map((photoId) => ({ lineId: newLineId(), photoId, crop: { x: 0, y: 0 }, quantity: 1 }));
+		activeState.screen = "customize";
+		activeState.cropActiveLineId = "";
+		activeState.editPanelOpen = false;
+		activeState.previewLineId = "";
+		activeState.selectedPhotoIds.clear();
+		activeState.changeLineId = "";
+		renderStore();
+		focusShop(".shop-customize-bar__title h1");
+	}
+
+	function changeQuantity(lineId, delta, value) {
+		const line = activeState.screen === "cart"
+			? activeState.cart.find((entry) => entry.lineId === lineId)
+			: activeState.lines.find((entry) => entry.lineId === lineId);
+		if (!line) return;
+		line.quantity = Math.max(1, Math.floor(value === undefined ? Number(line.quantity) + delta : Number(value) || 1));
+		if (activeState.screen === "cart") saveCart();
+		renderStore();
+	}
+
+	function addToCart() {
+		const product = activeState.product;
+		const items = activeState.lines.map((line) => ({
+			lineId: line.lineId,
+			productSlug: product.slug,
+			selections: Object.assign({}, activeState.selections),
+			photoId: line.photoId,
+			crop: clampCrop(line.crop),
+			quantity: Math.max(1, Math.floor(Number(line.quantity) || 1)),
+			unitPrice: priceFor(product, activeState.selections),
+		}));
+		activeState.cart = activeState.cart.concat(items);
+		saveCart();
+		activeState.screen = "cart";
+		activeState.checkoutOpen = false;
+		try {
+			const url = new URL(global.location.href);
+			url.searchParams.delete("product");
+			url.searchParams.set("view", "cart");
+			global.history.pushState({}, "", url.toString());
+		} catch { /* cart screen stays available if History API is unavailable */ }
+		renderStore();
+		focusShop(".shop-cart-heading h1");
+	}
+
+	function updateCrop(lineId, x, y) {
+		const line = activeState.lines.find((entry) => entry.lineId === lineId);
+		if (!line) return;
+		line.crop = clampCrop({ x, y });
+		const surface = activeRoot && Array.from(activeRoot.querySelectorAll("[data-shop-crop-id]")).find((entry) => entry.dataset.shopCropId === lineId);
+		const mockup = surface && surface.querySelector(".shop-mockup");
+		if (mockup) {
+			mockup.style.setProperty("--shop-crop-x", line.crop.x + "%");
+			mockup.style.setProperty("--shop-crop-y", line.crop.y + "%");
+		}
+	}
+
+	function trapDialogTab(event, dialog) {
+		const items = Array.from(dialog.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+		if (!items.length) { event.preventDefault(); dialog.focus(); return; }
+		const first = items[0];
+		const last = items[items.length - 1];
+		if (event.shiftKey && (global.document.activeElement === first || !dialog.contains(global.document.activeElement))) { event.preventDefault(); last.focus(); }
+		else if (!event.shiftKey && (global.document.activeElement === last || !dialog.contains(global.document.activeElement))) { event.preventDefault(); first.focus(); }
+	}
+
+	function handleKeyDown(event) {
+		const dialog = activeRoot && activeRoot.querySelector(".shop-picker-dialog, .shop-preview-dialog, .shop-edit-product-panel");
+		if (dialog && event.key === "Escape") {
+			event.preventDefault();
+			if (dialog.classList.contains("shop-picker-dialog")) closePhotoPicker();
+			else if (dialog.classList.contains("shop-preview-dialog")) { activeState.previewLineId = ""; renderStore(); focusShop('[data-shop-action="preview"]'); }
+			else { activeState.editPanelOpen = false; renderStore(); focusShop('[data-shop-action="edit-product"]'); }
+			return;
+		}
+		if (dialog && event.key === "Tab") { trapDialogTab(event, dialog); return; }
+		const surface = event.target && event.target.closest ? event.target.closest("[data-shop-crop-id]") : null;
+		if (!surface || surface.dataset.shopCropId !== activeState.cropActiveLineId) return;
+		if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
+		const line = activeState.lines.find((entry) => entry.lineId === activeState.cropActiveLineId);
+		if (!line) return;
+		event.preventDefault();
+		updateCrop(line.lineId, line.crop.x + (event.key === "ArrowLeft" ? 2 : event.key === "ArrowRight" ? -2 : 0), line.crop.y + (event.key === "ArrowUp" ? 2 : event.key === "ArrowDown" ? -2 : 0));
+	}
+
+	function handlePointerDown(event) {
+		if (!activeState.cropActiveLineId || !event.target || !event.target.closest) return;
+		const surface = event.target.closest("[data-shop-crop-id]");
+		if (!surface || surface.dataset.shopCropId !== activeState.cropActiveLineId) return;
+		const line = activeState.lines.find((entry) => entry.lineId === surface.dataset.shopCropId);
+		if (!line) return;
+		const rect = surface.getBoundingClientRect();
+		activeState.cropDrag = { lineId: line.lineId, startX: event.clientX, startY: event.clientY, width: rect.width, height: rect.height, crop: clampCrop(line.crop) };
+		if (surface.setPointerCapture) surface.setPointerCapture(event.pointerId);
+		event.preventDefault();
+	}
+
+	function handlePointerMove(event) {
+		const drag = activeState.cropDrag;
+		if (!drag) return;
+		updateCrop(drag.lineId, drag.crop.x - (event.clientX - drag.startX) / Math.max(1, drag.width) * 100, drag.crop.y - (event.clientY - drag.startY) / Math.max(1, drag.height) * 100);
+	}
+
+	function handlePointerUp() { if (activeState) activeState.cropDrag = null; }
+
 	function handleClick(event) {
-		const target = event.target instanceof Element ? event.target : null;
+		const target = event.target && event.target.closest ? event.target : null;
 		if (!target || !activeRoot || !activeState) return;
+		const pickerDialog = activeRoot.querySelector(".shop-picker-dialog");
+		if (pickerDialog && target.matches(".shop-picker-overlay")) { closePhotoPicker(); return; }
+		if (target.matches(".shop-preview-overlay")) { activeState.previewLineId = ""; renderStore(); focusShop('[data-shop-action="preview"]'); return; }
+		if (target.matches(".shop-edit-product-backdrop")) { activeState.editPanelOpen = false; renderStore(); focusShop('[data-shop-action="edit-product"]'); return; }
 		const action = target.closest("[data-shop-action]");
 		if (action) {
 			const name = action.dataset.shopAction;
@@ -802,16 +1193,53 @@
 					if (first) first.scrollIntoView({ block: "nearest", behavior: "smooth" });
 					return;
 				}
-				openPhotoPicker(activeState.product, activeState.selections);
+				openPhotoPicker(activeState.product, activeState.selections, { mode: "new", returnScreen: "page" });
 				return;
 			}
+			if (name === "picker-close") { closePhotoPicker(); return; }
+			if (name === "picker-toggle") {
+				const id = action.dataset.photoId;
+				if (activeState.pickerMode === "replace") {
+					activeState.selectedPhotoIds = activeState.selectedPhotoIds.has(id) ? new Set() : new Set([id]);
+				} else if (activeState.selectedPhotoIds.has(id)) activeState.selectedPhotoIds.delete(id);
+				else activeState.selectedPhotoIds.add(id);
+				renderStore(); focusPhoto(id); return;
+			}
+			if (name === "picker-next") { finishPhotoSelection(); return; }
+			if (name === "customize-back") { openPhotoPicker(activeState.product, activeState.selections, { mode: "review", returnScreen: "customize" }); return; }
+			if (name === "change-photo") { openPhotoPicker(activeState.product, activeState.selections, { mode: "replace", returnScreen: "customize", lineId: action.dataset.lineId }); return; }
+			if (name === "crop-toggle") {
+				activeState.cropActiveLineId = activeState.cropActiveLineId === action.dataset.lineId ? "" : action.dataset.lineId;
+				renderStore();
+				const cropSurface = Array.from(activeRoot.querySelectorAll("[data-shop-crop-id]")).find((entry) => entry.dataset.shopCropId === activeState.cropActiveLineId);
+				if (cropSurface) cropSurface.focus();
+				return;
+			}
+			if (name === "quantity-down" || name === "quantity-up") { changeQuantity(action.dataset.lineId, name === "quantity-up" ? 1 : -1); return; }
+			if (name === "remove-line") { activeState.cart = activeState.cart.filter((line) => line.lineId !== action.dataset.lineId); saveCart(); renderStore(); return; }
+			if (name === "preview") { activeState.previewLineId = activeState.lines[0] ? activeState.lines[0].lineId : ""; renderStore(); focusShop('[data-shop-action="preview-close"]'); return; }
+			if (name === "preview-close") { activeState.previewLineId = ""; renderStore(); focusShop('[data-shop-action="preview"]'); return; }
+			if (name === "edit-product") { activeState.editPanelOpen = true; renderStore(); focusShop('[data-shop-action="close-edit-product"]'); return; }
+			if (name === "close-edit-product") { activeState.editPanelOpen = false; renderStore(); focusShop('[data-shop-action="edit-product"]'); return; }
+			if (name === "add-to-cart") { addToCart(); return; }
+			if (name === "checkout") { activeState.checkoutOpen = true; renderStore(); focusShop("[data-shop-checkout]"); return; }
 		}
 		const optionButton = target.closest("[data-shop-option-group][data-shop-option-value]");
 		if (!optionButton || !activeState.product) return;
 		const groupKey = optionButton.dataset.shopOptionGroup;
 		activeState.selections[groupKey] = optionButton.dataset.shopOptionValue;
 		activeState.invalid.delete(groupKey);
-		updateProductPriceAndOptions();
+		if (activeState.screen === "customize") renderStore();
+		else updateProductPriceAndOptions();
+	}
+
+	function handleChange(event) {
+		const target = event.target;
+		if (!target || !target.closest) return;
+		const size = target.closest("[data-shop-size-select]");
+		if (size && activeState.screen === "customize") { activeState.selections.size = size.value; renderStore(); return; }
+		const quantity = target.closest("[data-shop-quantity]");
+		if (quantity) changeQuantity(quantity.dataset.lineId, 0, quantity.value);
 	}
 
 	function mount(root) {
@@ -819,6 +1247,12 @@
 		activeRoot = root;
 		if (root.dataset.shopBound !== "true") {
 			root.addEventListener("click", handleClick);
+			root.addEventListener("change", handleChange);
+			root.addEventListener("keydown", handleKeyDown);
+			root.addEventListener("pointerdown", handlePointerDown);
+			root.addEventListener("pointermove", handlePointerMove);
+			root.addEventListener("pointerup", handlePointerUp);
+			root.addEventListener("pointercancel", handlePointerUp);
 			root.dataset.shopBound = "true";
 		}
 		if (heroTimer) {
@@ -826,8 +1260,8 @@
 			heroTimer = null;
 		}
 		if (!activeState.product && typeof global.matchMedia === "function" && !global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-			heroTimer = global.setInterval(() => {
-				if (!activeState || activeState.product) return;
+				heroTimer = global.setInterval(() => {
+					if (!activeState || activeState.product || activeState.screen !== "page") return;
 				activeState.heroIndex = (activeState.heroIndex + 1) % SHOP_CATALOG.length;
 				updateHero();
 			}, 6500);
@@ -836,14 +1270,21 @@
 
 	const api = {
 		catalog: SHOP_CATALOG,
+		cartStorageKey: CART_STORAGE_KEY,
+		cartSubtotal,
+		clampCrop,
 		dimensionsFor,
 		fromPrice,
+		lineTotal,
+		matWindowFor,
 		missingRequiredOptions,
 		openPhotoPicker,
+		parseCart,
 		priceFor,
 		renderMockup,
 		renderPage,
 		selectStorePhotos,
+		serializeCart,
 		mount,
 	};
 	global.PortfolioShop = api;

@@ -119,3 +119,47 @@ test("renders the four current-photo product views and cycles card photos", () =
 	assert.match(shop.renderMockup(product("gallery-frame"), { size: "11 x 14" }, albums[0].items[0], { view: "wall" }), /--shop-wall-art-width:28\.00%/);
 	assert.match(shop.renderMockup(product("gallery-frame"), { size: "11 x 14" }, albums[0].items[0], { view: "wall" }), /shop-mockup__furniture/);
 });
+
+test("serializes and restores cart lines with validated catalog prices and crop", () => {
+	const photos = [{ id: "photo-a", printEnabled: true, url: "/photo-a.jpg" }];
+	const line = {
+		lineId: "line-a",
+		productSlug: "gallery-frame",
+		selections: { size: "11 x 14", frame: "Gallery White", paper: "Lustre", mat: "Black mat" },
+		photoId: "photo-a",
+		crop: { x: 18, y: -12 },
+		quantity: 2,
+		unitPrice: 152,
+	};
+	const restored = JSON.parse(JSON.stringify(shop.parseCart(shop.serializeCart([line]), photos)));
+	assert.deepEqual(restored, [{ ...line, unitPrice: shop.priceFor(product("gallery-frame"), line.selections) }]);
+});
+
+test("drops malformed and unknown products, photos, and options from stored carts", () => {
+	assert.deepEqual(JSON.parse(JSON.stringify(shop.parseCart("not json", []))), []);
+	const photos = [{ id: "known-photo" }];
+	const stored = [
+		{ productSlug: "unknown", photoId: "known-photo", quantity: 1, selections: {} },
+		{ productSlug: "gallery-frame", photoId: "missing-photo", quantity: 1, selections: {} },
+		{ productSlug: "gallery-frame", photoId: "known-photo", quantity: 1, selections: { size: "11 x 14", frame: "blue", paper: "Lustre" } },
+		{ productSlug: "gallery-frame", photoId: "known-photo", quantity: -1, selections: { size: "11 x 14", frame: "Gallery Black", paper: "Lustre" } },
+	];
+	assert.deepEqual(JSON.parse(JSON.stringify(shop.parseCart(JSON.stringify(stored), photos))), []);
+});
+
+test("calculates cart line totals and subtotal from quantity", () => {
+	assert.equal(shop.lineTotal({ unitPrice: 12.5, quantity: 2 }), 25);
+	assert.equal(shop.cartSubtotal([{ unitPrice: 12.5, quantity: 2 }, { unitPrice: 8, quantity: 3 }]), 49);
+});
+
+test("defines catalog mat windows for framed sizes", () => {
+	const frame = product("gallery-frame");
+	assert.equal(shop.matWindowFor(frame, "11 x 14"), "8 x 10");
+	assert.equal(shop.matWindowFor(frame, "8 x 10"), "5 x 7");
+	assert.equal(shop.matWindowFor(product("print"), "11 x 14"), null);
+});
+
+test("clamps crop offsets to the supported pan window", () => {
+	assert.deepEqual(JSON.parse(JSON.stringify(shop.clampCrop({ x: 85, y: -73 }))), { x: 50, y: -50 });
+	assert.deepEqual(JSON.parse(JSON.stringify(shop.clampCrop({ x: "bad", y: 2.5 }))), { x: 0, y: 2.5 });
+});
