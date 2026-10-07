@@ -4,7 +4,11 @@ Last updated: 2026-10-06. The CEO thread keeps this current. Every row's code is
 
 ## Production
 
-- `main` @ `bbd6d6a` is live on clairethomas.art: new top-nav design, slideshow homepage, section cover pages, Booking page with packages and the Resend inquiry form, Empty Trash in admin.
+- `main` is live (site code unchanged since `bbd6d6a`) on clairethomas.art: new top-nav design, slideshow homepage, section cover pages, Booking page with packages and the Resend inquiry form, Empty Trash in admin.
+
+## Checkouts
+
+- `~/Developer/c_portfolio-main` — clean `main` checkout for brain edits and releases. Merge `main` into a workstream branch to give it the latest brain.
 
 ## Open workstreams
 
