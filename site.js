@@ -918,7 +918,7 @@ const renderPrints = () => `
 		<div class="prints-copy">
 			<p class="prints-eyebrow">Shop</p>
 			<h2>Coming soon.</h2>
-			<p>Prints of my photographs will be available here soon.</p>
+			<p>Prints of my photographs will be available soon.</p>
 			<div class="prints-actions">
 				<a href="mailto:${printShopConfig.email}?subject=Print%20Inquiry">Ask about a print</a>
 			</div>
