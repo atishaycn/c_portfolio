@@ -44,6 +44,7 @@ The request is refused with HTTP 400 and a message the cart can show, and nothin
 - A Gelato or Stripe failure answers HTTP 500 so that Stripe retries. The customer's address and email are never written to logs or responses.
 - Claire gets an order email through Resend (`SHOP_ORDER_TO`, default `contact@clairethomas.art`): lines, total, the customer's name and city, and the Gelato order ID. The email is sent once per order and only when `RESEND_API_KEY` is set; a failed email does not fail the webhook. The customer gets Stripe's receipt.
 - On 2026-10-13 the Gelato account held no orders of any kind (`orders:search` returned none).
-- If the recomputed total differs from the paid amount (a price changed between cart and webhook), no order is created and Claire is told by email; a paid order must never be dropped silently.
+- If the recomputed total differs from the paid amount (a price changed between cart and webhook), or the cart can no longer be priced (a product or photo was removed), no order is created, Claire is told by email once, and the webhook answers 200. A paid order must never be dropped silently.
+- Known limit: two deliveries of one event handled at the same moment by two server instances could both create a draft; the lock is per process and Gelato has no create-time idempotency key. Drafts are not printed, so Claire can delete a duplicate.
 - Canvas wraps the image around the frame edge. The print file is cropped to the face size only, so check how Gelato fills the edges on the first draft order before canvas is sold.
 - Open decision for release: whether paid orders go to Gelato as real orders automatically, or Claire approves each draft in the Gelato dashboard.
