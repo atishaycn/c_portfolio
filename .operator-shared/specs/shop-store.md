@@ -40,6 +40,22 @@ Checked against the Gelato product API on 2026-10-13 (every product in each cata
 - Each variant is one size plus one value per option, with the Gelato product UID for both orientations and one retail price.
 - Retail price = Gelato US cost × `markup`, rounded up to a whole dollar. `markup` is 2.5, a sample until Claire sets prices. Gelato costs stay out of the served file; the script writes them to `scripts/shop-catalog-costs.json`.
 - Shipping is not in the price.
+- The browser loads the file before the store renders (`cms-loader.js` fetches it on the Shop page and hands it to `shop.js`). `shop.js` holds only presentation: descriptions, option descriptions, swatch colours and mockup styles, keyed by product slug and option value. If the file cannot be loaded, the Shop page says the store is unavailable and shows the email link.
+- A price shown anywhere in the store is the variant's `price` from the file. A cart line whose product, size or option values match no variant is dropped.
+
+## Product facts
+
+Use only these in product descriptions and "Product info"; no production or delivery times until Gelato's are confirmed.
+
+- Print: 200 gsm poster paper (semi-gloss or matte) or 250 gsm off-white archival matte paper.
+- Fine Art Print: 200 gsm enhanced matte fine art paper, 12-colour printing.
+- Canvas: stretched on FSC wood bars, 2 cm (slim) or 4 cm (thick) deep.
+- Framed Canvas: slim canvas in a wood floater frame.
+- Metal Print: 3 mm aluminium, white matte or brushed silver surface.
+- Acrylic Print: 4 mm clear acrylic.
+- Wood Print: birch-faced plywood, 10 mm or 20 mm thick; the grain shows through light areas.
+- Foam Print: 5 mm foam board with a black or white edge.
+- Wood Frame, Metal Frame: fine art print behind plexiglass, delivered assembled in the frame. Wood moulding 12 mm wide; aluminium moulding 10 mm wide.
 
 ## Screens
 
@@ -47,15 +63,15 @@ Checked against the Gelato product API on 2026-10-13 (every product in each cata
 2. **Product page** (`prints.html?product=<slug>`): breadcrumb `Home / Category / Product`. Left: large mockup with prev/next arrows and a thumbnail strip (same product, different photos). Right: uppercase name, price ("From $X" until every required option is chosen, then the exact price), description, option groups, primary CTA, collapsible "Product info" (materials, production time), then "You might also like" (4 cards from the same category).
    - Option groups: label in small spaced caps with the selected value beside it. Sizes and text options are a grid of bordered buttons (4 per row desktop, 2 on phone); selected = dark border. Colour/material options (frame finish, canvas edge) are square swatches.
    - Hovering a swatch or a paper/finish option shows a detail card (close-up mockup + name + one-line description).
-   - Options with no default (frame, paper on framed products) are required; pressing the CTA without them marks them "* Select an option".
+   - Size defaults to the product's smallest size. Every other option has no default and is required; pressing the CTA without one marks it "* Select an option".
 3. **Photo picker** (full-screen overlay after the CTA): close ×, "Select photos" title, "N photos selected", Next (disabled at 0). Grid of print-enabled photos; selected tiles get a check badge and a grey backing.
-4. **Customize** (per selected photo): top bar with back arrow, `<size>" <Product>` and `<options> - $<price>`, "Preview", "Edit product", "Add to cart". Centre: the live mockup at the true aspect ratio for the size, including mat (photo shrinks to the inner window; show "Your photo is W x H" with the mat option"). Under it: "Edit crop" (drag to reposition the photo in the window), "Change" (photo), size select and quantity stepper. "Edit product" opens a side panel with the same option groups; every change redraws the mockup and price live. "Preview" shows the piece on a wall, scaled by its real size.
+4. **Customize** (per selected photo): top bar with back arrow, `<size>" <Product>` and `<options> - $<price>`, "Preview", "Edit product", "Add to cart". Centre: the live mockup at the true aspect ratio for the size, Under it: "Edit crop" (drag to reposition the photo in the window), "Change" (photo), size select and quantity stepper. "Edit product" opens a side panel with the same option groups; every change redraws the mockup and price live. "Preview" shows the piece on a wall, scaled by its real size.
 5. **Cart**: line items with a small mockup, option summary, quantity, remove, line and subtotal; empty state "Your cart is empty" with "Browse products". Header shows a cart icon with a count on every store screen.
 
 ## Mockup contract
 
 - Mockups are drawn with HTML/CSS around the real photograph (Cloudinary URL), not pre-rendered images, so any photo and option combination renders. One renderer serves cards, the product page, detail cards, customize, wall preview and cart.
-- Each product type has a distinct, recognisable look: print (white paper border, soft shadow), canvas (visible wrapped side edge: photo, black or white), metal/acrylic (gloss sheen; acrylic thick clear edge), standout (thick black edge), frames (moulding colour/texture per finish, optional white or black mat with bevel), framed canvas (floater gap), wood/bamboo (grain texture showing through or on the edge).
+- Each product type has a distinct, recognisable look: print (white paper border, soft shadow), canvas (visible wrapped side edge showing the photo; thick is visibly deeper than slim), metal (white matte is flat, brushed silver shows a brushed sheen), acrylic (gloss sheen, thick clear edge), foam (thick black or white edge), frames (moulding colour per frame option, no mat), framed canvas (floater gap, frame colour per option), wood print (grain texture showing through; 20 mm is visibly thicker than 10 mm).
 - Aspect ratio follows the chosen size and the photo's orientation (an 11 x 14 of a landscape photo renders 14 x 11).
 
 ## Style
