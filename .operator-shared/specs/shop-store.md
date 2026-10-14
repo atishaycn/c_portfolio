@@ -41,7 +41,7 @@ Checked against the Gelato product API on 2026-10-13 (every product in each cata
 - Retail price = Gelato US cost × `markup`, rounded up to a whole dollar. `markup` is 2.5, a sample until Claire sets prices. Gelato costs stay out of the served file; the script writes them to `scripts/shop-catalog-costs.json`.
 - Shipping is not in the price.
 - The browser loads the file before the store renders (`cms-loader.js` fetches it on the Shop page and hands it to `shop.js`). `shop.js` holds only presentation: descriptions, option descriptions, swatch colours and mockup styles, keyed by product slug and option value. If the file cannot be loaded, the Shop page says the store is unavailable and shows the email link.
-- A price shown anywhere in the store is the variant's `price` from the file. A cart line whose product, size or option values match no variant is dropped.
+- A price shown anywhere in the store is the variant's `price` from the file, and a chosen option is shown by its `label` from the file, never its raw `value`. A cart line whose product, size or option values match no variant is dropped.
 
 ## Product facts
 
@@ -72,6 +72,7 @@ Use only these in product descriptions and "Product info"; no production or deli
 
 - Mockups are drawn with HTML/CSS around the real photograph (Cloudinary URL), not pre-rendered images, so any photo and option combination renders. One renderer serves cards, the product page, detail cards, customize, wall preview and cart.
 - Each product type has a distinct, recognisable look: print (white paper border, soft shadow), canvas (visible wrapped side edge showing the photo; thick is visibly deeper than slim), metal (white matte is flat, brushed silver shows a brushed sheen), acrylic (gloss sheen, thick clear edge), foam (thick black or white edge), frames (moulding colour per frame option, no mat), framed canvas (floater gap, frame colour per option), wood print (grain texture showing through; 20 mm is visibly thicker than 10 mm).
+- The front view of a framed product shows no side face; depth comes from the shadow. Before a frame colour is chosen, the frame is black.
 - Aspect ratio follows the chosen size and the photo's orientation (an 11 x 14 of a landscape photo renders 14 x 11).
 
 ## Style
