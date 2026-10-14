@@ -22,7 +22,7 @@ Last updated: 2026-10-13. The CEO thread keeps this current. Every row's code is
 
 ## Shop store: state at hand-off (2026-10-13)
 
-The fork thread that did this work handed it back to the CEO thread. Decisions (user, 2026-10-13): Gelato is the only lab; the Shopify shop closes at release; payments go to a new Stripe account.
+The fork thread that did this work handed it back to the CEO thread, which owns all work again; the fork is settled. Checkout contract: `specs/shop-checkout.md`. Decisions (user, 2026-10-13): Gelato is the only lab; the Shopify shop closes at release; payments go to a new Stripe account.
 
 ### Done and verified
 
