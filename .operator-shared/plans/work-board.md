@@ -40,8 +40,8 @@ The fork thread that did this work handed it back to the CEO thread, which owns 
 
 ### Open items
 
-- Photo size check is not built: the store offers every size for every photo. The spec requires a size only when the original has enough pixels; the pixel threshold is not decided.
-- The photo picker flickers when it redraws.
+- Photo size check: built (`c710380`), 125 px per inch; see `specs/shop-checkout.md`.
+- The photo picker flickers when it redraws: fix running in a Codex child since 2026-10-13 21:40, uncommitted until verified.
 - Retail prices are Gelato US cost x 2.5, a sample until Claire sets prices.
 - A Codex child saw one Cloudinary 404 (`place/california/san-francisco/83`) on a single load. That photo is not in the live content and no sweep reproduced it.
 - `README.md` and `program.md` do not describe the store. The codebase index on `main` lists no store files; index them when the branch merges.
