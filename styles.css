@@ -2543,7 +2543,6 @@ body[data-page="protests"] .masonry-grid {
 .shop-customize-art.is-crop-active:active { cursor: grabbing; }
 .shop-customize-line-controls { min-width: 0; }
 .shop-customize-line-controls { width: min(100%, 520px); margin: 9px auto 0; }
-.shop-mat-caption { grid-column: 1; margin: 12px 0 0; color: #555; font-size: 13px; }
 .shop-customize-crop-actions { display: flex; gap: 18px; }
 .shop-customize-crop-actions button { padding: 2px 0 5px; border: 0; border-bottom: 1px solid currentColor; background: transparent; color: #333; font: inherit; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; cursor: pointer; }
 .shop-crop-help { color: #666; font-size: 12px; line-height: 1.5; }
@@ -2696,13 +2695,21 @@ body[data-page="protests"] .masonry-grid {
 	box-shadow: inset 0 0 0 0.6cqw rgba(206, 202, 194, 0.5);
 }
 
-.shop-mockup--large-format-print:not(.shop-mockup--view-corner):not(.shop-mockup--view-wall) .shop-mockup__object {
-	inset: 5%;
+.shop-mockup--print.shop-option--paper-semi-gloss .shop-mockup__object--print .shop-mockup__front {
+	background: linear-gradient(135deg, #fff, #f4f4f2);
+}
+
+.shop-mockup--print.shop-option--paper-matte .shop-mockup__object--print .shop-mockup__front {
+	background: #fafaf8;
+}
+
+.shop-mockup--print.shop-option--paper-archival-matte .shop-mockup__object--print .shop-mockup__front {
+	background: linear-gradient(135deg, #f4f0e5, #fffdf7);
 }
 
 .shop-mockup__object--canvas {
-	--shop-depth: 8%;
-	background: var(--shop-edge-color, #ad9a80);
+	--shop-depth: 6%;
+	background: #ad9a80;
 	box-shadow: 0 1.4cqw 2.3cqw rgba(0, 0, 0, 0.26), 0 0 0 0.4cqw rgba(255, 255, 255, 0.25);
 }
 
@@ -2710,33 +2717,23 @@ body[data-page="protests"] .masonry-grid {
 	border: 0.5cqw solid rgba(255, 255, 255, 0.15);
 }
 
-.shop-edge--photo-wrap {
-	--shop-edge-color: #b9a184;
-	background: repeating-linear-gradient(90deg, #836a50 0 1cqw, #c7ad8d 1.2cqw 2cqw, #9b8062 2.2cqw 3cqw);
+.shop-mockup--canvas.shop-option--depth-slim .shop-mockup__object--canvas {
+	--shop-depth: 4%;
 }
 
-.shop-edge--black-wrap,
-.shop-edge--black-edge {
-	--shop-edge-color: #242424;
-}
-
-.shop-edge--white-wrap,
-.shop-edge--white-edge {
-	--shop-edge-color: #f3f1ec;
-	background: linear-gradient(90deg, #c9c7c2, #faf9f6 35%, #e3e1dc);
+.shop-mockup--canvas.shop-option--depth-thick .shop-mockup__object--canvas {
+	--shop-depth: 10%;
 }
 
 .shop-side--photo {
-	background: #aa9174;
+	background: repeating-linear-gradient(90deg, #836a50 0 1cqw, #c7ad8d 1.2cqw 2cqw, #9b8062 2.2cqw 3cqw);
 }
 
-.shop-side--edge.shop-edge--black-wrap,
-.shop-side--edge.shop-edge--black-edge {
+.shop-side--edge.shop-edge--black {
 	background: linear-gradient(90deg, #090909, #383838 58%, #171717);
 }
 
-.shop-side--edge.shop-edge--white-wrap,
-.shop-side--edge.shop-edge--white-edge {
+.shop-side--edge.shop-edge--white {
 	background: linear-gradient(90deg, #d1cfca, #faf9f6 58%, #e5e3de);
 }
 
@@ -2754,20 +2751,20 @@ body[data-page="protests"] .masonry-grid {
 	background: linear-gradient(135deg, #100f10, #4d4944 55%, #171616);
 }
 
+.shop-mockup--framed-canvas.shop-option--frame-natural-wood .shop-mockup__floater-face {
+	background: linear-gradient(135deg, #ddc89f, #b79563);
+}
+
+.shop-mockup--framed-canvas.shop-option--frame-dark-wood .shop-mockup__floater-face {
+	background: linear-gradient(135deg, #302015, #725139 55%, #2b1d14);
+}
+
 .shop-mockup__canvas-face {
 	width: 100%;
 	height: 100%;
 	padding: 1.5%;
 	background: #d8d0c5;
 	box-shadow: 0 0 0 0.4cqw rgba(255, 255, 255, 0.7), 0 0 0 1.2cqw rgba(0, 0, 0, 0.4);
-}
-
-.shop-mockup--framed-canvas .shop-finish--natural {
-	background: linear-gradient(135deg, #ddc89f, #b79563);
-}
-
-.shop-mockup--framed-canvas .shop-finish--white {
-	background: linear-gradient(135deg, #f6f3ec, #d7d2ca);
 }
 
 .shop-mockup__object--metal,
@@ -2815,26 +2812,35 @@ body[data-page="protests"] .masonry-grid {
 	pointer-events: none;
 }
 
-.shop-mockup__object--metal.shop-finish--matte .shop-mockup__sheen {
-	opacity: 0.18;
+.shop-mockup__object--metal.shop-finish--white-matte .shop-mockup__sheen {
+	opacity: 0.12;
 }
 
-.shop-mockup__object--acrylic.shop-finish--matte .shop-mockup__sheen {
-	opacity: 0.22;
+.shop-mockup__object--metal.shop-finish--brushed-silver {
+	background: linear-gradient(135deg, #8c9497, #e5e8e8 42%, #9da4a6);
 }
 
-.shop-mockup__object--standout {
-	--shop-depth: 10%;
-	background: var(--shop-edge-color, #1a1a1a);
+.shop-mockup__object--metal.shop-finish--brushed-silver .shop-mockup__sheen {
+	background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 0.3cqw, rgba(55, 63, 66, 0.08) 0.4cqw 0.7cqw);
+	opacity: 0.75;
+}
+
+.shop-mockup__object--foam {
+	--shop-depth: 7%;
+	background: #242424;
 	box-shadow: 0 1.4cqw 2.3cqw rgba(0, 0, 0, 0.3);
 }
 
-.shop-mockup__object--standout .shop-mockup__front {
-	border: 1.3cqw solid var(--shop-edge-color, #242424);
+.shop-mockup__object--foam.shop-edge--white {
+	background: #f3f1ec;
 }
 
-.shop-side--black {
-	background: linear-gradient(90deg, #090909, #343434 52%, #151515);
+.shop-mockup__object--foam .shop-mockup__front {
+	border: 1.3cqw solid #242424;
+}
+
+.shop-mockup__object--foam.shop-edge--white .shop-mockup__front {
+	border-color: #f3f1ec;
 }
 
 .shop-mockup__object--frame {
@@ -2858,92 +2864,68 @@ body[data-page="protests"] .masonry-grid {
 	box-shadow: inset 0 0 0 0.5cqw rgba(255, 255, 255, 0.24), inset 0 0 0.8cqw rgba(0, 0, 0, 0.25);
 }
 
-.shop-finish--gallery-black {
-	background: linear-gradient(145deg, #100f12, #353237 48%, #18161a);
-}
-
-.shop-finish--gallery-white {
-	background: linear-gradient(145deg, #fdfdfb, #d9d9d7 48%, #f7f7f5);
-}
-
-.shop-finish--distressed-black {
-	background: repeating-linear-gradient(8deg, #282420 0 0.9cqw, #514a41 1cqw, #302a24 1.8cqw), repeating-linear-gradient(84deg, transparent 0 1.6cqw, rgba(225, 212, 191, 0.18) 1.8cqw, transparent 2.1cqw);
-}
-
-.shop-finish--distressed-white {
-	background: repeating-linear-gradient(8deg, #d4d2cb 0 0.9cqw, #f0ece3 1cqw, #c9c7c0 1.8cqw), repeating-linear-gradient(84deg, transparent 0 1.6cqw, rgba(130, 123, 110, 0.13) 1.8cqw, transparent 2.1cqw);
-}
-
-.shop-finish--gold {
-	background: linear-gradient(120deg, #8b6a25, #e4ca74 28%, #a57d2d 54%, #f2da8b 78%, #94722a);
-}
-
-.shop-finish--silver {
-	background: linear-gradient(120deg, #777b7d, #eceff0 28%, #a8adaf 54%, #f3f4f4 78%, #858a8c);
-}
-
 .shop-finish--black {
 	background: linear-gradient(145deg, #111, #393939 48%, #191919);
 }
 
-.shop-finish--natural,
-.shop-finish--white-oak {
+.shop-finish--white {
+	background: linear-gradient(145deg, #fdfdfb, #d9d9d7 48%, #f7f7f5);
+}
+
+.shop-finish--natural-wood {
 	background: repeating-linear-gradient(8deg, #bda179 0 1cqw, #dcc59c 1.2cqw, #b89568 2cqw);
 }
 
-.shop-finish--walnut {
-	background: repeating-linear-gradient(8deg, #513724 0 1cqw, #78563b 1.2cqw, #422c1e 2cqw);
+.shop-finish--dark-wood {
+	background: repeating-linear-gradient(8deg, #39291d 0 1cqw, #76553b 1.2cqw, #2d2017 2cqw);
 }
 
-.shop-mockup__mat {
-	position: relative;
-	display: block;
-	width: 100%;
-	height: 100%;
-	overflow: hidden;
+.shop-mockup--metal-frame .shop-mockup__object--frame.shop-finish--black {
+	background: linear-gradient(135deg, #090a0b, #5a5e60 28%, #17191a 55%, #414546 78%, #0b0c0d);
+	box-shadow: inset 0 0 0 0.6cqw rgba(255, 255, 255, 0.48), 0 1.3cqw 2.1cqw rgba(0, 0, 0, 0.28);
+}
+
+.shop-mockup--metal-frame .shop-side--finish.shop-finish--black {
+	background: linear-gradient(90deg, #080909, #777c7e 34%, #181a1b 68%, #626769);
+}
+
+.shop-mockup__object--frame {
+	--shop-depth: 5%;
 	padding: 0;
-	background: linear-gradient(135deg, #f8f7f3, #fff 42%, #e7e5df);
-	box-shadow: inset 0 0 0 0.45cqw rgba(0, 0, 0, 0.08), inset 0 0.4cqw 0.8cqw rgba(0, 0, 0, 0.13);
+	background: linear-gradient(135deg, #17151a, #39373a 48%, #17151a);
+	box-shadow: inset 0 0 0 0.6cqw rgba(255, 255, 255, 0.25), 0 1.3cqw 2.1cqw rgba(0, 0, 0, 0.28);
 }
 
-.shop-mat--white-mat {
-	padding: 11%;
-	background: linear-gradient(135deg, #f6f5f2, #fff 42%, #eceae5);
-	box-shadow: inset 0 0 0 0.55cqw #e4e1db, inset 0 0.45cqw 0.9cqw rgba(0, 0, 0, 0.16);
+.shop-mockup__object--frame .shop-mockup__front {
+	overflow: visible;
+	background: transparent;
 }
 
-.shop-mat--black-mat {
-	padding: 11%;
-	background: linear-gradient(135deg, #151515, #242424 48%, #101010);
-	box-shadow: inset 0 0 0 0.55cqw #3b3937, inset 0 0.5cqw 1cqw rgba(0, 0, 0, 0.52);
+.shop-mockup__frame-face {
+	position: absolute;
+	inset: 0;
+	display: block;
+	padding: 8%;
+	background: transparent;
+	box-shadow: inset 0 0 0 0.5cqw rgba(255, 255, 255, 0.24), inset 0 0 0.8cqw rgba(0, 0, 0, 0.25);
 }
 
-.shop-mockup__mat img {
-	box-shadow: 0 0 0 0.5cqw rgba(0, 0, 0, 0.2), 0 0 0 0.9cqw rgba(255, 255, 255, 0.42);
-}
-
-.shop-mockup__object--bamboo,
 .shop-mockup__object--wood {
 	--shop-depth: 7%;
 	background: repeating-linear-gradient(8deg, #b99463 0 4px, #ddc59b 5px, #b18d5f 8px);
 	box-shadow: inset 0 0 0 0.5cqw rgba(255, 255, 255, 0.3), 0 1.3cqw 2cqw rgba(0, 0, 0, 0.25);
 }
 
-.shop-mockup__object--wood .shop-mockup__front,
-.shop-mockup__object--bamboo .shop-mockup__front {
+.shop-mockup__object--wood .shop-mockup__front {
 	border: 0.5cqw solid rgba(73, 51, 25, 0.28);
 }
 
-.shop-finish--carbonized {
-	background: repeating-linear-gradient(8deg, #775234 0 1cqw, #a2764b 1.2cqw, #69482b 2cqw);
+.shop-mockup--wood-print.shop-option--thickness-10-mm .shop-mockup__object--wood {
+	--shop-depth: 4%;
 }
 
-.shop-finish--white {
-	background: repeating-linear-gradient(8deg, #e8e4dc 0 1cqw, #faf9f5 1.2cqw, #d8d4cc 2cqw);
-}
-
-.shop-mockup--wood-print .shop-mockup__object--wood {
-	--shop-depth: 5%;
+.shop-mockup--wood-print.shop-option--thickness-20-mm .shop-mockup__object--wood {
+	--shop-depth: 9%;
 }
 
 .shop-mockup__photo-face {
@@ -2962,15 +2944,6 @@ body[data-page="protests"] .masonry-grid {
 	background: repeating-linear-gradient(7deg, #eadfc9 0 1.5cqw, #f5ecd9 1.8cqw 3.4cqw, #d9c7a9 3.7cqw 4.5cqw);
 }
 
-.shop-mockup--bamboo-panel .shop-finish--carbonized .shop-mockup__photo-face--wood,
-.shop-mockup--wood-print .shop-finish--walnut .shop-mockup__photo-face--wood {
-	background: repeating-linear-gradient(7deg, #765337 0 1.5cqw, #a17a50 1.8cqw 3.4cqw, #62452e 3.7cqw 4.5cqw);
-}
-
-.shop-mockup--wood-print .shop-finish--white .shop-mockup__photo-face--wood {
-	background: repeating-linear-gradient(7deg, #e8e4dc 0 1.5cqw, #faf9f5 1.8cqw 3.4cqw, #d8d4cc 3.7cqw 4.5cqw);
-}
-
 .shop-mockup__wood-grain {
 	position: absolute;
 	inset: 0;
@@ -2984,24 +2957,11 @@ body[data-page="protests"] .masonry-grid {
 	background: repeating-linear-gradient(90deg, #775632 0 0.8cqw, #d0ad78 1cqw 1.7cqw, #9b7548 2cqw 2.6cqw);
 }
 
-.shop-side--grain.shop-finish--carbonized,
-.shop-side--grain.shop-finish--walnut {
-	background: repeating-linear-gradient(90deg, #513724 0 0.8cqw, #926b45 1cqw 1.7cqw, #422c1e 2cqw 2.6cqw);
-}
-
-.shop-side--grain.shop-finish--white {
-	background: repeating-linear-gradient(90deg, #d0ccc3 0 0.8cqw, #f8f6f0 1cqw 1.7cqw, #c4beb2 2cqw 2.6cqw);
-}
-
 .shop-side--grain::after {
 	position: absolute;
 	inset: 0;
 	background: repeating-linear-gradient(8deg, transparent 0 1cqw, rgba(45, 31, 18, 0.28) 1.2cqw 1.5cqw, transparent 1.7cqw 2.7cqw);
 	content: "";
-}
-
-.shop-mockup--acrylic-print .shop-mockup__object--acrylic.shop-finish--matte .shop-mockup__sheen {
-	opacity: 0.18;
 }
 
 .shop-mockup--view-front .shop-mockup__object {
@@ -3277,10 +3237,6 @@ body[data-page="protests"] .masonry-grid {
 }
 
 .shop-mockup__front img { object-position: calc(50% + var(--shop-crop-x, 0%)) calc(50% + var(--shop-crop-y, 0%)); }
-.shop-mockup__mat,
-.shop-mat--white-mat,
-.shop-mat--black-mat { padding: 0; }
-.shop-mockup__mat img { position: absolute; top: var(--shop-mat-inset-y, 0%); left: var(--shop-mat-inset-x, 0%); width: calc(100% - 2 * var(--shop-mat-inset-x, 0%)); height: calc(100% - 2 * var(--shop-mat-inset-y, 0%)); object-fit: cover; }
 
 @media (max-width: 820px) {
 	.shop-storebar { width: calc(100% - 32px); }
@@ -3292,7 +3248,6 @@ body[data-page="protests"] .masonry-grid {
 	.shop-customize-card { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px; }
 	.shop-customize-art-wrap { min-height: 320px; }
 	.shop-customize-art { width: min(100%, 440px); }
-	.shop-mat-caption { grid-column: auto; margin-top: 2px; }
 	.shop-edit-product-backdrop { display: flex; align-items: flex-end; }
 	.shop-edit-product-panel { position: relative; top: auto; right: auto; width: 100%; height: auto; max-height: 82dvh; padding: 22px 22px 32px; border-radius: 14px 14px 0 0; }
 	.shop-preview-wall { min-height: 55vh; }

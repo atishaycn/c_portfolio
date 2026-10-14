@@ -4,48 +4,185 @@ import test from "node:test";
 import vm from "node:vm";
 
 const source = readFileSync(new URL("../shop.js", import.meta.url), "utf8");
+const catalogData = JSON.parse(readFileSync(new URL("../content/shop-catalog.json", import.meta.url), "utf8"));
 const context = {};
 vm.runInNewContext(source, context);
 const shop = context.PortfolioShop;
+const startedEmpty = shop.catalog.length === 0;
+shop.setCatalog(catalogData);
 const product = (slug) => shop.catalog.find((entry) => entry.slug === slug);
+const fileProduct = (slug) => catalogData.products.find((entry) => entry.slug === slug);
+const plain = (value) => JSON.parse(JSON.stringify(value));
+const slugPart = (value) => String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const sizeArea = (size) => size.split("x").map((side) => Number(side.trim())).reduce((area, side) => area * side, 1);
 
-test("prices a complete Gallery Frame selection by size and option surcharges", () => {
-	const galleryFrame = product("gallery-frame");
-	assert.equal(shop.priceFor(galleryFrame, {
-		size: "11 x 14",
-		frame: "Gallery Black",
-		paper: "Lustre",
-		mat: "White mat",
-	}), 137);
-});
-
-test("shows the catalog From price until required selections are present", () => {
-	assert.equal(shop.fromPrice(product("print")), 3);
-	assert.equal(shop.fromPrice(product("gallery-frame")), 82);
-	assert.equal(
-		shop.missingRequiredOptions(product("gallery-frame"), { size: "11 x 14", mat: "White mat" }).join(","),
-		"frame,paper",
+test("builds catalog products, sizes, options, and defaults from the generated file", () => {
+	assert.equal(startedEmpty, true);
+	assert.deepEqual(
+		plain(shop.catalog.map((entry) => entry.slug)),
+		catalogData.products.map((entry) => entry.slug),
 	);
-	assert.equal(shop.missingRequiredOptions(product("gallery-frame"), {
-		size: "11 x 14",
-		frame: "Gallery Black",
-		paper: "Lustre",
-		mat: "White mat",
-	}).length, 0);
+	for (const sourceProduct of catalogData.products) {
+		const current = product(sourceProduct.slug);
+		const sizes = [...new Set(sourceProduct.variants.map((variant) => variant.size))];
+		assert.deepEqual(plain(current.sizes), sizes);
+		assert.deepEqual(
+			plain(current.options.map((group) => ({ key: group.key, values: group.values.map((entry) => entry.value) }))),
+			sourceProduct.options.map((group) => ({ key: group.key, values: group.values.map((entry) => entry.value) })),
+		);
+		const smallestSize = sizes.reduce((smallest, size) => sizeArea(size) < sizeArea(smallest) ? size : smallest, sizes[0]);
+		assert.equal(current.optionGroups[0].defaultValue, smallestSize);
+		assert.deepEqual(plain(current.optionGroups[0].options.map((entry) => entry.value)), sizes);
+		for (const sourceOption of sourceProduct.options) {
+			const group = current.optionGroups.find((entry) => entry.key === sourceOption.key);
+			assert.equal(group.required, true);
+			assert.equal(group.defaultValue, "");
+			assert.deepEqual(plain(group.options.map((entry) => entry.value)), sourceOption.values.map((entry) => entry.value));
+			assert.equal(group.kind === "swatch", group.key === "frame" || (sourceProduct.slug === "foam-print" && group.key === "edge"));
+		}
+	}
+	const home = shop.renderPage({ productSlug: "", albums: [] });
+	assert.equal((home.match(/class="shop-product-card"/g) || []).length, catalogData.products.length);
 });
 
-test("orients an 11 x 14 mockup to match the photograph", () => {
-	const landscape = shop.dimensionsFor("11 x 14", { width: 3000, height: 2000 });
-	const portrait = shop.dimensionsFor("11 x 14", { width: 2000, height: 3000 });
-	assert.equal(landscape.orientation, "landscape");
-	assert.equal(landscape.width, 14);
-	assert.equal(landscape.height, 11);
-	assert.equal(portrait.orientation, "portrait");
-	assert.equal(portrait.width, 11);
-	assert.equal(portrait.height, 14);
+test("uses variant prices and the lowest matching price for incomplete selections", () => {
+	const canvas = product("canvas");
+	const canvasSource = fileProduct("canvas");
+	const expected = canvasSource.variants.find((variant) => variant.size === "12 x 16" && variant.options.depth === "slim");
+	assert.ok(expected);
+	assert.equal(shop.priceFor(canvas, { size: expected.size, depth: expected.options.depth }), expected.price);
+	assert.equal(shop.fromPrice(canvas), Math.min(...canvasSource.variants.map((variant) => variant.price)));
+	const partialPrices = canvasSource.variants
+		.filter((variant) => variant.size === expected.size)
+		.map((variant) => variant.price);
+	assert.equal(shop.priceFor(canvas, { size: expected.size }), Math.min(...partialPrices));
+	assert.deepEqual(plain(shop.missingRequiredOptions(canvas, { size: expected.size })), ["depth"]);
+	assert.deepEqual(plain(shop.missingRequiredOptions(product("print"), {})), ["paper"]);
 });
 
-test("uses only photos enabled at both album and item level in CMS order", () => {
+test("uses the minimum file variant price for every product From price", () => {
+	for (const sourceProduct of catalogData.products) {
+		const lowest = Math.min(...sourceProduct.variants.map((variant) => variant.price));
+		assert.equal(shop.fromPrice(product(sourceProduct.slug)), lowest);
+	}
+});
+
+test("renders every product and catalog option with a product-specific mockup", () => {
+	const photo = { id: "art-1", url: "/art-1.jpg", width: 3000, height: 2000 };
+	for (const sourceProduct of catalogData.products) {
+		const current = product(sourceProduct.slug);
+		const firstVariant = sourceProduct.variants[0];
+		const base = { size: firstVariant.size, ...firstVariant.options };
+		const markup = shop.renderMockup(current, base, photo);
+		assert.match(markup, new RegExp("shop-mockup--" + sourceProduct.slug));
+		for (const sourceOption of sourceProduct.options) {
+			for (const choice of sourceOption.values) {
+				const variant = sourceProduct.variants.find((entry) => entry.options[sourceOption.key] === choice.value);
+				assert.ok(variant, sourceProduct.slug + " " + sourceOption.key + " " + choice.value);
+				const html = shop.renderMockup(current, { size: variant.size, ...variant.options }, photo);
+				assert.ok(html.includes("shop-option--" + slugPart(sourceOption.key) + "-" + slugPart(choice.value)));
+			}
+		}
+	}
+	assert.match(shop.renderMockup(product("foam-print"), { edge: "black" }, photo), /shop-mockup__object--foam shop-edge--black/);
+	assert.match(shop.renderMockup(product("metal-frame"), {}, photo), /shop-mockup__object--frame shop-finish--black/);
+	assert.match(shop.renderMockup(product("framed-canvas"), { frame: "dark-wood" }, photo), /shop-mockup__floater-face/);
+	assert.match(shop.renderMockup(product("wood-print"), { thickness: "20-mm" }, photo), /shop-option--thickness-20-mm/);
+	assert.match(shop.renderMockup(product("metal-print"), { finish: "brushed-silver" }, photo), /shop-finish--brushed-silver/);
+});
+
+test("prices and restores only exact cart variants while preserving crop and quantity", () => {
+	const photos = [{ id: "known-photo" }];
+	const woodFrame = fileProduct("wood-frame");
+	const variant = woodFrame.variants.find((entry) => entry.options.frame === "natural-wood");
+	assert.ok(variant);
+	const valid = {
+		lineId: "valid-line",
+		productSlug: woodFrame.slug,
+		selections: { size: variant.size, ...variant.options },
+		photoId: "known-photo",
+		crop: { x: 18, y: -12 },
+		quantity: 2,
+	};
+	const invalid = [
+		{ ...valid, productSlug: "gallery-frame" },
+		{ ...valid, selections: { ...valid.selections, frame: "gallery-black" } },
+		{ ...valid, selections: { ...valid.selections, size: "1 x 1" } },
+		{ ...valid, selections: { ...valid.selections, paper: "matte" } },
+	];
+	const restored = plain(shop.parseCart(JSON.stringify([valid, ...invalid]), photos));
+	assert.equal(restored.length, 1);
+	assert.deepEqual(restored[0].crop, valid.crop);
+	assert.equal(restored[0].quantity, valid.quantity);
+	assert.equal(restored[0].unitPrice, variant.price);
+	assert.deepEqual(plain(shop.parseCart("not json", photos)), []);
+});
+
+test("keeps product page prices in From state until each required option is chosen", () => {
+	const frame = product("wood-frame");
+	const html = shop.renderPage({ productSlug: "wood-frame", albums: [] });
+	assert.ok(html.includes("From $" + shop.fromPrice(frame).toFixed(2)));
+	assert.deepEqual(plain(shop.missingRequiredOptions(frame, {})), ["frame"]);
+	assert.doesNotMatch(html, /production time/i);
+});
+
+test("keeps the four mockup views and wall scene distinct", () => {
+	const canvas = product("canvas");
+	const variant = fileProduct("canvas").variants.find((entry) => entry.options.depth === "thick");
+	const selections = { size: variant.size, ...variant.options };
+	const photo = { id: "art-1", url: "/art-1.jpg", width: 3000, height: 2000 };
+	const views = ["front", "angle", "corner", "wall"].map((view) => shop.renderMockup(canvas, selections, photo, { view }));
+	assert.equal(new Set(views).size, views.length);
+	assert.ok(views[3].includes("shop-mockup__furniture"));
+	assert.ok(views[3].includes("--shop-wall-art-width:"));
+});
+
+test("recomputes a serialized cart price from its exact catalog variant", () => {
+	const printSource = fileProduct("print");
+	const variant = printSource.variants.find((entry) => entry.options.paper === "matte");
+	const otherVariant = printSource.variants.find((entry) => entry.size === variant.size && entry.options.paper !== variant.options.paper);
+	assert.ok(variant && otherVariant);
+	const line = {
+		lineId: "print-line",
+		productSlug: printSource.slug,
+		selections: { size: variant.size, ...variant.options },
+		photoId: "known-photo",
+		crop: { x: -20, y: 14 },
+		quantity: 3,
+		unitPrice: otherVariant.price,
+	};
+	const restored = plain(shop.parseCart(shop.serializeCart([line]), [{ id: "known-photo" }]));
+	assert.equal(restored[0].unitPrice, variant.price);
+	assert.equal(shop.lineTotal(restored[0]), variant.price * line.quantity);
+	assert.equal(shop.cartSubtotal(restored), variant.price * line.quantity);
+});
+
+test("drops stored lines with missing photos and unknown option keys", () => {
+	const sourceProduct = fileProduct("wood-frame");
+	const variant = sourceProduct.variants[0];
+	const line = {
+		productSlug: sourceProduct.slug,
+		selections: { size: variant.size, ...variant.options },
+		photoId: "known-photo",
+		quantity: 1,
+	};
+	const invalid = [
+		{ ...line, photoId: "missing-photo" },
+		{ ...line, selections: { ...line.selections, extra: "value" } },
+	];
+	assert.deepEqual(plain(shop.parseCart(JSON.stringify(invalid), [{ id: "known-photo" }])), []);
+});
+
+test("returns a print inquiry message when the catalog is empty", () => {
+	shop.setCatalog({ products: [] });
+	const unavailable = shop.renderPage({ albums: [] });
+	assert.match(unavailable, /The print store is unavailable right now/);
+	assert.match(unavailable, /mailto:contact@clairethomas\.art/);
+	assert.match(unavailable, /contact@clairethomas\.art/);
+	shop.setCatalog(catalogData);
+});
+
+test("keeps photo selection, size orientation, and crop behavior", () => {
 	const photos = shop.selectStorePhotos([
 		{
 			key: "nature",
@@ -68,98 +205,15 @@ test("uses only photos enabled at both album and item level in CMS order", () =>
 			items: [{ id: "events-1", printEnabled: true }],
 		},
 	]);
-	assert.equal(photos.map((photo) => photo.id).join(","), "nature-1,events-1");
+	assert.equal(photos.map((entry) => entry.id).join(","), "nature-1,events-1");
 	assert.equal(photos[0].albumLabel, "Nature");
-});
-
-test("renders product-specific side faces, finishes, and surface effects", () => {
-	const photo = { id: "art-1", url: "/art-1.jpg", width: 3000, height: 2000 };
-	const mockup = (slug, selections = {}) => shop.renderMockup(product(slug), selections, photo);
-	assert.match(mockup("print"), /shop-side--paper/);
-	assert.match(mockup("fine-art-print"), /shop-mockup--fine-art-print/);
-	assert.match(mockup("canvas"), /shop-side--photo/);
-	assert.match(mockup("canvas", { edge: "Black wrap" }), /shop-side--edge shop-edge--black-wrap/);
-	assert.match(mockup("metal-print"), /shop-side--aluminium/);
-	assert.match(mockup("metal-print"), /shop-mockup__sheen/);
-	assert.match(mockup("standout-print"), /shop-side--black/);
-	assert.match(mockup("standout-print", { edge: "White edge" }), /shop-side--edge shop-edge--white-edge/);
-	assert.match(mockup("gallery-frame", { frame: "Gallery Black", mat: "White mat" }), /shop-side--finish shop-finish--gallery-black/);
-	assert.match(mockup("gallery-frame", { mat: "White mat" }), /shop-mat--white-mat/);
-	assert.match(mockup("framed-canvas"), /shop-mockup__floater-face/);
-	assert.match(mockup("bamboo-panel"), /shop-mockup__wood-grain/);
-	assert.match(mockup("bamboo-panel", { finish: "Carbonized" }), /shop-side--grain shop-finish--carbonized/);
-	assert.match(mockup("wood-print"), /shop-side--grain/);
-	assert.match(mockup("acrylic-print"), /shop-side--acrylic/);
-});
-
-test("renders the four current-photo product views and cycles card photos", () => {
-	const albums = [{
-		key: "prints",
-		label: "Prints",
-		printEnabled: true,
-		items: [
-			{ id: "photo-a", printEnabled: true, url: "/photo-a.jpg", width: 3000, height: 2000 },
-			{ id: "photo-b", printEnabled: true, url: "/photo-b.jpg", width: 2000, height: 3000 },
-		],
-	}];
-	const store = shop.renderPage({ productSlug: "", albums });
-	const firstCardStart = store.indexOf("shop-product-card");
-	const firstCard = store.slice(firstCardStart, store.indexOf("</a>", firstCardStart) + 4);
-	assert.match(firstCard, /src="\/photo-a\.jpg"/);
-	assert.match(firstCard, /src="\/photo-b\.jpg"/);
-
-	const page = shop.renderPage({ productSlug: "gallery-frame", albums });
-	assert.equal((page.match(/class="shop-view-thumb(?:\s|")/g) || []).length, 4);
-	assert.match(page, /data-shop-view="front"/);
-	assert.match(page, /data-shop-view="angle"/);
-	assert.match(page, /data-shop-view="corner"/);
-	assert.match(page, /data-shop-view="wall"/);
-	assert.match(page, /Photograph 1 of 2/);
-	assert.match(page, /shop-mockup--view-corner/);
-	assert.match(shop.renderMockup(product("gallery-frame"), { size: "11 x 14" }, albums[0].items[0], { view: "wall" }), /--shop-wall-art-width:28\.00%/);
-	assert.match(shop.renderMockup(product("gallery-frame"), { size: "11 x 14" }, albums[0].items[0], { view: "wall" }), /shop-mockup__furniture/);
-});
-
-test("serializes and restores cart lines with validated catalog prices and crop", () => {
-	const photos = [{ id: "photo-a", printEnabled: true, url: "/photo-a.jpg" }];
-	const line = {
-		lineId: "line-a",
-		productSlug: "gallery-frame",
-		selections: { size: "11 x 14", frame: "Gallery White", paper: "Lustre", mat: "Black mat" },
-		photoId: "photo-a",
-		crop: { x: 18, y: -12 },
-		quantity: 2,
-		unitPrice: 152,
-	};
-	const restored = JSON.parse(JSON.stringify(shop.parseCart(shop.serializeCart([line]), photos)));
-	assert.deepEqual(restored, [{ ...line, unitPrice: shop.priceFor(product("gallery-frame"), line.selections) }]);
-});
-
-test("drops malformed and unknown products, photos, and options from stored carts", () => {
-	assert.deepEqual(JSON.parse(JSON.stringify(shop.parseCart("not json", []))), []);
-	const photos = [{ id: "known-photo" }];
-	const stored = [
-		{ productSlug: "unknown", photoId: "known-photo", quantity: 1, selections: {} },
-		{ productSlug: "gallery-frame", photoId: "missing-photo", quantity: 1, selections: {} },
-		{ productSlug: "gallery-frame", photoId: "known-photo", quantity: 1, selections: { size: "11 x 14", frame: "blue", paper: "Lustre" } },
-		{ productSlug: "gallery-frame", photoId: "known-photo", quantity: -1, selections: { size: "11 x 14", frame: "Gallery Black", paper: "Lustre" } },
-	];
-	assert.deepEqual(JSON.parse(JSON.stringify(shop.parseCart(JSON.stringify(stored), photos))), []);
-});
-
-test("calculates cart line totals and subtotal from quantity", () => {
-	assert.equal(shop.lineTotal({ unitPrice: 12.5, quantity: 2 }), 25);
-	assert.equal(shop.cartSubtotal([{ unitPrice: 12.5, quantity: 2 }, { unitPrice: 8, quantity: 3 }]), 49);
-});
-
-test("defines catalog mat windows for framed sizes", () => {
-	const frame = product("gallery-frame");
-	assert.equal(shop.matWindowFor(frame, "11 x 14"), "8 x 10");
-	assert.equal(shop.matWindowFor(frame, "8 x 10"), "5 x 7");
-	assert.equal(shop.matWindowFor(product("print"), "11 x 14"), null);
-});
-
-test("clamps crop offsets to the supported pan window", () => {
-	assert.deepEqual(JSON.parse(JSON.stringify(shop.clampCrop({ x: 85, y: -73 }))), { x: 50, y: -50 });
-	assert.deepEqual(JSON.parse(JSON.stringify(shop.clampCrop({ x: "bad", y: 2.5 }))), { x: 0, y: 2.5 });
+	const landscape = shop.dimensionsFor("11 x 14", { width: 3000, height: 2000 });
+	const portrait = shop.dimensionsFor("11 x 14", { width: 2000, height: 3000 });
+	assert.equal(landscape.orientation, "landscape");
+	assert.equal(landscape.width, 14);
+	assert.equal(landscape.height, 11);
+	assert.equal(portrait.orientation, "portrait");
+	assert.equal(portrait.width, 11);
+	assert.equal(portrait.height, 14);
+	assert.deepEqual(plain(shop.clampCrop({ x: 85, y: -73 })), { x: 50, y: -50 });
 });

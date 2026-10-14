@@ -1,7 +1,12 @@
 (function (global) {
 	"use strict";
 
-	const option = (value, description, swatch) => ({ value, description: description || "", swatch: swatch || "" });
+	const option = (value, label, description, swatch) => ({
+		value,
+		label: label || value,
+		description: description || "",
+		swatch: swatch || "",
+	});
 	const optionGroup = (key, label, options, config = {}) => ({
 		key,
 		label,
@@ -10,352 +15,153 @@
 		required: Boolean(config.required),
 		defaultValue: config.defaultValue || "",
 	});
-	const makeProduct = (product) => ({
-		...product,
-		prices: {
-			bySize: Object.fromEntries(product.sizes.map((size, index) => [size, product.sizePrices[index]])),
-			optionSurcharges: product.optionSurcharges || {},
+
+	const PRODUCT_PRESENTATION = {
+		print: {
+			description: "Choose 200 gsm semi-gloss or matte poster paper, or 250 gsm off-white archival matte paper.",
+			heroDescription: "Semi-gloss, matte, or off-white archival matte poster paper.",
+			productInfo: "200 gsm poster paper (semi-gloss or matte) or 250 gsm off-white archival matte paper.",
+			optionDescriptions: {
+				paper: {
+					"semi-gloss": "200 gsm poster paper with a semi-gloss surface.",
+					matte: "200 gsm poster paper with a matte surface.",
+					"archival-matte": "250 gsm off-white archival matte paper.",
+				},
+			},
 		},
-	});
+		"fine-art-print": {
+			description: "200 gsm enhanced matte fine art paper, printed in 12 colours.",
+			heroDescription: "Enhanced matte fine art paper with 12-colour printing.",
+			productInfo: "200 gsm enhanced matte fine art paper, 12-colour printing.",
+		},
+		canvas: {
+			description: "Stretched on FSC wood bars, 2 cm or 4 cm deep.",
+			heroDescription: "FSC wood bars in 2 cm or 4 cm depth.",
+			productInfo: "Stretched on FSC wood bars, 2 cm (slim) or 4 cm (thick) deep.",
+			optionDescriptions: { depth: { slim: "2 cm deep.", thick: "4 cm deep." } },
+		},
+		"framed-canvas": {
+			description: "Slim canvas in a wood floater frame.",
+			heroDescription: "Slim canvas in a wood floater frame.",
+			productInfo: "Slim canvas in a wood floater frame.",
+			optionDescriptions: {
+				frame: {
+					black: "Black wood floater frame.",
+					"natural-wood": "Natural wood floater frame.",
+					"dark-wood": "Dark wood floater frame.",
+				},
+			},
+			swatches: { frame: { black: "#242424", "natural-wood": "#c8a77d", "dark-wood": "#543d2c" } },
+		},
+		"metal-print": {
+			description: "3 mm aluminium with a white matte or brushed silver surface.",
+			heroDescription: "3 mm aluminium with a white matte or brushed silver surface.",
+			productInfo: "3 mm aluminium, white matte or brushed silver surface.",
+			optionDescriptions: {
+				finish: {
+					"white-matte": "3 mm aluminium with a white matte surface.",
+					"brushed-silver": "3 mm aluminium with a brushed silver surface.",
+				},
+			},
+		},
+		"acrylic-print": {
+			description: "4 mm clear acrylic.",
+			heroDescription: "4 mm clear acrylic.",
+			productInfo: "4 mm clear acrylic.",
+		},
+		"wood-print": {
+			description: "Birch-faced plywood in 10 mm or 20 mm thickness; the grain shows through light areas.",
+			heroDescription: "Birch-faced plywood in 10 mm or 20 mm thickness.",
+			productInfo: "Birch-faced plywood, 10 mm or 20 mm thick; the grain shows through light areas.",
+			optionDescriptions: { thickness: { "10-mm": "10 mm thick.", "20-mm": "20 mm thick." } },
+		},
+		"foam-print": {
+			description: "5 mm foam board with a black or white edge.",
+			heroDescription: "5 mm foam board with a black or white edge.",
+			productInfo: "5 mm foam board with a black or white edge.",
+			optionDescriptions: { edge: { black: "5 mm foam board with a black edge.", white: "5 mm foam board with a white edge." } },
+			swatches: { edge: { black: "#242424", white: "#f5f3ed" } },
+		},
+		"wood-frame": {
+			description: "Fine art print behind plexiglass, delivered assembled in a wood frame with 12 mm moulding.",
+			heroDescription: "Fine art print behind plexiglass in an assembled wood frame.",
+			productInfo: "Fine art print behind plexiglass, delivered assembled in the wood frame. The wood moulding is 12 mm wide.",
+			optionDescriptions: {
+				frame: {
+					black: "Black wood frame with 12 mm moulding.",
+					white: "White wood frame with 12 mm moulding.",
+					"natural-wood": "Natural wood frame with 12 mm moulding.",
+					"dark-wood": "Dark wood frame with 12 mm moulding.",
+				},
+			},
+			swatches: { frame: { black: "#242424", white: "#f5f3ed", "natural-wood": "#c8a77d", "dark-wood": "#543d2c" } },
+		},
+		"metal-frame": {
+			description: "Fine art print behind plexiglass, delivered assembled in an aluminium frame with 10 mm moulding.",
+			heroDescription: "Fine art print behind plexiglass in an assembled aluminium frame.",
+			productInfo: "Fine art print behind plexiglass, delivered assembled in the aluminium frame. The aluminium moulding is 10 mm wide.",
+		},
+	};
 
-	// Sample prices to replace once Claire confirms final retail pricing.
-	const SHOP_CATALOG = [
-		makeProduct({
-			slug: "print",
-			category: "Prints",
-			name: "Print",
-			description:
-				"Bring your photos to life on the finest-quality paper designed to be enjoyed for a lifetime. Printed on Kodak or Fuji professional-grade archival paper for increased color gamut, excellent skin tones, sharpness and brilliant image quality.",
-			heroDescription: "Bring your images to life with photographic prints for every occasion.",
-			productInfo:
-				"Prints are printed on Kodak Endura Professional Paper (Lustre, Glossy) or Fuji Crystal Archival Professional Paper (Deep Matte). These are the highest quality archival prints that have a longevity of 100 years in typical display conditions and 200 years in dark storage.",
-			productionTime: "1-3 business days",
-			sizes: ["8 Up Wallet", "4 x 6", "5 x 7", "8 x 10", "8 x 12", "11 x 14", "12 x 18", "16 x 20"],
-			sizePrices: [3, 3, 4, 8, 9, 12, 18, 25],
-			optionGroups: [
-				optionGroup("size", "SIZE", ["8 Up Wallet", "4 x 6", "5 x 7", "8 x 10", "8 x 12", "11 x 14", "12 x 18", "16 x 20"].map((v) => option(v)), { required: true }),
-				optionGroup("paper", "PAPER", [
-					option("Lustre", "A semi-gloss paper with vibrant colors and excellent skin tones."),
-					option("Glossy", "Most vibrant colors with a highly reflective, glossy finish."),
-					option("Deep Matte", "True non-reflective matte paper great for skin tones, soft images, and black & whites."),
-				]),
-			],
-			optionSurcharges: { paper: { Lustre: 0, Glossy: 0, "Deep Matte": 0 } },
-		}),
-		makeProduct({
-			slug: "fine-art-print",
-			category: "Prints",
-			name: "Fine Art Print",
-			description:
-				"Preserve memories for future generations on the finest museum-quality papers.",
-			heroDescription: "Preserve memories for future generations on the finest museum-quality papers.",
-			productInfo:
-				"Printed on archival fine art paper with a soft matte surface and rich tonal detail. The paper is selected to preserve subtle color and shadow in your photograph.",
-			productionTime: "2-4 business days",
-			sizes: ["4 x 6", "5 x 7", "8 x 10", "8 x 12", "11 x 14", "12 x 18", "16 x 20", "20 x 30"],
-			sizePrices: [4, 6, 12, 15, 22, 30, 45, 68],
-			optionGroups: [
-				optionGroup("size", "SIZE", ["4 x 6", "5 x 7", "8 x 10", "8 x 12", "11 x 14", "12 x 18", "16 x 20", "20 x 30"].map((v) => option(v)), { required: true }),
-				optionGroup("paper", "PAPER", [
-					option("Photo Rag", "A smooth, matte fine art paper with a natural white finish."),
-					option("Cotton Smooth", "A softly textured cotton paper for fine tonal transitions."),
-					option("Baryta", "A subtle sheen with deep blacks and crisp detail."),
-				], { defaultValue: "Photo Rag" }),
-			],
-			optionSurcharges: { paper: { "Photo Rag": 0, "Cotton Smooth": 2, Baryta: 3 } },
-		}),
-		makeProduct({
-			slug: "large-format-print",
-			category: "Prints",
-			name: "Large Format Print",
-			description:
-				"Bring your largest photographs to life with brilliant color and archival quality, ready to display in your home.",
-			heroDescription: "Give a favorite image room to make a statement.",
-			productInfo:
-				"Large format photographs are printed on professional archival paper for sharp detail and balanced color at a generous scale.",
-			productionTime: "2-4 business days",
-			sizes: ["16 x 20", "16 x 24", "20 x 30", "24 x 36", "30 x 40"],
-			sizePrices: [13, 18, 25, 38, 55],
-			optionGroups: [
-				optionGroup("size", "SIZE", ["16 x 20", "16 x 24", "20 x 30", "24 x 36", "30 x 40"].map((v) => option(v)), { required: true }),
-				optionGroup("paper", "PAPER", [
-					option("Lustre", "A semi-gloss paper with vibrant colors and excellent skin tones."),
-					option("Glossy", "Most vibrant colors with a highly reflective, glossy finish."),
-					option("Deep Matte", "True non-reflective matte paper great for skin tones, soft images, and black & whites."),
-				], { defaultValue: "Lustre" }),
-			],
-			optionSurcharges: { paper: { Lustre: 0, Glossy: 0, "Deep Matte": 0 } },
-		}),
-		makeProduct({
-			slug: "canvas",
-			category: "Wall Art",
-			name: "Canvas",
-			description:
-				"Hand-crafted canvases are designed to turn any photo into a beautiful piece of art. Printed on premium fine art canvas, Canvas Prints are a contemporary way to showcase your images, with or without a frame.",
-			heroDescription: "Transform any photo into a beautiful piece of art with a hand-crafted fine art canvas.",
-			productInfo:
-				"All canvases are printed on Premium Fine Art Canvas with Semi-Gloss Laminate. These canvases measure 1½\" in depth, are hand-made and come ready to hang with sawtooth hangers.",
-			productionTime: "2-4 business days",
-			sizes: ["8 x 8", "8 x 10", "11 x 14", "12 x 12", "16 x 16", "16 x 20", "16 x 24", "20 x 30", "24 x 36", "30 x 40"],
-			sizePrices: [105, 112, 125, 135, 158, 175, 195, 238, 305, 395],
-			optionGroups: [
-				optionGroup("size", "SIZE", ["8 x 8", "8 x 10", "11 x 14", "12 x 12", "16 x 16", "16 x 20", "16 x 24", "20 x 30", "24 x 36", "30 x 40"].map((v) => option(v)), { required: true }),
-				optionGroup("edge", "EDGE", [
-					option("Photo wrap", "Your image continues around the canvas edge.", "#b9a999"),
-					option("Black wrap", "A crisp black finish on the canvas edge.", "#292929"),
-					option("White wrap", "A clean white finish on the canvas edge.", "#f7f7f5"),
-				], { kind: "swatch", defaultValue: "Photo wrap" }),
-			],
-			optionSurcharges: { edge: { "Photo wrap": 0, "Black wrap": 0, "White wrap": 0 } },
-		}),
-		makeProduct({
-			slug: "metal-print",
-			category: "Wall Art",
-			name: "Metal Print",
-			description:
-				"Make a statement in any space with vibrant colors printed on high quality aluminum.",
-			heroDescription: "Make a statement with vibrant color printed on aluminum.",
-			productInfo:
-				"Your photograph is printed onto lightweight aluminum for vivid color, crisp detail and a clean contemporary finish.",
-			productionTime: "3-5 business days",
-			sizes: ["8 x 10", "11 x 14", "12 x 18", "16 x 20", "16 x 24", "20 x 30", "24 x 36", "30 x 40"],
-			sizePrices: [60, 72, 88, 112, 128, 175, 235, 320],
-			optionGroups: [
-				optionGroup("size", "SIZE", ["8 x 10", "11 x 14", "12 x 18", "16 x 20", "16 x 24", "20 x 30", "24 x 36", "30 x 40"].map((v) => option(v)), { required: true }),
-				optionGroup("finish", "FINISH", [
-					option("Gloss", "A reflective finish that brings out vivid color.", "#c9d9dd"),
-					option("Matte", "A low-reflection finish with soft, even color.", "#b8b8b3"),
-				], { kind: "swatch", defaultValue: "Gloss" }),
-			],
-			optionSurcharges: { finish: { Gloss: 0, Matte: 8 } },
-		}),
-		makeProduct({
-			slug: "standout-print",
-			category: "Wall Art",
-			name: "Standout Print",
-			description:
-				"A vibrant photograph mounted on a sturdy block for a clean, modern piece that arrives ready to display.",
-			heroDescription: "A clean, dimensional display that stands away from the wall.",
-			productInfo:
-				"Your photograph is mounted to a lightweight rigid panel with a deep black edge and a rear hanger for easy display.",
-			productionTime: "3-5 business days",
-			sizes: ["8 x 10", "11 x 14", "12 x 18", "16 x 20", "16 x 24", "20 x 30", "24 x 36"],
-			sizePrices: [50, 64, 80, 105, 122, 165, 225],
-			optionGroups: [
-				optionGroup("size", "SIZE", ["8 x 10", "11 x 14", "12 x 18", "16 x 20", "16 x 24", "20 x 30", "24 x 36"].map((v) => option(v)), { required: true }),
-				optionGroup("edge", "EDGE", [
-					option("Black edge", "A substantial black edge gives the print a crisp profile.", "#242424"),
-					option("White edge", "A bright white edge keeps the profile light.", "#f7f7f5"),
-				], { kind: "swatch", defaultValue: "Black edge" }),
-			],
-			optionSurcharges: { edge: { "Black edge": 0, "White edge": 0 } },
-		}),
-		makeProduct({
-			slug: "gallery-frame",
-			category: "Wall Art",
-			name: "Gallery Frame",
-			description:
-				"Give your images the presentation they deserve with remarkable, handcrafted frames. With minimalistic and clean lines, Gallery frames are a classic choice for modern displays.",
-			heroDescription: "Handcrafted, ready-to-hang frames for a clean and sophisticated look in any setting.",
-			productInfo:
-				"Gallery Frames are hand-crafted from wood and arrive ready to display with plexiglass, finished backing and hanging hardware. Moulding sizes: Gallery Frames (up to 20x24) - 3/4\"; Gallery Frames (20x30 and larger) - 1½\"; Distressed Frames - 1½\"; Ashland Frames - 1¾\".",
-			productionTime: "3-5 business days",
-			sizes: ["8 x 10", "10 x 10", "11 x 14", "16 x 16", "16 x 20", "16 x 24", "20 x 24", "20 x 30", "24 x 36", "30 x 40"],
-			sizePrices: [82, 96, 137, 146, 154, 168, 190, 212, 275, 335],
-			matWindows: {
-				"8 x 10": "5 x 7", "10 x 10": "6 x 6", "11 x 14": "8 x 10", "16 x 16": "12 x 12",
-				"16 x 20": "11 x 14", "16 x 24": "11 x 17", "20 x 24": "16 x 20", "20 x 30": "16 x 24",
-				"24 x 36": "18 x 27", "30 x 40": "24 x 32",
-			},
-			optionGroups: [
-				optionGroup("size", "SIZE", ["8 x 10", "10 x 10", "11 x 14", "16 x 16", "16 x 20", "16 x 24", "20 x 24", "20 x 30", "24 x 36", "30 x 40"].map((v) => option(v)), { required: true, defaultValue: "8 x 10" }),
-				optionGroup("frame", "FRAME", [
-					option("Gallery Black", "A smooth black wood moulding with clean, minimal lines.", "#17151a"),
-					option("Gallery White", "A crisp white finish with a simple contemporary profile.", "#f7f7f5"),
-					option("Distressed Black", "A dark, weathered finish with visible wood grain.", "#443d35"),
-					option("Distressed White", "A pale, textured finish with a softly aged character.", "#d8d8d2"),
-				], { kind: "swatch", required: true }),
-				optionGroup("paper", "PAPER", [
-					option("Lustre", "A semi-gloss paper with vibrant colors and excellent skin tones."),
-					option("Deep Matte", "True non-reflective matte paper great for skin tones, soft images, and black & whites."),
-				], { required: true }),
-				optionGroup("mat", "MAT", [
-					option("No mat", "A clean edge-to-edge presentation."),
-					option("White mat", "A bright archival mat gives the photograph room to breathe."),
-					option("Black mat", "A dark mat creates a bold, gallery-style border."),
-				], { defaultValue: "No mat" }),
-			],
-			optionSurcharges: {
-				frame: { "Gallery Black": 0, "Gallery White": 0, "Distressed Black": 8, "Distressed White": 8 },
-				paper: { Lustre: 0, "Deep Matte": 0 },
-				mat: { "No mat": 0, "White mat": 0, "Black mat": 15 },
-			},
-		}),
-		makeProduct({
-			slug: "metal-frame",
-			category: "Wall Art",
-			name: "Metal Frame",
-			description:
-				"A clean-lined metal moulding adds a refined, contemporary finish to your photograph.",
-			heroDescription: "A slim metal frame for a polished, modern display.",
-			productInfo:
-				"Hand-finished metal moulding surrounds a professional photographic print. Includes a protective front and hanging hardware.",
-			productionTime: "3-5 business days",
-			sizes: ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"],
-			sizePrices: [121, 148, 185, 205, 268, 352],
-			matWindows: { "8 x 10": "5 x 7", "11 x 14": "8 x 10", "16 x 20": "11 x 14", "16 x 24": "11 x 17", "20 x 30": "16 x 24", "24 x 36": "18 x 27" },
-			optionGroups: [
-				optionGroup("size", "SIZE", ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"].map((v) => option(v)), { required: true, defaultValue: "8 x 10" }),
-				optionGroup("frame", "FRAME", [
-					option("Gold", "A warm brushed gold metal finish.", "#c4a34c"),
-					option("Silver", "A soft brushed silver metal finish.", "#bfc2c2"),
-					option("Black", "A satin black metal finish.", "#242424"),
-				], { kind: "swatch", required: true }),
-				optionGroup("paper", "PAPER", [
-					option("Lustre", "A semi-gloss paper with vibrant colors and excellent skin tones."),
-					option("Deep Matte", "True non-reflective matte paper great for skin tones, soft images, and black & whites."),
-				], { required: true }),
-				optionGroup("mat", "MAT", [
-					option("No mat", "A clean edge-to-edge presentation."),
-					option("White mat", "A bright archival mat gives the photograph room to breathe."),
-					option("Black mat", "A dark mat creates a bold, gallery-style border."),
-				], { defaultValue: "No mat" }),
-			],
-			optionSurcharges: {
-				frame: { Gold: 0, Silver: 0, Black: 0 },
-				paper: { Lustre: 0, "Deep Matte": 0 },
-				mat: { "No mat": 0, "White mat": 15, "Black mat": 15 },
-			},
-		}),
-		makeProduct({
-			slug: "framed-canvas",
-			category: "Wall Art",
-			name: "Framed Canvas",
-			description:
-				"A hand-crafted canvas floats inside a frame, creating a subtle shadow gap and a dimensional wall display.",
-			heroDescription: "Canvas artwork presented in a handcrafted floating frame.",
-			productInfo:
-				"Premium fine art canvas is hand stretched and set into a floater frame with a visible reveal around the artwork.",
-			productionTime: "3-5 business days",
-			sizes: ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"],
-			sizePrices: [187, 215, 258, 285, 348, 445],
-			optionGroups: [
-				optionGroup("size", "SIZE", ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"].map((v) => option(v)), { required: true, defaultValue: "8 x 10" }),
-				optionGroup("frame", "FRAME", [
-					option("Black", "A dark frame with a crisp, modern profile.", "#242424"),
-					option("Natural", "A light natural wood finish with visible grain.", "#c8a77d"),
-					option("White", "A clean white finish with a quiet profile.", "#f5f3ed"),
-				], { kind: "swatch", required: true }),
-				optionGroup("edge", "CANVAS EDGE", [
-					option("Photo wrap", "Your image continues around the canvas edge.", "#b9a999"),
-					option("Black wrap", "A crisp black finish on the canvas edge.", "#292929"),
-					option("White wrap", "A clean white finish on the canvas edge.", "#f7f7f5"),
-				], { kind: "swatch", defaultValue: "Photo wrap" }),
-			],
-			optionSurcharges: { frame: { Black: 0, Natural: 0, White: 0 }, edge: { "Photo wrap": 0, "Black wrap": 0, "White wrap": 0 } },
-		}),
-		makeProduct({
-			slug: "wood-frame",
-			category: "Wall Art",
-			name: "Wood Frame",
-			description:
-				"Naturally beautiful frames handcrafted from real wood to pair with any image.",
-			heroDescription: "Naturally beautiful frames handcrafted from real wood.",
-			productInfo:
-				"A solid wood frame with a protective front, finished backing and hanging hardware. Each finish shows the character of the wood.",
-			productionTime: "3-5 business days",
-			sizes: ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"],
-			sizePrices: [137, 162, 198, 220, 288, 378],
-			matWindows: { "8 x 10": "5 x 7", "11 x 14": "8 x 10", "16 x 20": "11 x 14", "16 x 24": "11 x 17", "20 x 30": "16 x 24", "24 x 36": "18 x 27" },
-			optionGroups: [
-				optionGroup("size", "SIZE", ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"].map((v) => option(v)), { required: true, defaultValue: "8 x 10" }),
-				optionGroup("frame", "FRAME", [
-					option("Natural", "A light natural wood with a soft, visible grain.", "#d6bd94"),
-					option("Walnut", "A warm walnut stain with deep brown grain.", "#65452f"),
-					option("White Oak", "A pale oak finish with subtle linear grain.", "#c9b68d"),
-				], { kind: "swatch", required: true }),
-				optionGroup("paper", "PAPER", [
-					option("Lustre", "A semi-gloss paper with vibrant colors and excellent skin tones."),
-					option("Deep Matte", "True non-reflective matte paper great for skin tones, soft images, and black & whites."),
-				], { required: true }),
-				optionGroup("mat", "MAT", [
-					option("No mat", "A clean edge-to-edge presentation."),
-					option("White mat", "A bright archival mat gives the photograph room to breathe."),
-					option("Black mat", "A dark mat creates a bold, gallery-style border."),
-				], { defaultValue: "No mat" }),
-			],
-			optionSurcharges: {
-				frame: { Natural: 0, Walnut: 8, "White Oak": 8 },
-				paper: { Lustre: 0, "Deep Matte": 0 },
-				mat: { "No mat": 0, "White mat": 0, "Black mat": 0 },
-			},
-		}),
-		makeProduct({
-			slug: "bamboo-panel",
-			category: "Wall Art",
-			name: "Bamboo Panel",
-			description:
-				"A photograph printed on a natural bamboo panel, where the warm grain becomes part of the artwork.",
-			heroDescription: "A natural bamboo surface brings warmth and texture to your photograph.",
-			productInfo:
-				"Your image is printed directly on a renewable bamboo panel. Natural variation in grain and tone makes every piece unique.",
-			productionTime: "3-5 business days",
-			sizes: ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"],
-			sizePrices: [81, 98, 125, 145, 190, 255],
-			optionGroups: [
-				optionGroup("size", "SIZE", ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"].map((v) => option(v)), { required: true }),
-				optionGroup("finish", "BAMBOO FINISH", [
-					option("Natural", "Warm, pale bamboo grain remains visible around the image.", "#d6bd94"),
-					option("Carbonized", "A deeper honey-brown bamboo finish.", "#9a7048"),
-				], { kind: "swatch", defaultValue: "Natural" }),
-			],
-			optionSurcharges: { finish: { Natural: 0, Carbonized: 10 } },
-		}),
-		makeProduct({
-			slug: "wood-print",
-			category: "Wall Art",
-			name: "Wood Print",
-			description:
-				"Bring natural warmth to your walls with a photograph printed on a wood panel.",
-			heroDescription: "A warm wood surface adds natural texture to your image.",
-			productInfo:
-				"Your photograph is printed on a lightweight wood panel. The natural grain subtly shows through lighter areas of the image.",
-			productionTime: "3-5 business days",
-			sizes: ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"],
-			sizePrices: [78, 94, 120, 140, 185, 248],
-			optionGroups: [
-				optionGroup("size", "SIZE", ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"].map((v) => option(v)), { required: true }),
-				optionGroup("finish", "WOOD FINISH", [
-					option("Natural", "A pale wood grain with a warm, organic finish.", "#d6bd94"),
-					option("Walnut", "A rich walnut tone with deeper visible grain.", "#65452f"),
-					option("White", "A soft white wash that lets the grain show through.", "#e4ded1"),
-				], { kind: "swatch", defaultValue: "Natural" }),
-			],
-			optionSurcharges: { finish: { Natural: 0, Walnut: 8, White: 0 } },
-		}),
-		makeProduct({
-			slug: "acrylic-print",
-			category: "Wall Art",
-			name: "Acrylic Print",
-			description:
-				"A photograph mounted beneath clear acrylic for rich color, depth and a luminous finish.",
-			heroDescription: "Clear acrylic adds depth and a luminous gloss to your photograph.",
-			productInfo:
-				"Your image is mounted behind thick clear acrylic for a glossy, dimensional finish and a polished edge.",
-			productionTime: "3-5 business days",
-			sizes: ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"],
-			sizePrices: [102, 125, 162, 185, 245, 325],
-			optionGroups: [
-				optionGroup("size", "SIZE", ["8 x 10", "11 x 14", "16 x 20", "16 x 24", "20 x 30", "24 x 36"].map((v) => option(v)), { required: true }),
-				optionGroup("finish", "FINISH", [
-					option("Gloss", "A reflective surface brings out vivid color and depth.", "#d9e8ec"),
-					option("Matte", "A soft low-reflection finish with a clear acrylic edge.", "#c7d0d1"),
-				], { kind: "swatch", defaultValue: "Gloss" }),
-			],
-			optionSurcharges: { finish: { Gloss: 0, Matte: 8 } },
-		}),
-	];
+	let SHOP_CATALOG = [];
 
+	function sizeArea(size) {
+		const dimensions = sizeDimensions(size);
+		return dimensions.width * dimensions.height;
+	}
+
+	function buildProduct(productData) {
+		if (!productData || typeof productData !== "object") return null;
+		const presentation = PRODUCT_PRESENTATION[productData.slug];
+		if (!presentation || !Array.isArray(productData.variants) || !productData.variants.length || !Array.isArray(productData.options)) return null;
+		const sizes = Array.from(new Set(productData.variants.map((variant) => variant.size).filter(Boolean)));
+		if (!sizes.length) return null;
+		const defaultSize = sizes.reduce((smallest, size) => sizeArea(size) < sizeArea(smallest) ? size : smallest, sizes[0]);
+		const options = productData.options.map((group) => ({
+			key: group.key,
+			label: group.label,
+			values: (group.values || []).map((entry) => ({
+				value: entry.value,
+				label: entry.label || entry.value,
+				description: presentation.optionDescriptions && presentation.optionDescriptions[group.key]
+					? presentation.optionDescriptions[group.key][entry.value] || ""
+					: "",
+				swatch: presentation.swatches && presentation.swatches[group.key]
+					? presentation.swatches[group.key][entry.value] || ""
+					: "",
+			})),
+		}));
+		const optionGroups = [
+			optionGroup("size", "SIZE", sizes.map((size) => option(size)), { required: true, defaultValue: defaultSize }),
+			...options.map((group) => optionGroup(group.key, group.label.toUpperCase(), group.values, {
+				required: true,
+				kind: group.key === "frame" || (productData.slug === "foam-print" && group.key === "edge") ? "swatch" : "buttons",
+			})),
+		];
+		return {
+			slug: productData.slug,
+			name: productData.name,
+			category: productData.category,
+			description: presentation.description,
+			heroDescription: presentation.heroDescription,
+			productInfo: presentation.productInfo,
+			sizes,
+			options,
+			optionGroups,
+			variants: productData.variants.map((variant) => ({
+				size: variant.size,
+				options: { ...(variant.options || {}) },
+				price: variant.price,
+			})),
+		};
+	}
+
+	function setCatalog(data) {
+		const products = Array.isArray(data) ? data : data && data.products;
+		const mapped = Array.isArray(products) ? products.map(buildProduct) : [];
+		SHOP_CATALOG = mapped.length && mapped.every(Boolean) ? mapped : [];
+		return SHOP_CATALOG;
+	}
 	const escapeHtml = (value) =>
 		String(value === null || value === undefined ? "" : value)
 			.replaceAll("&", "&amp;")
@@ -370,7 +176,7 @@
 			.replace(/[\u0300-\u036f]/g, "")
 			.replace(/[^a-z0-9]+/g, "-")
 			.replace(/^-|-$/g, "");
-	const categorySlug = (category) => category === "Prints" ? "prints" : "wall-art";
+	const categorySlug = (category) => slugPart(category);
 	const productsInCategory = (category) => SHOP_CATALOG.filter((product) => product.category === category);
 	const productForSlug = (slug) => SHOP_CATALOG.find((product) => product.slug === slug) || null;
 
@@ -398,40 +204,49 @@
 	function missingRequiredOptions(product, selections) {
 		const resolved = resolveSelections(product, selections);
 		return (product.optionGroups || [])
-			.filter((group) => group.required && !resolved[group.key])
+			.filter((group) => group.required && !group.options.some((entry) => entry.value === resolved[group.key]))
 			.map((group) => group.key);
 	}
 
-	function numericPrices(product) {
-		return Object.values(product.prices.bySize || {}).map(Number).filter(Number.isFinite);
+	function fromPrice(product) {
+		const prices = (product && Array.isArray(product.variants) ? product.variants : [])
+			.map((variant) => Number(variant.price))
+			.filter(Number.isFinite);
+		return prices.length ? Math.min(...prices) : 0;
 	}
 
-	function fromPrice(product) {
-		const sizePrices = numericPrices(product);
-		const base = sizePrices.length ? Math.min(...sizePrices) : 0;
-		const extras = Object.entries(product.prices.optionSurcharges || {}).reduce((sum, [key, values]) => {
-			const available = Object.values(values || {}).map(Number).filter(Number.isFinite);
-			return sum + (available.length ? Math.min(...available) : 0);
-		}, 0);
-		return Math.round((base + extras) * 100) / 100;
+	function optionGroups(product) {
+		return (product && product.optionGroups ? product.optionGroups : []).filter((group) => group.key !== "size");
+	}
+
+	function matchingVariants(product, selections) {
+		if (!product || !Array.isArray(product.variants)) return [];
+		const resolved = resolveSelections(product, selections);
+		const allowedKeys = new Set(["size", ...optionGroups(product).map((group) => group.key)]);
+		if (Object.keys(resolved).some((key) => !allowedKeys.has(key))) return [];
+		if (resolved.size && !product.sizes.includes(resolved.size)) return [];
+		for (const group of optionGroups(product)) {
+			if (resolved[group.key] && !group.options.some((entry) => entry.value === resolved[group.key])) return [];
+		}
+		return product.variants.filter((variant) => {
+			if (resolved.size && variant.size !== resolved.size) return false;
+			return optionGroups(product).every((group) => !resolved[group.key] || variant.options[group.key] === resolved[group.key]);
+		});
+	}
+
+	function matchingVariant(product, selections) {
+		const resolved = resolveSelections(product, selections);
+		if (missingRequiredOptions(product, resolved).length) return null;
+		const matches = matchingVariants(product, resolved);
+		return matches.find((variant) => optionGroups(product).every((group) => variant.options[group.key] === resolved[group.key])) || null;
 	}
 
 	function priceFor(product, selections) {
-		const resolved = resolveSelections(product, selections);
-		const sizePrices = product.prices.bySize || {};
-		const size = resolved.size;
-		const base = size && Number.isFinite(Number(sizePrices[size]))
-			? Number(sizePrices[size])
-			: fromPrice(product) - Object.entries(product.prices.optionSurcharges || {}).reduce((sum, [, values]) => {
-				const available = Object.values(values || {}).map(Number).filter(Number.isFinite);
-				return sum + (available.length ? Math.min(...available) : 0);
-			}, 0);
-		const extras = Object.entries(product.prices.optionSurcharges || {}).reduce((sum, [key, values]) => {
-			const chosen = resolved[key];
-			const amount = chosen && values ? Number(values[chosen]) : 0;
-			return sum + (Number.isFinite(amount) ? amount : 0);
-		}, 0);
-		return Math.round((base + extras) * 100) / 100;
+		const exact = matchingVariant(product, selections);
+		if (exact) return Number(exact.price);
+		const matches = matchingVariants(product, selections);
+		const prices = matches.map((variant) => Number(variant.price)).filter(Number.isFinite);
+		return prices.length ? Math.min(...prices) : fromPrice(product);
 	}
 
 	function formatPrice(value) {
@@ -440,10 +255,6 @@
 
 	const CART_STORAGE_KEY = "ct-shop-cart-v1";
 	const CROP_OFFSET_LIMIT = 50;
-
-	function matWindowFor(product, size) {
-		return product && product.matWindows ? product.matWindows[size] || null : null;
-	}
 
 	function clampCrop(crop) {
 		const offset = crop && typeof crop === "object" ? crop : {};
@@ -494,17 +305,17 @@
 			const sourceSelections = entry.selections && typeof entry.selections === "object" && !Array.isArray(entry.selections)
 				? entry.selections
 				: {};
-			const selections = defaultSelections(product);
-			for (const group of product.optionGroups || []) {
+			const groups = product.optionGroups || [];
+			const allowedKeys = new Set(groups.map((group) => group.key));
+			if (Object.keys(sourceSelections).some((key) => !allowedKeys.has(key)) || !product.sizes.includes(sourceSelections.size)) return [];
+			const selections = { size: sourceSelections.size };
+			for (const group of groups.filter((entry) => entry.key !== "size")) {
 				const selected = sourceSelections[group.key];
-				if (selected !== undefined && selected !== "") {
-					if (!group.options.some((candidate) => candidate.value === selected)) return [];
-					selections[group.key] = selected;
-				} else if (group.required && !selections[group.key]) {
-					return [];
-				}
+				if (!group.options.some((candidate) => candidate.value === selected)) return [];
+				selections[group.key] = selected;
 			}
-			if (missingRequiredOptions(product, selections).length) return [];
+			const variant = matchingVariant(product, selections);
+			if (!variant) return [];
 			let lineId = String(entry.lineId || "");
 			if (!lineId || usedIds.has(lineId)) lineId = "cart-" + index + "-" + slugPart(product.slug) + "-" + slugPart(photoId);
 			usedIds.add(lineId);
@@ -515,7 +326,7 @@
 				photoId,
 				crop: clampCrop(entry.crop),
 				quantity,
-				unitPrice: priceFor(product, selections),
+				unitPrice: Number(variant.price),
 			}];
 		});
 	}
@@ -545,8 +356,7 @@
 	function sizeDimensions(size) {
 		const match = String(size || "").match(/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)/i);
 		if (match) return { width: Number(match[1]), height: Number(match[2]) };
-		if (String(size || "").toLowerCase().includes("wallet")) return { width: 3, height: 2 };
-		return { width: 4, height: 5 };
+		return { width: 1, height: 1 };
 	}
 
 	function dimensionsFor(size, photo) {
@@ -571,30 +381,30 @@
 		return (selections && selections[key]) || fallback || "";
 	}
 
+	function visualOptionValue(product, selections, key) {
+		const selected = selections && selections[key];
+		if (selected) return selected;
+		const group = (product.options || []).find((entry) => entry.key === key);
+		return group && group.values.length ? group.values[0].value : "";
+	}
+
 	function renderMockup(product, selections, photo, opts) {
+		if (!product) return "";
 		const settings = opts || {};
 		const view = ["front", "angle", "corner", "wall"].includes(settings.view) ? settings.view : "angle";
-		const dimensions = dimensionsFor((selections || {}).size || product.sizes[0], photo);
+		const selected = selections || {};
+		const size = selected.size || product.sizes[0];
+		const dimensions = dimensionsFor(size, photo);
 		const ratio = Math.max(0.45, Math.min(2.25, dimensions.ratio));
-		const frameValue = optionValue(selections, "frame", "");
-		const fallbackFinishes = {
-			"gallery-frame": "Gallery Black",
-			"metal-frame": "Gold",
-			"framed-canvas": "Natural",
-			"wood-frame": "Natural",
-		};
-		const finishValue = optionValue(selections, "finish", frameValue || fallbackFinishes[product.slug]);
-		const frameClass = "shop-finish--" + slugPart(finishValue || "classic");
-		const matValue = optionValue(selections, "mat", "No mat");
-		const matClass = "shop-mat--" + slugPart(matValue);
-		const matWindow = matValue && matValue !== "No mat" ? matWindowFor(product, (selections || {}).size || product.sizes[0]) : null;
-		const outerDimensions = dimensionsFor((selections || {}).size || product.sizes[0], photo);
-		const windowDimensions = matWindow ? dimensionsFor(matWindow, photo) : null;
-		const matInsetX = windowDimensions ? Math.max(0, (1 - windowDimensions.width / outerDimensions.width) * 50) : 0;
-		const matInsetY = windowDimensions ? Math.max(0, (1 - windowDimensions.height / outerDimensions.height) * 50) : 0;
-		const crop = clampCrop(settings.crop);
-		const edgeValue = optionValue(selections, "edge", "Photo wrap");
-		const edgeClass = "shop-edge--" + slugPart(edgeValue);
+		const frameValue = product.slug === "metal-frame" ? "black" : visualOptionValue(product, selected, "frame");
+		const finishValue = visualOptionValue(product, selected, "finish");
+		const frameClass = frameValue ? "shop-finish--" + slugPart(frameValue) : "";
+		const edgeValue = visualOptionValue(product, selected, "edge");
+		const edgeClass = edgeValue ? "shop-edge--" + slugPart(edgeValue) : "";
+		const optionClasses = (product.options || []).map((group) => {
+			const value = selected[group.key];
+			return value ? "shop-option--" + slugPart(group.key) + "-" + slugPart(value) : "";
+		}).filter(Boolean).join(" ");
 		const photoSource = typeof settings.imageUrl === "function"
 			? settings.imageUrl(photo)
 			: photo && (photo.url || photo.image) ? photo.url || photo.image : "";
@@ -610,47 +420,47 @@
 		let sideClass = "shop-side--paper";
 		let side = "";
 		let overlay = "";
-		if (["gallery-frame", "metal-frame", "wood-frame"].includes(product.slug)) {
+		if (["metal-frame", "wood-frame"].includes(product.slug)) {
 			objectClass = "shop-mockup__object shop-mockup__object--frame " + frameClass;
-			front = '<span class="shop-mockup__frame-face"><span class="shop-mockup__mat ' + matClass + '">' + image + '</span></span>';
+			front = '<span class="shop-mockup__frame-face">' + image + '</span>';
 			sideClass = "shop-side--finish " + frameClass;
 		} else if (product.slug === "framed-canvas") {
-			objectClass = "shop-mockup__object shop-mockup__object--floater " + frameClass + " " + edgeClass;
+			objectClass = "shop-mockup__object shop-mockup__object--floater " + frameClass;
 			front = '<span class="shop-mockup__floater-face"><span class="shop-mockup__canvas-face">' + image + '</span></span>';
 			sideClass = "shop-side--finish " + frameClass;
 		} else if (product.slug === "canvas") {
-			objectClass = "shop-mockup__object shop-mockup__object--canvas " + edgeClass;
+			objectClass = "shop-mockup__object shop-mockup__object--canvas";
 			front = '<span class="shop-mockup__photo-face">' + image + '</span>';
-			sideClass = edgeValue === "Photo wrap" ? "shop-side--photo" : "shop-side--edge " + edgeClass;
-			side = edgeValue === "Photo wrap" ? sideImage : "";
+			sideClass = "shop-side--photo";
+			side = sideImage;
 		} else if (product.slug === "metal-print") {
-			objectClass = "shop-mockup__object shop-mockup__object--metal shop-finish--" + slugPart(finishValue || "gloss");
+			const metalFinish = finishValue || visualOptionValue(product, selected, "finish");
+			objectClass = "shop-mockup__object shop-mockup__object--metal shop-finish--" + slugPart(metalFinish);
 			front = '<span class="shop-mockup__photo-face">' + image + '</span>';
 			overlay = '<span class="shop-mockup__sheen" aria-hidden="true"></span>';
 			sideClass = "shop-side--aluminium";
 		} else if (product.slug === "acrylic-print") {
-			objectClass = "shop-mockup__object shop-mockup__object--acrylic shop-finish--" + slugPart(finishValue || "gloss");
+			objectClass = "shop-mockup__object shop-mockup__object--acrylic";
 			front = '<span class="shop-mockup__photo-face">' + image + '</span>';
 			overlay = '<span class="shop-mockup__sheen" aria-hidden="true"></span>';
 			sideClass = "shop-side--acrylic";
-		} else if (product.slug === "standout-print") {
-			objectClass = "shop-mockup__object shop-mockup__object--standout " + edgeClass;
+		} else if (product.slug === "foam-print") {
+			objectClass = "shop-mockup__object shop-mockup__object--foam " + edgeClass;
 			front = '<span class="shop-mockup__photo-face">' + image + '</span>';
-			sideClass = edgeValue === "White edge" ? "shop-side--edge " + edgeClass : "shop-side--black";
-		} else if (product.slug === "bamboo-panel") {
-			objectClass = "shop-mockup__object shop-mockup__object--bamboo " + frameClass;
-			front = '<span class="shop-mockup__photo-face shop-mockup__photo-face--wood">' + image + '<span class="shop-mockup__wood-grain" aria-hidden="true"></span></span>';
-			sideClass = "shop-side--grain " + frameClass;
+			sideClass = "shop-side--edge " + edgeClass;
 		} else if (product.slug === "wood-print") {
-			objectClass = "shop-mockup__object shop-mockup__object--wood " + frameClass;
+			objectClass = "shop-mockup__object shop-mockup__object--wood";
 			front = '<span class="shop-mockup__photo-face shop-mockup__photo-face--wood">' + image + '<span class="shop-mockup__wood-grain" aria-hidden="true"></span></span>';
-			sideClass = "shop-side--grain " + frameClass;
+			sideClass = "shop-side--grain";
 		}
 		const extraClass = settings.className ? " " + escapeHtml(settings.className) : "";
 		const wallWidth = Math.min(78, dimensions.width / 36 * 72);
 		const scene = view === "wall" ? '<span class="shop-mockup__room" aria-hidden="true"><span class="shop-mockup__furniture"></span></span>' : "";
-		return '<div class="shop-mockup shop-mockup--' + escapeHtml(product.slug) + ' shop-mockup--view-' + view + extraClass + '" style="--shop-art-ratio:' + ratio.toFixed(4) + ';--shop-wall-art-width:' + wallWidth.toFixed(2) + '%;--shop-crop-x:' + crop.x + '%;--shop-crop-y:' + crop.y + '%;--shop-mat-inset-x:' + matInsetX.toFixed(2) + '%;--shop-mat-inset-y:' + matInsetY.toFixed(2) + '%" data-shop-view="' + view + '" data-shop-orientation="' + dimensions.orientation + '">' +
-			scene + '<span class="shop-mockup__object ' + objectClass.replace("shop-mockup__object ", "") + '"><span class="shop-mockup__side ' + sideClass + '">' + side + '</span><span class="shop-mockup__front">' + front + overlay + '</span></span></div>';
+		return '<div class="shop-mockup shop-mockup--' + escapeHtml(product.slug) + ' shop-mockup--view-' + view + (optionClasses ? " " + optionClasses : "") + extraClass +
+			'" style="--shop-art-ratio:' + ratio.toFixed(4) + ';--shop-wall-art-width:' + wallWidth.toFixed(2) + '%;--shop-crop-x:' + clampCrop(settings.crop).x +
+			'%;--shop-crop-y:' + clampCrop(settings.crop).y + '%" data-shop-view="' + view + '" data-shop-orientation="' + dimensions.orientation + '">' +
+			scene + '<span class="shop-mockup__object ' + objectClass.replace("shop-mockup__object ", "") + '"><span class="shop-mockup__side ' + sideClass + '">' + side +
+			'</span><span class="shop-mockup__front">' + front + overlay + '</span></span></div>';
 	}
 
 	function renderProductCard(product, state) {
@@ -681,7 +491,7 @@
 
 	function renderStoreHome(state) {
 		const activeIndex = state.heroIndex || 0;
-		const categories = ["Prints", "Wall Art"];
+		const categories = Array.from(new Set(SHOP_CATALOG.map((product) => product.category)));
 		return '<section class="shop-page shop-home"><div class="shop-hero" aria-roledescription="carousel" aria-label="Featured print products">' +
 			'<button class="shop-hero-arrow shop-hero-prev" type="button" data-shop-action="hero-prev" aria-label="Previous product">‹</button>' +
 			'<div class="shop-hero-inner"><div class="shop-hero-slide">' + renderHeroSlide(SHOP_CATALOG[activeIndex], activeIndex, state) + '</div></div>' +
@@ -702,22 +512,23 @@
 	function renderOptionGroup(product, group, state) {
 		const selection = state.selections[group.key] || "";
 		const invalid = state.invalid && state.invalid.has(group.key);
-		const selectedText = selection || (invalid ? "* Select an option" : "");
+		const selectedOption = group.options.find((entry) => entry.value === selection);
+		const selectedText = selectedOption ? selectedOption.label : (invalid ? "* Select an option" : "");
 		const buttons = group.options.map((entry) => {
 			const isSelected = selection === entry.value;
 			const swatch = group.kind === "swatch"
 				? '<span class="shop-swatch" style="--shop-swatch:' + escapeHtml(entry.swatch || "#ccc") + '" aria-hidden="true"></span>'
-				: '<span class="shop-option-label">' + escapeHtml(entry.value) + '</span>';
+				: '<span class="shop-option-label">' + escapeHtml(entry.label) + '</span>';
 			const previewSelections = Object.assign({}, state.selections, { [group.key]: entry.value });
 			const detail = entry.description
 				? '<span class="shop-option-detail" aria-hidden="true"><span class="shop-option-detail__visual">' +
 					renderMockup(product, previewSelections, state.photos[state.photoIndex] || null, { imageUrl: state.imageUrl, view: "corner" }) +
-					'</span><span class="shop-option-detail__title">' + escapeHtml(entry.value) + '</span><span class="shop-option-detail__description">' +
+					'</span><span class="shop-option-detail__title">' + escapeHtml(entry.label) + '</span><span class="shop-option-detail__description">' +
 					escapeHtml(entry.description) + '</span></span>'
 				: "";
 			return '<button class="shop-option' + (group.kind === "swatch" ? " shop-option--swatch" : "") + (isSelected ? " is-selected" : "") +
 				'" type="button" data-shop-option-group="' + escapeHtml(group.key) + '" data-shop-option-value="' + escapeHtml(entry.value) +
-				'" aria-pressed="' + (isSelected ? "true" : "false") + '" aria-label="' + escapeHtml(entry.value) + '" title="' + escapeHtml(entry.value) + '">' +
+				'" aria-pressed="' + (isSelected ? "true" : "false") + '" aria-label="' + escapeHtml(entry.label) + '" title="' + escapeHtml(entry.label) + '">' +
 				swatch + detail + '</button>';
 		}).join("");
 		return '<fieldset class="shop-option-group' + (invalid ? " is-invalid" : "") + '" data-shop-option-group-wrap="' + escapeHtml(group.key) + '"' +
@@ -755,10 +566,9 @@
 			'<p class="shop-product-price" data-shop-price>' + escapeHtml(priceText) + '</p><p class="shop-product-description">' + escapeHtml(product.description) + '</p>' +
 			'<div class="shop-product-options">' + product.optionGroups.map((group) => renderOptionGroup(product, group, state)).join("") + '</div>' +
 			'<button class="shop-primary-button" type="button" data-shop-action="open-picker">' + escapeHtml(
-				product.slug === "gallery-frame" || ["metal-frame", "wood-frame", "framed-canvas"].includes(product.slug) ? "Create your frame" : "Buy prints",
+				["metal-frame", "wood-frame", "framed-canvas"].includes(product.slug) ? "Create your frame" : "Buy prints",
 			) + '</button><p class="shop-photo-note" data-shop-photo-note role="status" aria-live="polite"></p>' +
-			'<details class="shop-product-info" open><summary>Product info</summary><p>' + escapeHtml(product.productInfo) + '</p>' +
-			'<p>This product will ship after a print production time of ' + escapeHtml(product.productionTime) + '.</p></details></div></div>' +
+			'<details class="shop-product-info" open><summary>Product info</summary><p>' + escapeHtml(product.productInfo) + '</p></details></div></div>' +
 			'<section class="shop-related"><h2 class="shop-section-heading">You might also like</h2><div class="shop-product-grid">' +
 			related.map((item) => renderProductCard(item, state)).join("") + '</div></section></div></section>';
 	}
@@ -774,7 +584,10 @@
 	}
 
 	function selectedOptions(product, selections) {
-		return product.optionGroups.filter((group) => group.key !== "size" && selections[group.key]).map((group) => selections[group.key]).join(" / ");
+		return optionGroups(product).map((group) => {
+			const selection = group.options.find((entry) => entry.value === selections[group.key]);
+			return selection ? selection.label : "";
+		}).filter(Boolean).join(" / ");
 	}
 
 	function photoForId(photos, id) {
@@ -822,14 +635,11 @@
 	function renderCustomizeLine(line, state, index) {
 		const product = state.product;
 		const photo = photoForId(state.photos, line.photoId);
-		const windowSize = state.selections.mat && state.selections.mat !== "No mat" ? matWindowFor(product, state.selections.size) : null;
-		const window = windowSize ? dimensionsFor(windowSize, photo) : null;
-		const caption = window ? 'Your photo is ' + window.width + ' x ' + window.height + '" with the ' + escapeHtml(state.selections.mat) + ' option.' : '';
 		const sizes = product.sizes.map((size) => '<option value="' + escapeHtml(size) + '"' + (size === state.selections.size ? ' selected' : '') + '>' + escapeHtml(size) + '</option>').join("");
 		const cropping = state.cropActiveLineId === line.lineId;
 		return '<article class="shop-customize-card"><header class="shop-customize-card__heading"><p>PHOTO ' + (index + 1) + ' OF ' + state.lines.length + '</p><h2>' + escapeHtml(photo && (photo.title || photo.alt) || 'Selected photograph') + '</h2></header>' +
 			'<div class="shop-customize-art-wrap"><div class="shop-customize-art' + (cropping ? ' is-crop-active' : '') + '" data-shop-crop-id="' + escapeHtml(line.lineId) + '" tabindex="0" role="group" aria-label="' + (cropping ? 'Drag or use arrow keys to adjust crop' : 'Photograph preview') + '">' + renderMockup(product, state.selections, photo, { imageUrl: state.imageUrl, eager: true, view: "front", crop: line.crop }) + '</div></div>' +
-			(caption ? '<p class="shop-mat-caption">' + caption + '</p>' : '') + '<div class="shop-customize-line-controls"><div class="shop-customize-crop-actions"><button type="button" data-shop-action="crop-toggle" data-line-id="' + escapeHtml(line.lineId) + '">' + (cropping ? 'Done cropping' : 'Edit crop') + '</button><button type="button" data-shop-action="change-photo" data-line-id="' + escapeHtml(line.lineId) + '">Change</button></div>' +
+			'<div class="shop-customize-line-controls"><div class="shop-customize-crop-actions"><button type="button" data-shop-action="crop-toggle" data-line-id="' + escapeHtml(line.lineId) + '">' + (cropping ? 'Done cropping' : 'Edit crop') + '</button><button type="button" data-shop-action="change-photo" data-line-id="' + escapeHtml(line.lineId) + '">Change</button></div>' +
 			(cropping ? '<p class="shop-crop-help">Drag the photo or use arrow keys to reposition it.</p>' : '') + '<div class="shop-customize-size-quantity"><label>Size<select data-shop-size-select aria-label="Print size">' + sizes + '</select></label>' +
 			'<label class="shop-quantity-field">Quantity<span class="shop-quantity"><button type="button" data-shop-action="quantity-down" data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Decrease quantity">−</button><input type="number" min="1" step="1" value="' + line.quantity + '" data-shop-quantity data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Quantity"/><button type="button" data-shop-action="quantity-up" data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Increase quantity">+</button></span></label></div></div></article>';
 	}
@@ -868,6 +678,11 @@
 	let heroTimer = null;
 
 	function renderPage(context) {
+		if (!SHOP_CATALOG.length) {
+			activeState = null;
+			return '<div class="shop-store"><section class="shop-page shop-unavailable"><div class="shop-shell"><h1>The print store is unavailable right now</h1>' +
+				'<p>For print inquiries, email <a href="mailto:contact@clairethomas.art">contact@clairethomas.art</a>.</p></div></section></div>';
+		}
 		const safeContext = context || {};
 		const photos = selectStorePhotos(safeContext.albums || []);
 		const params = global.location && global.URLSearchParams ? new global.URLSearchParams(global.location.search) : null;
@@ -1269,14 +1084,13 @@
 	}
 
 	const api = {
-		catalog: SHOP_CATALOG,
+		get catalog() { return SHOP_CATALOG; },
 		cartStorageKey: CART_STORAGE_KEY,
 		cartSubtotal,
 		clampCrop,
 		dimensionsFor,
 		fromPrice,
 		lineTotal,
-		matWindowFor,
 		missingRequiredOptions,
 		openPhotoPicker,
 		parseCart,
@@ -1285,6 +1099,7 @@
 		renderPage,
 		selectStorePhotos,
 		serializeCart,
+		setCatalog,
 		mount,
 	};
 	global.PortfolioShop = api;
