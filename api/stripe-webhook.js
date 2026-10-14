@@ -104,7 +104,8 @@ const createDependencies = (overrides = {}) => {
 		validateContent: overrides.validateContent || validateContent,
 		confirmOriginal: overrides.confirmOriginal || ((photo) => checkout.confirmOriginal(photo, env)),
 		getStripe: overrides.getStripe || (() => checkout.getStripeClient(env)),
-		gelatoFetch: overrides.gelatoFetch || fetch,
+		// Workers throw "Illegal invocation" when fetch is called as a method of another object.
+		gelatoFetch: overrides.gelatoFetch || ((...args) => fetch(...args)),
 		sendEmail: overrides.sendEmail || defaultSendEmail,
 	};
 };
@@ -231,7 +232,8 @@ const createHandler = (overrides = {}) => {
 					email: buildShopOrderEmail({ session, pricedCart, gelatoOrderId }),
 				});
 				return reply(response, 200, { received: true });
-			} catch {
+			} catch (error) {
+				console.error("Shop webhook failed:", error?.message || error);
 				return reply(response, 500, { error: "Shop webhook processing failed; retry required." });
 			}
 		});
