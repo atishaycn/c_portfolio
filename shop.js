@@ -673,7 +673,7 @@
 			return '<button class="shop-picker-photo' + (selected ? ' is-selected' : '') + (eligible ? '' : ' is-too-small') + '" type="button" data-shop-action="picker-toggle" data-photo-id="' + escapeHtml(id) + '" aria-pressed="' + selected + '" aria-label="' + escapeHtml((photo.title || photo.alt || "Photograph") + (eligible ? '' : ', Too small for this size')) + '"' + (eligible ? '' : ' disabled') + ' style="--shop-photo-ratio:' + ratio.toFixed(4) + '"><span class="shop-picker-photo__image">' +
 				(source ? '<img src="' + escapeHtml(source) + '" alt="" loading="lazy"/>' : '<span class="shop-mockup__placeholder"></span>') + '</span><span class="shop-picker-photo__check" aria-hidden="true">✓</span>' + (photo.title ? '<span class="shop-picker-photo__title">' + escapeHtml(photo.title) + '</span>' : '') + (eligible ? '' : '<span class="shop-picker-photo__warning">Too small for this size</span>') + '</button>';
 		}).join("");
-		return '<div class="shop-picker-overlay" data-shop-picker-backdrop><section class="shop-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="shop-picker-title" tabindex="-1"><header class="shop-picker-header"><button class="shop-icon-button" type="button" data-shop-action="picker-close" aria-label="Close">×</button><div><h1 id="shop-picker-title">Select photos</h1><p>' + state.selectedPhotoIds.size + ' ' + (state.selectedPhotoIds.size === 1 ? 'photo' : 'photos') + ' selected</p></div><a class="shop-picker-cart" href="./prints.html?view=cart" aria-label="Cart, ' + cartCount(state.cart) + ' items">Cart <span>' + cartCount(state.cart) + '</span></a><button class="shop-picker-next" type="button" data-shop-action="picker-next"' + (state.selectedPhotoIds.size ? '' : ' disabled') + '>Next</button></header>' +
+		return '<div class="shop-picker-overlay" data-shop-picker-backdrop><section class="shop-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="shop-picker-title" tabindex="-1"><header class="shop-picker-header"><button class="shop-icon-button" type="button" data-shop-action="picker-close" aria-label="Close">×</button><div><h1 id="shop-picker-title">Select photos</h1><p data-shop-picker-count>' + state.selectedPhotoIds.size + ' ' + (state.selectedPhotoIds.size === 1 ? 'photo' : 'photos') + ' selected</p></div><a class="shop-picker-cart" href="./prints.html?view=cart" aria-label="Cart, ' + cartCount(state.cart) + ' items">Cart <span>' + cartCount(state.cart) + '</span></a><button class="shop-picker-next" type="button" data-shop-action="picker-next"' + (state.selectedPhotoIds.size ? '' : ' disabled') + '>Next</button></header>' +
 			(state.photos.length ? '<div class="shop-picker-grid">' + tiles + '</div>' : '<p class="shop-picker-empty">No print-enabled photos are available yet.</p>') + '</section></div>';
 	}
 
@@ -987,6 +987,24 @@
 		if (button) button.focus();
 	}
 
+	function updatePickerPhoto(id) {
+		if (!activeRoot || !id) return;
+		const button = Array.from(activeRoot.querySelectorAll(".shop-picker-photo")).find((entry) => entry.dataset.photoId === id);
+		if (!button) return;
+		const selected = activeState.selectedPhotoIds.has(id);
+		button.classList.toggle("is-selected", selected);
+		button.setAttribute("aria-pressed", selected ? "true" : "false");
+	}
+
+	function updatePickerSelectionSummary() {
+		if (!activeRoot) return;
+		const count = activeState.selectedPhotoIds.size;
+		const counter = activeRoot.querySelector("[data-shop-picker-count]");
+		if (counter) counter.textContent = count + " " + (count === 1 ? "photo" : "photos") + " selected";
+		const next = activeRoot.querySelector('[data-shop-action="picker-next"]');
+		if (next) next.disabled = count === 0;
+	}
+
 	function finishPhotoSelection() {
 		if (!activeState.selectedPhotoIds.size) return;
 		const ids = Array.from(activeState.selectedPhotoIds);
@@ -1163,10 +1181,15 @@
 				const photo = photoForId(activeState.photos, id);
 				if (!photoSupportsSize(photo, activeState.pickerSize)) return;
 				if (activeState.pickerMode === "replace") {
+					const previousId = activeState.selectedPhotoIds.values().next().value || "";
 					activeState.selectedPhotoIds = activeState.selectedPhotoIds.has(id) ? new Set() : new Set([id]);
+					if (previousId && previousId !== id) updatePickerPhoto(previousId);
 				} else if (activeState.selectedPhotoIds.has(id)) activeState.selectedPhotoIds.delete(id);
 				else activeState.selectedPhotoIds.add(id);
-				renderStore(); focusPhoto(id); return;
+				updatePickerPhoto(id);
+				updatePickerSelectionSummary();
+				focusPhoto(id);
+				return;
 			}
 			if (name === "picker-next") { finishPhotoSelection(); return; }
 			if (name === "customize-back") { openPhotoPicker(activeState.product, activeState.selections, { mode: "review", returnScreen: "customize" }); return; }
