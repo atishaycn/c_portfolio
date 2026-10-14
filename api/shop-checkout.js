@@ -1,8 +1,8 @@
-const Stripe = require("stripe");
 const { fetchAuthoritativeContent } = require("./_lib/cloudinary");
 const { validateContent } = require("./_lib/content");
 const { json, readJson } = require("./_lib/http");
 const { cartLines, cropRectangle, fail, priceCart, printFileUrl, sessionMetadata } = require("./_lib/shop-order");
+const { createStripeClient } = require("./_lib/stripe");
 
 const TEST_ONLY_MESSAGE = "Test checkout only. No real payment, printing, or shipping.";
 const failWith = (message, statusCode = 503) => Object.assign(new Error(message), { statusCode, publicMessage: true });
@@ -30,7 +30,7 @@ const checkoutGuard = (env) => {
 	return siteOrigin(env);
 };
 
-const getStripeClient = (env) => new Stripe(env.STRIPE_SECRET_KEY, { timeout: 20_000, maxNetworkRetries: 1 });
+const getStripeClient = (env) => createStripeClient(env.STRIPE_SECRET_KEY);
 
 const confirmOriginal = async (photo, env) => {
 	const { CLOUDINARY_CLOUD_NAME: cloudName, CLOUDINARY_API_KEY: apiKey, CLOUDINARY_API_SECRET: apiSecret } = env;
