@@ -76,6 +76,7 @@ const handlers = new Map([
 	["/api/stripe-webhook", require("../api/stripe-webhook.js")],
 	["/api/admin/session", require("../api/admin/session.js")],
 	["/api/admin/content", readOnlyContent(require("../api/admin/content.js"))],
+	["/api/admin/shop-orders", require("../api/admin/shop-orders.js")],
 ]);
 const mimeTypes = {
 	".css": "text/css; charset=utf-8",

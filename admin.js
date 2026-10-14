@@ -18,6 +18,8 @@ const elements = {
 	trashButton: document.getElementById("trash-button"),
 	trashCount: document.getElementById("trash-count"),
 	shopSettingsButton: document.getElementById("shop-settings-button"),
+	ordersButton: document.getElementById("orders-button"),
+	ordersCount: document.getElementById("orders-count"),
 };
 
 const state = {
@@ -27,6 +29,11 @@ const state = {
 	selectedAlbumId: null,
 	showTrash: false,
 	showShopSettings: false,
+	showOrders: false,
+	orders: null,
+	ordersLoading: false,
+	ordersError: null,
+	ordersBusy: false,
 	dirty: false,
 	saving: false,
 	shopSyncing: false,
@@ -184,7 +191,7 @@ const moveAlbum = (albumId, direction) => {
 
 const appendAlbumNode = (container, album, depth, siblingIndex, siblingCount) => {
 	const row = document.createElement("div");
-	row.className = `album-row${state.selectedAlbumId === album.id && !state.showTrash && !state.showShopSettings ? " is-selected" : ""}`;
+	row.className = `album-row${state.selectedAlbumId === album.id && !state.showTrash && !state.showShopSettings && !state.showOrders ? " is-selected" : ""}`;
 	row.style.setProperty("--depth", depth);
 	const select = createButton(
 		`${album.label} (${album.items.length})`,
@@ -193,6 +200,7 @@ const appendAlbumNode = (container, album, depth, siblingIndex, siblingCount) =>
 			state.selectedAlbumId = album.id;
 			state.showTrash = false;
 			state.showShopSettings = false;
+			state.showOrders = false;
 			render();
 		},
 	);
@@ -247,6 +255,8 @@ const renderAlbumList = () => {
 	elements.trashCount.textContent = state.content.trash.length;
 	elements.trashButton.classList.toggle("is-selected", state.showTrash);
 	elements.shopSettingsButton.classList.toggle("is-selected", state.showShopSettings);
+	elements.ordersButton.classList.toggle("is-selected", state.showOrders);
+	elements.ordersCount.textContent = state.orders ? String(state.orders.filter((order) => order.state === "waiting").length) : "";
 };
 
 const reorderPhoto = (album, photoId, direction) => {
@@ -738,6 +748,7 @@ const renderShopSettings = () => {
 };
 
 const renderEditor = () => {
+	if (state.showOrders) return renderOrders();
 	if (state.showTrash) return renderTrash();
 	if (state.showShopSettings) return renderShopSettings();
 	const album = albumById(state.selectedAlbumId) || state.content.albums[0];
@@ -805,6 +816,144 @@ const syncShop = async () => {
 	}
 };
 
+const orderStateLabels = {
+	waiting: "Waiting",
+	approved: "Approved",
+	"approved-test": "Approved (test, not sent to Gelato)",
+	cancelled: "Cancelled",
+	"needs-attention": "Needs attention",
+};
+
+const money = (cents) => `$${(cents / 100).toFixed(2)}`;
+
+const loadOrders = async () => {
+	state.ordersLoading = true;
+	render();
+	try {
+		const result = await request("/api/admin/shop-orders");
+		state.orders = result.orders;
+		state.ordersError = null;
+	} catch (error) {
+		state.ordersError = error.message;
+	} finally {
+		state.ordersLoading = false;
+		render();
+	}
+};
+
+const runOrderAction = async (order, action) => {
+	if (state.ordersBusy) return;
+	const question = action === "approve"
+		? "Send this order to Gelato for printing? Gelato charges your account now."
+		: `Cancel this order and refund ${money(order.amountTotal)} to the buyer?`;
+	if (!window.confirm(question)) return;
+	state.ordersBusy = true;
+	render();
+	try {
+		const result = await request("/api/admin/shop-orders", {
+			method: "POST",
+			body: JSON.stringify({ action, sessionId: order.sessionId }),
+		});
+		showMessage(`Order updated: ${orderStateLabels[result.state] || result.state}.`);
+	} catch (error) {
+		showMessage(error.message, true);
+	} finally {
+		state.ordersBusy = false;
+	}
+	await loadOrders();
+};
+
+const orderCard = (order) => {
+	const card = document.createElement("article");
+	card.className = "order-card";
+	const header = document.createElement("div");
+	header.className = "order-header";
+	const summary = document.createElement("div");
+	const title = document.createElement("p");
+	title.className = "order-title";
+	const buyer = [order.buyerName || "Buyer", order.buyerCity].filter(Boolean).join(", ");
+	title.textContent = `${new Date(order.created).toLocaleString()} · ${buyer}`;
+	const amount = document.createElement("small");
+	amount.textContent = `Paid ${money(order.amountTotal)}${order.tax ? ` (includes ${money(order.tax)} tax)` : ""}`;
+	summary.append(title, amount);
+	const badge = document.createElement("span");
+	badge.className = `order-state order-state-${order.state}`;
+	badge.textContent = orderStateLabels[order.state] || order.state;
+	header.append(summary, badge);
+	card.append(header);
+
+	const lines = document.createElement("div");
+	lines.className = "order-lines";
+	for (const line of order.lines) {
+		const row = document.createElement("div");
+		row.className = "order-line";
+		const image = document.createElement("img");
+		image.src = line.previewUrl;
+		image.alt = "";
+		image.loading = "lazy";
+		const details = document.createElement("div");
+		const name = document.createElement("p");
+		name.textContent = line.productName;
+		const meta = document.createElement("small");
+		const options = Object.entries(line.optionLabels || {}).map(([label, value]) => `${label}: ${value}`);
+		meta.textContent = [line.size, ...options, `Quantity ${line.quantity}`].join(" · ");
+		details.append(name, meta);
+		row.append(image, details);
+		lines.append(row);
+	}
+	card.append(lines);
+
+	if (order.state === "waiting") {
+		const actions = document.createElement("div");
+		actions.className = "order-actions";
+		const approve = createButton("Approve", "primary-button", () => runOrderAction(order, "approve"));
+		approve.disabled = state.ordersBusy;
+		const cancel = createButton("Cancel order", "danger-button", () => runOrderAction(order, "cancel"));
+		cancel.disabled = state.ordersBusy;
+		actions.append(approve, cancel);
+		card.append(actions);
+	}
+	return card;
+};
+
+const renderOrders = () => {
+	const heading = document.createElement("div");
+	heading.className = "editor-heading";
+	const copy = document.createElement("div");
+	const eyebrow = document.createElement("p");
+	eyebrow.className = "eyebrow";
+	eyebrow.textContent = "Shop";
+	const title = document.createElement("h2");
+	title.textContent = "Orders";
+	copy.append(eyebrow, title);
+	const refresh = createButton(state.ordersLoading ? "Loading…" : "Refresh", "secondary-button", () => loadOrders());
+	refresh.dataset.testid = "orders-refresh";
+	refresh.disabled = state.ordersLoading || state.ordersBusy;
+	heading.append(copy, refresh);
+
+	const list = document.createElement("div");
+	list.className = "orders-list";
+	if (state.ordersError) {
+		const error = document.createElement("div");
+		error.className = "empty-album";
+		error.textContent = state.ordersError;
+		list.append(error);
+	} else if (!state.orders) {
+		const loading = document.createElement("div");
+		loading.className = "empty-album";
+		loading.textContent = "Loading orders…";
+		list.append(loading);
+	} else if (!state.orders.length) {
+		const empty = document.createElement("div");
+		empty.className = "empty-album";
+		empty.textContent = "No paid orders yet.";
+		list.append(empty);
+	}
+	const newestFirst = [...(state.orders || [])].sort((left, right) => right.created.localeCompare(left.created));
+	for (const order of newestFirst) list.append(orderCard(order));
+	elements.albumEditor.replaceChildren(heading, list);
+};
+
 const initializeDashboard = async (session) => {
 	state.csrf = session.csrf;
 	state.email = session.email;
@@ -815,6 +964,7 @@ const initializeDashboard = async (session) => {
 	elements.loginView.hidden = true;
 	elements.dashboardView.hidden = false;
 	render();
+	loadOrders();
 };
 
 elements.loginForm.addEventListener("submit", async (event) => {
@@ -879,6 +1029,7 @@ elements.addAlbumForm.addEventListener("submit", (event) => {
 	state.selectedAlbumId = album.id;
 	state.showTrash = false;
 	state.showShopSettings = false;
+	state.showOrders = false;
 	elements.newAlbumName.value = "";
 	markDirty();
 	render();
@@ -887,13 +1038,22 @@ elements.addAlbumForm.addEventListener("submit", (event) => {
 elements.trashButton.addEventListener("click", () => {
 	state.showTrash = true;
 	state.showShopSettings = false;
+	state.showOrders = false;
 	render();
 });
 
 elements.shopSettingsButton.addEventListener("click", () => {
 	state.showShopSettings = true;
 	state.showTrash = false;
+	state.showOrders = false;
 	render();
+});
+
+elements.ordersButton.addEventListener("click", () => {
+	state.showOrders = true;
+	state.showTrash = false;
+	state.showShopSettings = false;
+	loadOrders();
 });
 
 window.addEventListener("beforeunload", (event) => {
