@@ -13,8 +13,8 @@ Branch `infra/cloudflare`, cut from `ui/shop-store`, worktree `~/Developer/c_por
 
 ## Steps
 
-1. Worker entry and adapter: one Worker serves the static site from a built assets folder and runs the existing `api/` handlers through an adapter from Fetch `Request`/`Response` to the Node-style `(req, res)` they use. Security headers move from `vercel.json` to `_headers`. Local run with `wrangler dev`.
-2. Runtime fixes: Stripe webhook signature check made async; anything else that fails in Workers.
+1. (Done `e7b641e`: 236 tests; `wrangler dev` smoke test passed; `/` maps to `index.html`, `_redirects` from `vercel.json`; `/api/*` default headers set in the Worker because `_headers` does not apply to Worker responses.) Worker entry and adapter: one Worker serves the static site from a built assets folder and runs the existing `api/` handlers through an adapter from Fetch `Request`/`Response` to the Node-style `(req, res)` they use. Security headers move from `vercel.json` to `_headers`. Local run with `wrangler dev`.
+2. Runtime fixes: Stripe webhook signature check made async (done in `e7b641e`); anything else that fails in Workers.
 3. Deploy to `workers.dev` with the user's Cloudflare API token (git-ignored), sandbox Stripe and test webhook; run the full Shop and admin checks; record CPU time per endpoint and fix any over 10 ms.
 4. DNS cutover (user approval): Cloudflare zone, records copied, Email Routing for `contact@`, nameservers changed at Namecheap, custom domain on the Worker, mail and site checked. Then the Vercel project is disconnected.
 5. Other branches with functions (`drive/album-folders`, `feature/client-intake`) get the same adapter when they merge.
