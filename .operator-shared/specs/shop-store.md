@@ -13,23 +13,33 @@ The Shop page (`prints.html`, header "Shop") is a print store modelled on Claire
 
 ## Gelato mapping
 
-Checked against the Gelato product API on 2026-10-13 (catalog attributes only; exact US sizes, product UIDs and costs come from the generated catalog file).
+Checked against the Gelato product API on 2026-10-13 (every product in each catalog, and US prices for 12 x 16 samples).
 
-| Store product | Gelato catalog | Options Gelato offers |
-|---|---|---|
-| Print | `posters` | Paper: coated silk, uncoated, off-white archival |
-| Fine Art Print | `fine-art` | One paper (200 gsm enhanced uncoated) |
-| Canvas | `canvas` | Depth: slim (2 cm) or thick (4 cm). No edge colour |
-| Framed Canvas | `framed-canvas` | Frame: black, natural wood, dark wood |
-| Metal Print | `metallic` | Finish: white matte or brushed silver (3 mm aluminium) |
-| Acrylic Print | `acrylic` | 4 mm, no options |
-| Wood Print | `wood-prints` | Thickness: 10 mm or 20 mm (birch plywood) |
-| Foam Print (was Standout) | `foam-print-product` | Edge: black or white (5 mm) |
-| Wood Frame (was Gallery Frame + Wood Frame) | `fine-art-framed-poster`; with mat: `mounted-fine-art` | Frame: black, white, natural wood, dark wood. Mat: none or mounted |
-| Metal Frame | `framed-posters` (aluminium); with mat: `mounted-framed-posters` | Frame: the aluminium colours Gelato lists (gold, silver, copper, black, white to confirm). Mat: none or mounted |
+| Store product | Category | Gelato catalog | Fixed attributes | Customer options |
+|---|---|---|---|---|
+| Print | Prints | `posters` | none | Paper: Semi-gloss (`200-gsm-80lb-coated-silk`), Matte (`200-gsm-80lb-uncoated`), Archival matte (`250-gsm-100lb-uncoated-offwhite-archival`) |
+| Fine Art Print | Prints | `fine-art` | paper `200-gsm-80lb-enhanced-uncoated` | none |
+| Canvas | Wall Art | `canvas` | none | Depth: Slim (`wood-fsc-slim`), Thick (`wood-fsc-thick`) |
+| Framed Canvas | Wall Art | `framed-canvas` | `FrameProperties` `w14xt42-mm` | Frame: Black, Natural wood, Dark wood |
+| Metal Print | Wall Art | `metallic` | none | Finish: White matte (`3-mm`), Brushed silver (`3-mm-silver-brushed`) |
+| Acrylic Print | Wall Art | `acrylic` | none | none |
+| Wood Print | Wall Art | `wood-prints` | none | Thickness: 10 mm, 20 mm |
+| Foam Print (was Standout) | Wall Art | `foam-print-product` | none | Edge: Black, White |
+| Wood Frame (was Gallery Frame + Wood Frame) | Wall Art | `mounted-fine-art` | `FrameMaterial` `wood`, `FrameProperties` `w12xt22-mm` | Frame: Black, White, Natural wood, Dark wood |
+| Metal Frame | Wall Art | `mounted-fine-art` | `FrameMaterial` `aluminum` (black only) | none |
 
-- Dropped: Bamboo Panel (Gelato has none). Large Format Print is no longer a product; large sizes belong to Print and Fine Art Print.
+- Dropped: Bamboo Panel (Gelato has none). Large Format Print is no longer a product; large sizes belong to Print and Fine Art Print. Mats are dropped: Gelato has no mat. Canvas edge colour is dropped.
+- Gelato's "mounted" frame catalogs mean the print arrives assembled in the frame. Frames always use them.
+- Gold, silver and copper aluminium frames exist in Gelato but are deactivated; only `ProductStatus` `activated` products are sold.
+- Sizes are inch sizes from this list, where Gelato has the product: 8x10, 8x12, 11x14, 12x12, 12x16, 12x18, 16x16, 16x20, 16x24, 18x24, 20x20, 20x30, 24x36, 28x40, 30x40. Use the inch-first product (`12x16-inch-300x400-mm`); Framed Canvas has only the mm-first form (`300x400-mm-12x16-inch`). Both forms cost the same.
 - A size is offered for a photo only when the original file has enough pixels for it.
+
+## Catalog file
+
+- `scripts/shop-catalog.mjs` reads the Gelato product API (GET and search only) and writes `content/shop-catalog.json`, which the site serves and the checkout server reads. It is the only source of products, options, sizes, product UIDs and retail prices.
+- Each variant is one size plus one value per option, with the Gelato product UID for both orientations and one retail price.
+- Retail price = Gelato US cost × `markup`, rounded up to a whole dollar. `markup` is 2.5, a sample until Claire sets prices. Gelato costs stay out of the served file; the script writes them to `scripts/shop-catalog-costs.json`.
+- Shipping is not in the price.
 
 ## Screens
 
