@@ -20,7 +20,7 @@ Claire runs the Shop store from `/admin.html`: shop settings and paid-order revi
 - Source of truth for the list: the Stripe Checkout Sessions this app created and that are paid. Each row joins its Gelato order by the session ID (`orderReferenceId`).
 - States: **Waiting** (Gelato draft), **Approved** (real Gelato order), **Cancelled** (refunded, draft deleted), **Needs attention** (paid but no draft, for example a mismatch or refusal; Claire was emailed).
 - A row shows the date, the buyer's name and city, the amount paid with tax, and each line's product, size, options, quantity and the exact cropped print file that Gelato prints.
-- **Approve** turns the draft into a real Gelato order (`PATCH /v4/orders/{id}` with `orderType: "order"`).
+- **Approve** turns the draft into a real Gelato order (`PATCH /v4/orders/{id}` with `orderType: "order"`). Gelato has no test mode, so in test mode Approve does every check but never calls Gelato; the order shows "Approved (test, not sent to Gelato)".
 - **Cancel** refunds the whole payment through Stripe and deletes the Gelato draft. A repeated click refunds nothing more.
 - **Edit** (Waiting orders only) changes a line's crop and its options at the same price, for example frame colour or paper. Saving leaves exactly one Gelato draft for the session, with the new print files, and records the edited lines on the session, so the confirmation page and later views agree. A change of product, size or quantity, or any change that alters the price, is not offered: Claire cancels and the buyer reorders.
 - Approved and Cancelled orders are read-only.
