@@ -2,7 +2,7 @@ const elements = {
 	loginView: document.getElementById("login-view"),
 	loginForm: document.getElementById("login-form"),
 	loginEmail: document.getElementById("login-email"),
-	loginPassword: document.getElementById("login-password"),
+	loginNotice: document.getElementById("login-notice"),
 	loginError: document.getElementById("login-error"),
 	dashboardView: document.getElementById("dashboard-view"),
 	logoutButton: document.getElementById("logout-button"),
@@ -1107,28 +1107,66 @@ const initializeDashboard = async (session) => {
 	loadOrders();
 };
 
+const showLoginNotice = (message, devLink) => {
+	elements.loginNotice.replaceChildren(message);
+	if (devLink) {
+		const link = document.createElement("a");
+		link.href = devLink;
+		link.textContent = "Open the local sign-in link";
+		elements.loginNotice.append(link);
+	}
+	elements.loginNotice.hidden = false;
+};
+
+const showLoginError = (message) => {
+	elements.loginView.hidden = false;
+	elements.loginNotice.hidden = true;
+	elements.loginError.textContent = message;
+	elements.loginError.hidden = false;
+};
+
 elements.loginForm.addEventListener("submit", async (event) => {
 	event.preventDefault();
 	elements.loginError.hidden = true;
+	elements.loginNotice.hidden = true;
 	const submit = elements.loginForm.querySelector("button[type='submit']");
 	submit.disabled = true;
 	try {
-		const session = await request("/api/admin/session", {
+		const result = await request("/api/admin/session", {
 			method: "POST",
-			body: JSON.stringify({
-				email: elements.loginEmail.value,
-				password: elements.loginPassword.value,
-			}),
+			body: JSON.stringify({ action: "request-link", email: elements.loginEmail.value }),
 		});
-		elements.loginPassword.value = "";
-		await initializeDashboard(session);
+		showLoginNotice(
+			"If that is the admin email, a sign-in link is on its way. It expires in about 30 minutes.",
+			result.devLink,
+		);
 	} catch (error) {
-		elements.loginError.textContent = error.message;
-		elements.loginError.hidden = false;
+		showLoginError(error.message);
 	} finally {
 		submit.disabled = false;
 	}
 });
+
+const LOGIN_HASH = "#login=";
+
+// The token rides in the fragment so mail scanners that prefetch links never see it.
+const redeemLoginLink = async () => {
+	if (!window.location.hash.startsWith(LOGIN_HASH)) return false;
+	const token = window.location.hash.slice(LOGIN_HASH.length);
+	history.replaceState(null, "", window.location.pathname + window.location.search);
+	try {
+		const session = await request("/api/admin/session", {
+			method: "POST",
+			body: JSON.stringify({ action: "redeem", token }),
+		});
+		await initializeDashboard(session);
+	} catch (error) {
+		showLoginError(error.message);
+	}
+	return true;
+};
+
+window.addEventListener("hashchange", () => redeemLoginLink());
 
 elements.saveButton.addEventListener("click", () => saveContent().catch(() => {}));
 elements.shopSyncButton.addEventListener("click", () => syncShop());
@@ -1204,6 +1242,7 @@ window.addEventListener("beforeunload", (event) => {
 
 (async () => {
 	try {
+		if (await redeemLoginLink()) return;
 		const session = await request("/api/admin/session");
 		if (session.authenticated) {
 			await initializeDashboard(session);

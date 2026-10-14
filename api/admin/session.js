@@ -1,54 +1,121 @@
 const {
 	clearSessionCookie,
+	createLoginToken,
 	createSession,
+	loginWindowIndex,
 	requireSession,
 	sessionCookie,
-	verifyPassword,
+	verifyLoginToken,
 	verifySession,
 } = require("../_lib/auth");
 const { allowedOrigin, json, readJson } = require("../_lib/http");
+const { sendWithResend } = require("../_lib/inquiry");
 
-module.exports = async (request, response) => {
+const LOCAL_HOST = /^(localhost|127\.0\.0\.1)(:\d+)?$/;
+const FROM = "Claire Thomas website <website@clairethomas.art>";
+
+const requestHost = (request) => request.headers["x-forwarded-host"] || request.headers.host || "";
+
+const loginEmail = (link) => ({
+	subject: "Your Claire Thomas admin sign-in link",
+	text: [
+		"Sign in to the portfolio admin:",
+		"",
+		link,
+		"",
+		"It expires in about 30 minutes. If you did not ask for it, ignore this email.",
+	].join("\n"),
+});
+
+const withIdempotencyKey = (fetchImpl, key) => (url, options) =>
+	fetchImpl(url, {
+		...options,
+		headers: { ...options.headers, "Idempotency-Key": key },
+	});
+
+// Every email gets the same answer, so the response never shows whether it is the admin's.
+const requestLink = async ({ request, response, body, fetchImpl, now }) => {
+	const adminEmail = String(process.env.ADMIN_EMAIL || "").trim();
+	const email = String(body.email || "").trim().toLowerCase();
+	if (!adminEmail || email !== adminEmail.toLowerCase()) return json(response, 200, { sent: true });
+
+	const host = requestHost(request);
+	const local = LOCAL_HOST.test(host);
+	const link = `${local ? "http" : "https"}://${host}/admin.html#login=${createLoginToken(adminEmail, now)}`;
+	const apiKey = process.env.RESEND_API_KEY;
+	if (!apiKey) {
+		if (local) return json(response, 200, { sent: true, devLink: link });
+		console.error("Admin sign-in link not sent: RESEND_API_KEY is missing");
+		return json(response, 200, { sent: true });
+	}
 	try {
-		if (request.method === "GET") {
-			const session = verifySession(request);
-			return json(response, 200, {
-				authenticated: Boolean(session),
-				csrf: session?.csrf || null,
-				email: session?.email || null,
-			});
-		}
-		if (request.method === "DELETE") {
-			requireSession(request);
-			if (!allowedOrigin(request)) return json(response, 403, { error: "Invalid origin" });
-			response.setHeader("Set-Cookie", clearSessionCookie());
-			return json(response, 200, { authenticated: false });
-		}
-		if (request.method !== "POST") {
-			response.setHeader("Allow", "GET, POST, DELETE");
-			return json(response, 405, { error: "Method not allowed" });
-		}
-		if (!allowedOrigin(request)) return json(response, 403, { error: "Invalid origin" });
-		const body = await readJson(request, 20_000);
-		const email = String(body.email || "").trim().toLowerCase();
-		const expectedEmail = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
-		if (!expectedEmail || email !== expectedEmail || !verifyPassword(String(body.password || ""))) {
-			return json(response, 401, { error: "Email or password is incorrect" });
-		}
-		const token = createSession(expectedEmail);
-		response.setHeader("Set-Cookie", sessionCookie(token));
-		const session = verifySession({
-			headers: { cookie: `ct_admin=${encodeURIComponent(token)}` },
-		});
-		return json(response, 200, {
-			authenticated: true,
-			csrf: session.csrf,
-			email: expectedEmail,
+		await sendWithResend({
+			apiKey,
+			from: process.env.INQUIRY_FROM || FROM,
+			to: adminEmail,
+			email: loginEmail(link),
+			fetchImpl: withIdempotencyKey(fetchImpl, `admin-login/${loginWindowIndex(now)}`),
 		});
 	} catch (error) {
-		console.error(error);
-		return json(response, error.statusCode || 500, {
-			error: error.statusCode ? error.message : "Unable to sign in",
-		});
+		console.error("Admin sign-in link send failed:", error.message);
 	}
+	return json(response, 200, { sent: true });
 };
+
+const redeemLink = (response, token, now) => {
+	const login = verifyLoginToken(token, now);
+	if (!login) {
+		return json(response, 401, { error: "This sign-in link is invalid or has expired. Ask for a new one." });
+	}
+	const sessionToken = createSession(String(process.env.ADMIN_EMAIL).trim());
+	response.setHeader("Set-Cookie", sessionCookie(sessionToken));
+	const session = verifySession({
+		headers: { cookie: `ct_admin=${encodeURIComponent(sessionToken)}` },
+	});
+	return json(response, 200, {
+		authenticated: true,
+		csrf: session.csrf,
+		email: session.email,
+	});
+};
+
+const createHandler = ({ fetchImpl = fetch, now = () => Date.now() } = {}) =>
+	async (request, response) => {
+		try {
+			if (request.method === "GET") {
+				const session = verifySession(request);
+				return json(response, 200, {
+					authenticated: Boolean(session),
+					csrf: session?.csrf || null,
+					email: session?.email || null,
+				});
+			}
+			if (request.method === "DELETE") {
+				requireSession(request);
+				if (!allowedOrigin(request)) return json(response, 403, { error: "Invalid origin" });
+				response.setHeader("Set-Cookie", clearSessionCookie());
+				return json(response, 200, { authenticated: false });
+			}
+			if (request.method !== "POST") {
+				response.setHeader("Allow", "GET, POST, DELETE");
+				return json(response, 405, { error: "Method not allowed" });
+			}
+			if (!allowedOrigin(request)) return json(response, 403, { error: "Invalid origin" });
+			const body = await readJson(request, 20_000);
+			if (body.action === "request-link") {
+				return await requestLink({ request, response, body, fetchImpl, now: now() });
+			}
+			if (body.action === "redeem") {
+				return redeemLink(response, body.token, now());
+			}
+			return json(response, 400, { error: "Unknown action" });
+		} catch (error) {
+			console.error(error);
+			return json(response, error.statusCode || 500, {
+				error: error.statusCode ? error.message : "Unable to sign in",
+			});
+		}
+	};
+
+module.exports = createHandler();
+module.exports.createHandler = createHandler;

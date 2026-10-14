@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomBytes, scryptSync } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -106,13 +106,9 @@ test("preserves nested albums and rejects hierarchy cycles", () => {
 });
 
 test("creates and verifies a signed admin session", () => {
-	const password = "temporary-test-password";
-	const salt = randomBytes(16).toString("hex");
 	process.env.ADMIN_EMAIL = "admin@example.com";
-	process.env.ADMIN_PASSWORD_HASH = `${salt}:${scryptSync(password, salt, 64).toString("hex")}`;
 	process.env.ADMIN_SESSION_SECRET = randomBytes(32).toString("hex");
-	assert.equal(auth.verifyPassword(password), true);
-	assert.equal(auth.verifyPassword("wrong"), false);
+	assert.equal("verifyPassword" in auth, false);
 	const token = auth.createSession(process.env.ADMIN_EMAIL);
 	const session = auth.verifySession({
 		headers: { cookie: `ct_admin=${encodeURIComponent(token)}` },

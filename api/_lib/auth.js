@@ -1,11 +1,9 @@
-const {
-	createHmac,
-	scryptSync,
-	timingSafeEqual,
-} = require("node:crypto");
+const { createHmac, timingSafeEqual } = require("node:crypto");
 
 const COOKIE_NAME = "ct_admin";
 const SESSION_SECONDS = 7 * 24 * 60 * 60;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_PURPOSE = "login";
 
 const base64UrlEncode = (value) => Buffer.from(value).toString("base64url");
 const base64UrlDecode = (value) => Buffer.from(value, "base64url").toString("utf8");
@@ -29,12 +27,46 @@ const parseCookies = (request) =>
 			}),
 	);
 
-const verifyPassword = (password) => {
-	const [salt, expectedHex] = String(process.env.ADMIN_PASSWORD_HASH || "").split(":");
-	if (!salt || !expectedHex || !password) return false;
-	const actual = scryptSync(password, salt, 64);
-	const expected = Buffer.from(expectedHex, "hex");
-	return expected.length === actual.length && timingSafeEqual(actual, expected);
+const loginWindowIndex = (now = Date.now()) => Math.floor(now / LOGIN_WINDOW_MS);
+
+// `now` is epoch milliseconds. The link expires at the end of the window after the current one,
+// so it lives 15 to 30 minutes.
+const createLoginToken = (email, now = Date.now()) => {
+	if (!process.env.ADMIN_SESSION_SECRET) throw new Error("ADMIN_SESSION_SECRET is not set");
+	const exp = ((loginWindowIndex(now) + 2) * LOGIN_WINDOW_MS) / 1000;
+	const payload = base64UrlEncode(
+		JSON.stringify({
+			purpose: LOGIN_PURPOSE,
+			email: String(email).trim().toLowerCase(),
+			exp,
+		}),
+	);
+	return `${payload}.${sign(payload)}`;
+};
+
+const verifyLoginToken = (token, now = Date.now()) => {
+	if (!process.env.ADMIN_SESSION_SECRET || typeof token !== "string") return null;
+	const [payload, signature, extra] = token.split(".");
+	if (!payload || !signature || extra !== undefined) return null;
+	const expected = Buffer.from(sign(payload));
+	const actual = Buffer.from(signature);
+	if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
+	try {
+		const login = JSON.parse(base64UrlDecode(payload));
+		const adminEmail = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+		if (
+			login.purpose !== LOGIN_PURPOSE ||
+			typeof login.exp !== "number" ||
+			login.exp <= Math.floor(now / 1000) ||
+			!adminEmail ||
+			String(login.email || "").toLowerCase() !== adminEmail
+		) {
+			return null;
+		}
+		return login;
+	} catch {
+		return null;
+	}
 };
 
 const createSession = (email) => {
@@ -67,6 +99,7 @@ const verifySession = (request) => {
 	try {
 		const session = JSON.parse(base64UrlDecode(payload));
 		if (
+			session.purpose === LOGIN_PURPOSE ||
 			session.exp < Math.floor(Date.now() / 1000) ||
 			session.email !== process.env.ADMIN_EMAIL
 		) {
@@ -105,9 +138,11 @@ const clearSessionCookie = () =>
 
 module.exports = {
 	clearSessionCookie,
+	createLoginToken,
 	createSession,
+	loginWindowIndex,
 	requireSession,
 	sessionCookie,
-	verifyPassword,
+	verifyLoginToken,
 	verifySession,
 };

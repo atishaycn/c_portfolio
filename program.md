@@ -11,8 +11,6 @@ Photography portfolio for Claire Thomas with a small authenticated content manag
 - `admin.html`, `admin.css`, `admin.js`: website-only portfolio editor at `/admin.html`.
 - `api/`: Vercel Functions for public content, admin sessions, content saves, and signed Cloudinary uploads.
 - `content/portfolio.json`: exact bundled fallback and initial CMS seed (7 albums, 293 photos).
-- `scripts/create-admin-credentials.mjs`: creates the ignored local credential handoff and environment file.
-- `scripts/configure-vercel-admin-env.mjs`: applies the admin and Cloudinary secrets to Vercel without printing them.
 - `scripts/seed-portfolio-content.mjs`: idempotently seeds the Cloudinary raw JSON content asset.
 - `styles.css`: shared site layout and page-specific styling.
 - `*.html`: individual entrypoints that set `body[data-page]` and load the shared assets.

@@ -134,6 +134,19 @@ a:focus-visible {
 	font-size: 12px;
 }
 
+.login-notice {
+	margin: 16px 0 0;
+	color: #1f5e40;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.login-notice a {
+	display: block;
+	margin-top: 8px;
+	word-break: break-all;
+}
+
 .dashboard {
 	min-height: 100vh;
 }
