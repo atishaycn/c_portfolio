@@ -2864,6 +2864,23 @@ body[data-page="protests"] .masonry-grid {
 	box-shadow: inset 0 0 0 0.5cqw rgba(255, 255, 255, 0.24), inset 0 0 0.8cqw rgba(0, 0, 0, 0.25);
 }
 
+.shop-mockup--wood-frame .shop-mockup__object--frame.shop-finish--black {
+	background: linear-gradient(145deg, #111, #393939 48%, #191919);
+}
+
+.shop-mockup--wood-frame .shop-mockup__object--frame.shop-finish--white {
+	background: linear-gradient(145deg, #fffefa, #e2dfd8 48%, #f4f1e9);
+	box-shadow: inset 0 0 0 0.6cqw rgba(0, 0, 0, 0.12), 0 1.3cqw 2.1cqw rgba(0, 0, 0, 0.16);
+}
+
+.shop-mockup--wood-frame .shop-mockup__object--frame.shop-finish--natural-wood {
+	background: repeating-linear-gradient(8deg, #bda179 0 1cqw, #dcc59c 1.2cqw, #b89568 2cqw);
+}
+
+.shop-mockup--wood-frame .shop-mockup__object--frame.shop-finish--dark-wood {
+	background: repeating-linear-gradient(8deg, #39291d 0 1cqw, #76553b 1.2cqw, #2d2017 2cqw);
+}
+
 .shop-finish--black {
 	background: linear-gradient(145deg, #111, #393939 48%, #191919);
 }
@@ -2966,6 +2983,10 @@ body[data-page="protests"] .masonry-grid {
 
 .shop-mockup--view-front .shop-mockup__object {
 	transform: perspective(140cqw) rotateY(0deg) rotateX(0deg);
+}
+
+.shop-mockup--view-front .shop-mockup__object--frame > .shop-mockup__side {
+	display: none;
 }
 
 .shop-mockup--view-corner {

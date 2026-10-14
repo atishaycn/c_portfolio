@@ -91,6 +91,27 @@ test("renders every product and catalog option with a product-specific mockup", 
 	assert.match(shop.renderMockup(product("metal-print"), { finish: "brushed-silver" }, photo), /shop-finish--brushed-silver/);
 });
 
+test("puts each wood frame colour on the moulding in all four mockup views", () => {
+	const frame = product("wood-frame");
+	const values = fileProduct("wood-frame").options.find((group) => group.key === "frame").values;
+	const photo = { id: "art-1", url: "/art-1.jpg", width: 3000, height: 2000 };
+	for (const view of ["front", "angle", "corner", "wall"]) {
+		const mockups = values.map((choice) => shop.renderMockup(frame, { frame: choice.value }, photo, { view }));
+		const objectClasses = mockups.map((markup, index) => {
+			const match = markup.match(/<span class="shop-mockup__object ([^"]+)"/);
+			assert.ok(match, view + " has a moulding object");
+			assert.ok(match[1].includes("shop-finish--" + slugPart(values[index].value)), view + " puts " + values[index].value + " on the object");
+			return match[1];
+		});
+		assert.equal(new Set(objectClasses).size, 4, view + " distinguishes all four frame colours on the object");
+		for (const markup of mockups) assert.match(markup, /<span class="shop-mockup__side shop-side--finish shop-finish--/);
+	}
+	const unselected = shop.renderMockup(frame, {}, photo, { view: "front" });
+	assert.match(unselected, /shop-mockup__object--frame shop-finish--black/);
+	const metalFrame = shop.renderMockup(product("metal-frame"), {}, photo, { view: "front" });
+	assert.match(metalFrame, /shop-mockup__object--frame shop-finish--black/);
+});
+
 test("prices and restores only exact cart variants while preserving crop and quantity", () => {
 	const photos = [{ id: "known-photo" }];
 	const woodFrame = fileProduct("wood-frame");
@@ -124,6 +145,24 @@ test("keeps product page prices in From state until each required option is chos
 	assert.ok(html.includes("From $" + shop.fromPrice(frame).toFixed(2)));
 	assert.deepEqual(plain(shop.missingRequiredOptions(frame, {})), ["frame"]);
 	assert.doesNotMatch(html, /production time/i);
+});
+
+test("renders selected catalog option labels in product page headings", () => {
+	for (const slug of ["wood-frame", "print", "wood-print"]) {
+		const source = fileProduct(slug);
+		for (const group of source.options) {
+			for (const choice of group.values) {
+				const html = shop.renderPage({
+					productSlug: slug,
+					albums: [],
+					selections: { [group.key]: choice.value },
+				});
+				const headingValues = Array.from(html.matchAll(/data-shop-selected-value>([^<]*)<\/span>/g), (match) => match[1]);
+				assert.ok(headingValues.includes(choice.label), slug + " shows " + choice.label);
+				assert.ok(!headingValues.includes(choice.value), slug + " hides raw value " + choice.value);
+			}
+		}
+	}
 });
 
 test("keeps the four mockup views and wall scene distinct", () => {

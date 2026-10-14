@@ -396,7 +396,9 @@
 		const size = selected.size || product.sizes[0];
 		const dimensions = dimensionsFor(size, photo);
 		const ratio = Math.max(0.45, Math.min(2.25, dimensions.ratio));
-		const frameValue = product.slug === "metal-frame" ? "black" : visualOptionValue(product, selected, "frame");
+		const frameValue = product.slug === "metal-frame" || (product.slug === "wood-frame" && !selected.frame)
+			? "black"
+			: visualOptionValue(product, selected, "frame");
 		const finishValue = visualOptionValue(product, selected, "finish");
 		const frameClass = frameValue ? "shop-finish--" + slugPart(frameValue) : "";
 		const edgeValue = visualOptionValue(product, selected, "edge");
@@ -699,7 +701,7 @@
 			product,
 			photoIndex: 0,
 			view: "angle",
-			selections: product ? defaultSelections(product) : {},
+			selections: product ? resolveSelections(product, safeContext.selections) : {},
 			invalid: new Set(),
 			cart: readCart(storage, photos),
 			storage,
@@ -785,7 +787,9 @@
 			wrap.classList.toggle("is-invalid", invalid);
 			if (invalid) wrap.setAttribute("aria-invalid", "true");
 			else wrap.removeAttribute("aria-invalid");
-			if (heading) heading.textContent = selected || (invalid ? "* Select an option" : "");
+			const group = product.optionGroups.find((entry) => entry.key === key);
+			const selectedOption = group && group.options.find((entry) => entry.value === selected);
+			if (heading) heading.textContent = selectedOption ? selectedOption.label : (invalid ? "* Select an option" : "");
 			wrap.querySelectorAll("[data-shop-option-group]").forEach((button) => {
 				const chosen = button.dataset.shopOptionValue === selected;
 				button.classList.toggle("is-selected", chosen);
