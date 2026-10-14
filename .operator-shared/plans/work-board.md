@@ -32,7 +32,7 @@ The fork thread that did this work handed it back to the CEO thread, which owns 
 
 ### Steps left, in order
 
-1. Cart checkout through Stripe in test mode: prices computed on the server from the catalog file, plus the print-file and webhook checks from `shop/stripe-print-pilot` (that branch is on old `main` `fb1ac28`; copy the logic, do not merge it).
+1. (Slice 1a, server side, running in a Codex child since 2026-10-13 20:10; work stays uncommitted in the worktree until the CEO verifies it. Slice 1b is the cart UI and the photo size check in the store.) Cart checkout through Stripe in test mode: prices computed on the server from the catalog file, plus the print-file and webhook checks from `shop/stripe-print-pilot` (that branch is on old `main` `fb1ac28`; copy the logic, do not merge it).
 2. Paid order goes to Gelato (order API, `orderType` draft first) and to Claire; customer gets a confirmation.
 3. Shipping, tax and returns policy. The cart now says "Shipping and taxes are confirmed by email."
 4. One real paid order, then release on user approval.
