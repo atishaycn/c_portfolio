@@ -7,7 +7,7 @@ Branch `infra/cloudflare`, cut from `ui/shop-store`, worktree `~/Developer/c_por
 ## Constraints
 
 - Workers Free: 100,000 requests a day; 10 ms CPU per request, and a request over it fails (error 1102). Static assets are free and do not count. Every function must fit, measured on a real deployment, not assumed.
-- Known risk: the admin login's scrypt password check. Fallbacks, in order: a cheaper hash measured under the limit; Cloudflare Access in front of the admin.
+- The admin login's scrypt check (~45 ms) is replaced by an email sign-in link (user decision, 2026-10-14; `specs/release-and-security.md`), built on `infra/cloudflare` (`5f56c4b`, hardened in the next commit) and checked on `wrangler dev`.
 - No DNS change until the site works end to end on the `workers.dev` address with the Stripe sandbox.
 - The domain's DNS moves from Namecheap to Cloudflare (a custom domain needs Cloudflare DNS). `contact@` forwarding is Namecheap's and stops working there; rebuild it with Cloudflare Email Routing and test mail before and after the switch. Copy every record (Resend, `shop.` for Shopify until it closes, any verification records).
 

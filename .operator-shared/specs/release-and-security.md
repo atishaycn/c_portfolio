@@ -16,6 +16,7 @@
 ## Admin sign-in (email link, from the Cloudflare move)
 
 - Decided by the user on 2026-10-14: no admin password. Claire enters her email; only `ADMIN_EMAIL` gets a sign-in link (through Resend), and the page answers the same for any email.
+- The link's address comes from `ADMIN_SITE_URL` (set per deployment), never from the request's Host header; without it, links are sent only for localhost.
 - The link carries a signed token in the URL fragment (`/admin.html#login=…`), so mail scanners that prefetch links cannot use it; the page posts the token to the server, which sets the usual 7-day `ct_admin` session cookie. A token expires within about 30 minutes.
 - Sending is capped by a Resend idempotency key per 15-minute window, so at most one email per window however often the form is used; a second request in the window sends nothing and the first link still works.
 - The check costs well under Cloudflare Free's 10 ms CPU per request (scrypt took about 45 ms). It also retires the leaked password below; the session secret is still rotated at the cutover.
