@@ -29,12 +29,14 @@ The request is refused with HTTP 400 and a message the cart can show, and nothin
 - **Shipping:** one flat rate per order: the Prints rate when every line is in Prints, the Wall Art rate when any line is Wall Art (defaults $8 and $20; Claire sets both in the admin, `specs/shop-admin.md`).
 - **Sales tax: Stripe Tax** (user decision, 2026-10-14). Checkout sets `automatic_tax`; prices and shipping are tax-exclusive; products use the account's default tax code (general tangible goods), shipping uses the shipping tax code. Stripe adds tax on top, so `amount_total` = catalog total + tax. Live needs Claire's head office address and her California registration in the Print Store tax settings; the sandbox uses a San Francisco placeholder address and a CA registration.
 - **Returns: damage or defect only** (user decision, 2026-10-14). Prints are made to order, so there are no change-of-mind returns. A buyer who gets a damaged or wrong item sends a photo within 30 days and gets a free reprint or a refund. The cart and the Stripe page both show this.
+- The session's metadata records the settings it was priced with (`pricing`: markup and both shipping rates), and the webhook and return page reprice with them.
 - The session's metadata holds the order in compact form (one key per line: product slug, size, option values, photo ID, crop, quantity), because Stripe limits a metadata value to 500 characters. The webhook rebuilds product UIDs and file URLs from it with the same code that priced the cart.
 - Return: `prints.html?checkout=success&session_id=…` calls `GET /api/shop-order?session_id=…`; the cart is cleared only when the server says the session is paid. `prints.html?checkout=cancelled` keeps the cart.
 
 ## Local testing
 
 - `npm run dev:shop` (`scripts/serve-shop.mjs`) serves the site and the shop endpoints on `127.0.0.1:8096` with checkout enabled. It serves the whole worktree, so it stays bound to localhost.
+- The local admin: open `http://127.0.0.1:8096/__dev/admin-login` (a one-hour session signed with the admin secret). It reads the live CMS content but cannot save it: a save would change the live site.
 - The request must carry an `Origin` equal to `SHOP_SITE_URL`, and a non-local origin must be https. A phone test over the tailnet therefore needs an https address (for example `tailscale serve`), not `http://100.87.15.27`.
 - The Stripe CLI paired with the sandbox can check a request shape without the secret key: `stripe post /v1/checkout/sessions -d …`, then expire the session.
 
