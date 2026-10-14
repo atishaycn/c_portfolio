@@ -11,7 +11,7 @@
 | Concern | Service | Notes |
 |---|---|---|
 | Hosting, server functions | Vercel project `c-portfolio` | Git integration: `main` → production. Previews need a Vercel login. |
-| Photos and CMS content | Cloudinary cloud `dpmdkrggj`, Free plan | Content is one raw JSON asset with revisions. ~20% of 25 monthly credits after the 2026-10-04 Trash cleanup. Full backup: `~/Developer/cloudinary-backup-2026-10-04/`. |
+| Photos and CMS content | Cloudinary cloud `dpmdkrggj`, Free plan | Content is one raw JSON asset with revisions. 27% of 25 monthly credits on 2026-10-14 (2.6 GB stored, 2.8 GB delivered a month). Full backup: `~/Developer/cloudinary-backup-2026-10-04/`. |
 | Inquiry email | Resend, domain `clairethomas.art` | Key `RESEND_API_KEY` in Vercel. |
 | DNS, `contact@` forwarding | Namecheap | Never switch Mail Settings to Custom MX; it breaks `contact@` forwarding. |
 | Print shop (closing) | Shopify `shop.clairethomas.art` + Gelato fulfilment | Not linked from the header; the lightbox "Order print" link on print-enabled photos still goes here. Closes when the Shop store goes live. Sync: `.github/workflows/portfolio-shop-sync.yml`, `PRINT_SHOP_SETUP.md`. |

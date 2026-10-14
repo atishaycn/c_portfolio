@@ -30,6 +30,10 @@
   - Description: Pixieset features and prices mapped to what our site has, build effort per feature, our stack's running cost, and the build-or-buy recommendation.
   - Read If: Planning client galleries, invoices, contracts, booking tools or any Pixieset-like feature, or choosing a photography business platform.
 
+- `hosting-and-images.md`
+  - Description: Cost and work to move hosting from Vercel to Cloudflare Workers and images from Cloudinary to R2 with Cloudflare transformations; current Cloudinary usage; recommendation and triggers.
+  - Read If: Changing hosting, image storage or delivery, DNS provider, or when Cloudinary credits run high.
+
 ### `specs/` - System contracts
 
 - `release-and-security.md`
