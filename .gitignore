@@ -33,3 +33,7 @@ Shapes & Shadows/
 .gelato-catalog-resume.pid
 .vercel
 node_modules/
+dist/
+.wrangler/
+.dev.vars
+.dev.vars.*

@@ -98,7 +98,7 @@ const harness = (options = {}) => {
 	};
 	const stripe = {
 		webhooks: {
-			constructEvent: (bytes, signature, secret) => {
+			constructEventAsync: async (bytes, signature, secret) => {
 				assert.deepEqual(bytes, rawEvent);
 				assert.equal(secret, env.STRIPE_WEBHOOK_SECRET);
 				if (signature !== "fixture-signature") throw new Error("invalid signature");

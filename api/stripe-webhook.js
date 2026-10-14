@@ -155,7 +155,7 @@ const createHandler = (overrides = {}) => {
 		let event;
 		try {
 			stripe = deps.getStripe();
-			event = stripe.webhooks.constructEvent(
+			event = await stripe.webhooks.constructEventAsync(
 				await rawBody(request),
 				request.headers?.["stripe-signature"],
 				deps.env.STRIPE_WEBHOOK_SECRET,

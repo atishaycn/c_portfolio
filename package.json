@@ -3,9 +3,14 @@
   "private": true,
   "scripts": {
     "check": "node --check site.js && node --check cms-loader.js && node --check admin.js && node --test scripts/*.test.mjs",
-    "dev:shop": "node scripts/serve-shop.mjs"
+    "dev:shop": "node scripts/serve-shop.mjs",
+    "build:cf": "node scripts/build-cloudflare.mjs",
+    "dev:cf": "npm run build:cf && wrangler dev --port 8787 --ip 127.0.0.1"
   },
   "dependencies": {
     "stripe": "^23.0.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.0"
   }
 }
