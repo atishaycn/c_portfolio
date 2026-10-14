@@ -85,7 +85,7 @@ test("served catalog prices follow the markup and have no cost fields", async ()
 	});
 	const atDefault = await invoke(handler);
 	assert.equal(atDefault.status, 200);
-	assert.equal(atDefault.headers["Cache-Control"], "public, max-age=60");
+	assert.equal(atDefault.headers["Cache-Control"], "public, max-age=0, s-maxage=60, stale-while-revalidate=300");
 	assert.equal(hasCostKey(atDefault.body), false);
 	assert.equal("markup" in atDefault.body, false);
 	assert.deepEqual(atDefault.body.shipping, { prints: 8, wallArt: 20 });

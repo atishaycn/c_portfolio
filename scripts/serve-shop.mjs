@@ -42,12 +42,40 @@ for (const name of envFiles) {
 process.env.SHOP_CHECKOUT_ENABLED = "true";
 process.env.SHOP_SITE_URL = `http://127.0.0.1:${port}`;
 
+// Admin content saves would write to the live site's CMS, so the local admin can read but not save.
+function readOnlyContent(handler) {
+	return (request, response) => {
+		if (request.method === "GET") return handler(request, response);
+		response.writeHead(403, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+		response.end(JSON.stringify({ error: "Local admin is read-only: saving would change the live site." }));
+	};
+}
+
+// Local sign-in for driving the admin without the password: a one-hour session signed with the same secret.
+const { createHmac, randomBytes } = require("node:crypto");
+const devAdminLogin = (response) => {
+	const payload = Buffer.from(JSON.stringify({
+		email: process.env.ADMIN_EMAIL,
+		csrf: randomBytes(24).toString("base64url"),
+		exp: Math.floor(Date.now() / 1000) + 3600,
+	})).toString("base64url");
+	const token = `${payload}.${createHmac("sha256", process.env.ADMIN_SESSION_SECRET || "").update(payload).digest("base64url")}`;
+	response.writeHead(302, {
+		"Set-Cookie": `ct_admin=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=3600`,
+		Location: "/admin.html",
+		"Cache-Control": "no-store",
+	});
+	response.end();
+};
+
 const handlers = new Map([
 	["/api/content", require("../api/content.js")],
 	["/api/shop-catalog", require("../api/shop-catalog.js")],
 	["/api/shop-checkout", require("../api/shop-checkout.js")],
 	["/api/shop-order", require("../api/shop-order.js")],
 	["/api/stripe-webhook", require("../api/stripe-webhook.js")],
+	["/api/admin/session", require("../api/admin/session.js")],
+	["/api/admin/content", readOnlyContent(require("../api/admin/content.js"))],
 ]);
 const mimeTypes = {
 	".css": "text/css; charset=utf-8",
@@ -75,6 +103,7 @@ const sendNotFound = (response) => {
 const server = createServer(async (request, response) => {
 	try {
 		const pathname = new URL(request.url, "http://127.0.0.1").pathname;
+		if (pathname === "/__dev/admin-login" && process.env.ADMIN_SESSION_SECRET && process.env.ADMIN_EMAIL) return devAdminLogin(response);
 		const handler = handlers.get(pathname);
 		if (handler) return await handler(request, response);
 		if (pathname === "/api" || pathname.startsWith("/api/")) return sendNotFound(response);

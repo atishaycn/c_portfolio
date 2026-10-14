@@ -7,7 +7,8 @@ module.exports = async (request, response) => {
 		return json(response, 405, { error: "Method not allowed" });
 	}
 	try {
-		const content = await getContent();
+		// Shop settings stay admin-only: the markup would reveal Gelato costs.
+		const { shopSettings, ...content } = await getContent();
 		return json(response, 200, content, {
 			"Cache-Control": "public, max-age=0, s-maxage=30, stale-while-revalidate=300",
 		});
