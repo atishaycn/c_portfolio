@@ -78,7 +78,10 @@ const harness = ({ sessions = [], gelatoOrders = [], gelatoDown = false, origina
 	const stripe = {
 		checkout: {
 			sessions: {
-				list: async ({ limit }) => ({ data: [...store.sessions.values()].slice(0, limit).map(clone) }),
+				list: async (params) => {
+					store.listParams = clone(params);
+					return { data: [...store.sessions.values()].slice(0, params.limit).map(clone) };
+				},
 				retrieve: async (id) => {
 					const session = store.sessions.get(id);
 					if (!session) throw Object.assign(new Error("No such session"), { code: "resource_missing", statusCode: 404 });
@@ -384,6 +387,22 @@ test("rejects an unknown action and a malformed session ID", async () => {
 	const { handler } = harness({ sessions: [sessionFixture(SESSION_ID)] });
 	assert.equal((await invoke(handler, postAction("refund", SESSION_ID))).status, 400);
 	assert.equal((await invoke(handler, postAction("cancel", "not-a-session"))).status, 400);
+});
+
+test("listing stays under the Workers Free limit of 50 subrequests", async () => {
+	const sessions = [
+		sessionFixture("cs_test_live_approved", { metadata: { gelato_order_id: "g_order", fulfilment_status: "approved" } }),
+		sessionFixture("cs_test_waiting", { metadata: { gelato_order_id: "g_draft" } }),
+	];
+	const { store, handler } = harness({
+		sessions,
+		gelatoOrders: [{ id: "g_order", orderReferenceId: "cs_test_live_approved", orderType: "order" }, draftOrder("g_draft", "cs_test_waiting")],
+	});
+	const result = await invoke(handler, authed());
+	assert.equal(store.listParams.status, "complete");
+	assert.ok(store.listParams.limit + 3 <= 50);
+	assert.deepEqual(result.body.orders.map((row) => row.state), ["approved", "waiting"]);
+	assert.deepEqual(store.gelatoCalls.map((call) => call.url.split("/").pop()), ["g_draft"]);
 });
 
 test("listing reads content once and never calls the Cloudinary Admin API per photo", async () => {

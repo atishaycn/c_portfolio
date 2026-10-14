@@ -12,7 +12,8 @@ const ORDER_ID_KEY = "gelato_order_id";
 const STATUS_KEY = "fulfilment_status";
 const SESSION_ID = /^cs_(test|live)_[A-Za-z0-9]+$/;
 const ACTIONS = new Set(["approve", "cancel", "preview", "edit"]);
-const LIST_LIMIT = 100;
+// Workers Free allows 50 subrequests per request: one Gelato lookup per row, plus Stripe and content.
+const LIST_LIMIT = 40;
 const PREVIEW_WIDTH = 600;
 
 const failWith = (message, statusCode = 503) => Object.assign(new Error(message), { statusCode, publicMessage: true });
@@ -166,6 +167,7 @@ const listRow = async (deps, session, content) => {
 	let state;
 	if (fulfilment === "cancelled") state = "cancelled";
 	else if (fulfilment === "approved-test") state = "approved-test";
+	else if (fulfilment === "approved") state = "approved";
 	else state = await gelatoState(deps, session);
 
 	let lines = [];
@@ -313,7 +315,8 @@ const createDependencies = (overrides = {}) => {
 		validateContent: overrides.validateContent || validateContent,
 		confirmOriginal: overrides.confirmOriginal || ((photo) => checkout.confirmOriginal(photo, env)),
 		getStripe: overrides.getStripe || (() => checkout.getStripeClient(env)),
-		gelatoFetch: overrides.gelatoFetch || fetch,
+		// Workers throw "Illegal invocation" when fetch is called as a method of another object.
+		gelatoFetch: overrides.gelatoFetch || ((...args) => fetch(...args)),
 	};
 };
 
@@ -331,7 +334,7 @@ const createHandler = (overrides = {}) => {
 			const stripe = deps.getStripe();
 
 			if (request.method === "GET") {
-				const listed = await stripe.checkout.sessions.list({ limit: LIST_LIMIT });
+				const listed = await stripe.checkout.sessions.list({ limit: LIST_LIMIT, status: "complete" });
 				const sessions = (listed.data || []).filter((session) => isShopOrderSession(session) && session.payment_status === "paid");
 				const content = sessions.length ? await loadContent(deps) : null;
 				return reply(response, 200, { orders: await Promise.all(sessions.map((session) => listRow(deps, session, content))) });
