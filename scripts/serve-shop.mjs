@@ -7,7 +7,7 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const root = await realpath(resolve(dirname(fileURLToPath(import.meta.url)), ".."));
 const port = Number(process.env.SHOP_DEV_PORT || 8096);
-const envFiles = [".env", ".env.local", ".env.stripe.local"];
+const envFiles = [".env", ".env.local", ".env.stripe.local", ".env.gelato.local"];
 const shellKeys = new Set(Object.keys(process.env));
 
 const parseEnv = (source) => {
@@ -46,6 +46,7 @@ const handlers = new Map([
 	["/api/content", require("../api/content.js")],
 	["/api/shop-checkout", require("../api/shop-checkout.js")],
 	["/api/shop-order", require("../api/shop-order.js")],
+	["/api/stripe-webhook", require("../api/stripe-webhook.js")],
 ]);
 const mimeTypes = {
 	".css": "text/css; charset=utf-8",
