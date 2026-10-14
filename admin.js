@@ -17,6 +17,7 @@ const elements = {
 	newAlbumName: document.getElementById("new-album-name"),
 	trashButton: document.getElementById("trash-button"),
 	trashCount: document.getElementById("trash-count"),
+	shopSettingsButton: document.getElementById("shop-settings-button"),
 };
 
 const state = {
@@ -25,6 +26,7 @@ const state = {
 	email: null,
 	selectedAlbumId: null,
 	showTrash: false,
+	showShopSettings: false,
 	dirty: false,
 	saving: false,
 	shopSyncing: false,
@@ -182,7 +184,7 @@ const moveAlbum = (albumId, direction) => {
 
 const appendAlbumNode = (container, album, depth, siblingIndex, siblingCount) => {
 	const row = document.createElement("div");
-	row.className = `album-row${state.selectedAlbumId === album.id && !state.showTrash ? " is-selected" : ""}`;
+	row.className = `album-row${state.selectedAlbumId === album.id && !state.showTrash && !state.showShopSettings ? " is-selected" : ""}`;
 	row.style.setProperty("--depth", depth);
 	const select = createButton(
 		`${album.label} (${album.items.length})`,
@@ -190,6 +192,7 @@ const appendAlbumNode = (container, album, depth, siblingIndex, siblingCount) =>
 		() => {
 			state.selectedAlbumId = album.id;
 			state.showTrash = false;
+			state.showShopSettings = false;
 			render();
 		},
 	);
@@ -243,6 +246,7 @@ const renderAlbumList = () => {
 	elements.albumCount.textContent = `${state.content.albums.length} total`;
 	elements.trashCount.textContent = state.content.trash.length;
 	elements.trashButton.classList.toggle("is-selected", state.showTrash);
+	elements.shopSettingsButton.classList.toggle("is-selected", state.showShopSettings);
 };
 
 const reorderPhoto = (album, photoId, direction) => {
@@ -574,6 +578,7 @@ const restoreTrashItem = (entry) => {
 	state.content.trash = state.content.trash.filter((candidate) => candidate !== entry);
 	state.selectedAlbumId = album.id;
 	state.showTrash = false;
+	state.showShopSettings = false;
 	markDirty();
 	render();
 };
@@ -682,8 +687,59 @@ const renderTrash = () => {
 	elements.albumEditor.replaceChildren(heading, list);
 };
 
+const shopSettingInput = (label, testid, value, limits, onInput) => {
+	const wrapper = document.createElement("label");
+	wrapper.textContent = label;
+	const input = document.createElement("input");
+	input.type = "number";
+	input.min = String(limits.min);
+	input.max = String(limits.max);
+	input.step = String(limits.step);
+	input.value = String(value);
+	input.dataset.testid = testid;
+	input.addEventListener("input", () => {
+		onInput(Number(input.value));
+		markDirty();
+	});
+	wrapper.append(input);
+	return wrapper;
+};
+
+const renderShopSettings = () => {
+	const settings = state.content.shopSettings;
+	const heading = document.createElement("div");
+	heading.className = "editor-heading";
+	const copy = document.createElement("div");
+	const eyebrow = document.createElement("p");
+	eyebrow.className = "eyebrow";
+	eyebrow.textContent = "Shop";
+	const title = document.createElement("h2");
+	title.textContent = "Shop settings";
+	copy.append(eyebrow, title);
+	heading.append(copy);
+
+	const fields = document.createElement("div");
+	fields.className = "album-fields";
+	fields.append(
+		shopSettingInput("Markup (× Gelato cost)", "shop-markup", settings.markup, { min: 1.5, max: 5, step: 0.1 }, (value) => {
+			settings.markup = value;
+		}),
+		shopSettingInput("Prints shipping ($)", "shop-shipping-prints", settings.shippingPrints, { min: 0, max: 100, step: 1 }, (value) => {
+			settings.shippingPrints = value;
+		}),
+		shopSettingInput("Wall Art shipping ($)", "shop-shipping-wall-art", settings.shippingWallArt, { min: 0, max: 100, step: 1 }, (value) => {
+			settings.shippingWallArt = value;
+		}),
+	);
+	const note = document.createElement("p");
+	note.className = "shop-settings-note";
+	note.textContent = "Prices round up to a whole dollar. Changes apply to new checkouts after you save.";
+	elements.albumEditor.replaceChildren(heading, fields, note);
+};
+
 const renderEditor = () => {
 	if (state.showTrash) return renderTrash();
+	if (state.showShopSettings) return renderShopSettings();
 	const album = albumById(state.selectedAlbumId) || state.content.albums[0];
 	if (!album) {
 		elements.albumEditor.innerHTML = '<div class="empty-editor">Create an album to begin.</div>';
@@ -822,6 +878,7 @@ elements.addAlbumForm.addEventListener("submit", (event) => {
 	state.content.albums.push(album);
 	state.selectedAlbumId = album.id;
 	state.showTrash = false;
+	state.showShopSettings = false;
 	elements.newAlbumName.value = "";
 	markDirty();
 	render();
@@ -829,6 +886,13 @@ elements.addAlbumForm.addEventListener("submit", (event) => {
 
 elements.trashButton.addEventListener("click", () => {
 	state.showTrash = true;
+	state.showShopSettings = false;
+	render();
+});
+
+elements.shopSettingsButton.addEventListener("click", () => {
+	state.showShopSettings = true;
+	state.showTrash = false;
 	render();
 });
 

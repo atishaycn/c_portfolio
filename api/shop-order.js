@@ -57,7 +57,7 @@ const createHandler = (overrides = {}) => {
 			} catch {
 				throw failWith("Order details are temporarily unavailable. Please try again later.");
 			}
-			const pricedCart = priceCart(cartRequest, deps.catalog, content);
+			const pricedCart = priceCart(cartRequest, deps.catalog, content, cartRequest.pricing);
 			if (session.currency !== "usd" || (session.amount_total != null && paidBeforeTax(session) !== pricedCart.total)) {
 				throw fail("Order details could not be verified.", 409);
 			}

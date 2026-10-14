@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createRequire } from "node:module";
+import { calculateRetailPrice } from "./shop-catalog.mjs";
 
 const require = createRequire(import.meta.url);
 const order = require("../api/_lib/shop-order.js");
@@ -8,6 +9,7 @@ const checkoutModule = require("../api/shop-checkout.js");
 const checkout = checkoutModule.createHandler;
 const shopOrder = require("../api/shop-order.js");
 const catalog = require("../content/shop-catalog.json");
+const costs = require("../api/_lib/shop-costs.json");
 const content = {
 	groups: [],
 	albums: [{
@@ -185,7 +187,7 @@ test("stores and restores a 20-line cart in bounded Stripe metadata", () => {
 	assert(Object.values(metadata).every((value) => Buffer.byteLength(value, "utf8") < 500));
 	const restored = order.cartFromMetadata(metadata);
 	assert.deepEqual(priced(restored).total, firstPrice.total);
-	assert.deepEqual(restored, cart);
+	assert.deepEqual(restored.lines, cart.lines);
 });
 
 test("checkout guard refuses a missing Stripe key", async () => {
@@ -414,4 +416,89 @@ test("order status remains available when new checkout is disabled", async () =>
 	const result = await invoke(handler, request({ method: "GET", url: "/api/shop-order?session_id=cs_test_fixture123" }));
 	assert.equal(result.status, 200);
 	assert.equal(result.body.paid, false);
+});
+
+const bigPhotoContent = () => {
+	const bigContent = rawContent();
+	bigContent.albums[0].items.push({ id: "photo-big", publicId: "nature/photo-big", width: 6000, height: 6000, printEnabled: true });
+	return bigContent;
+};
+
+test("prices every catalog variant from the Gelato costs at the default markup", () => {
+	const bigContent = bigPhotoContent();
+	for (const product of catalog.products) {
+		for (const variant of product.variants) {
+			const line = priced({ lines: [baseLine({ productSlug: product.slug, size: variant.size, options: variant.options, photoId: "photo-big" })] }, bigContent).lines[0];
+			assert.equal(line.variantPrice, variant.price * 100, `${product.slug} ${variant.size} ${JSON.stringify(variant.options)}`);
+		}
+	}
+});
+
+test("matches the script's retail rule at several markups", () => {
+	const bigContent = bigPhotoContent();
+	for (const markup of [1.5, 2.5, 3.7, 5]) {
+		bigContent.shopSettings = { markup };
+		for (const product of costs.products) {
+			for (const variant of product.variants) {
+				const line = priced({ lines: [baseLine({ productSlug: product.slug, size: variant.size, options: variant.options, photoId: "photo-big" })] }, bigContent).lines[0];
+				assert.equal(line.variantPrice, calculateRetailPrice(variant.cost.hor, variant.cost.ver, markup) * 100);
+			}
+		}
+	}
+});
+
+test("prices with the markup and shipping rates in the settings", () => {
+	const settingsContent = rawContent();
+	settingsContent.shopSettings = { markup: 3, shippingPrints: 10, shippingWallArt: 25 };
+	const printOnly = priced(validCart, settingsContent);
+	assert.equal(printOnly.lines[0].variantPrice, 1800);
+	assert.equal(printOnly.shipping, 1000);
+	const mixed = priced({ lines: [baseLine(), baseLine({ productSlug: "canvas", options: { depth: "slim" } })] }, settingsContent);
+	assert.equal(mixed.shipping, 2500);
+});
+
+test("records the pricing used on the session and reprices from that snapshot", () => {
+	const recorded = priced();
+	const metadata = order.sessionMetadata(recorded);
+	assert.equal(metadata.pricing, "m=2.5;sp=8;sw=20");
+	const restored = order.cartFromMetadata(metadata);
+	assert.deepEqual(restored.pricing, { markup: 2.5, shippingPrints: 8, shippingWallArt: 20 });
+
+	const changed = rawContent();
+	changed.shopSettings = { markup: 3, shippingPrints: 10, shippingWallArt: 25 };
+	assert.equal(order.priceCart(restored, catalog, changed, restored.pricing).total, recorded.total);
+	assert.notEqual(order.priceCart(restored, catalog, changed).total, recorded.total);
+});
+
+test("older sessions without a pricing snapshot use current settings", () => {
+	const { pricing, ...legacyMetadata } = order.sessionMetadata(priced());
+	assert.equal(order.cartFromMetadata(legacyMetadata).pricing, undefined);
+});
+
+test("refuses a pricing snapshot it cannot read", () => {
+	const metadata = order.sessionMetadata(priced());
+	for (const pricing of ["m=9;sp=8;sw=20", "m=2.5;sp=8", "m=2.5;sp=8.5;sw=20", "garbage"]) {
+		assert.throws(() => order.cartFromMetadata({ ...metadata, pricing }), (error) => error.statusCode === 409);
+	}
+});
+
+test("order status confirms a paid session priced at its recorded settings after settings change", async () => {
+	const cartPrice = priced();
+	const session = {
+		livemode: false,
+		mode: "payment",
+		status: "complete",
+		payment_status: "paid",
+		currency: "usd",
+		amount_total: cartPrice.total,
+		metadata: order.sessionMetadata(cartPrice),
+	};
+	const changed = rawContent();
+	changed.shopSettings = { markup: 3, shippingPrints: 10, shippingWallArt: 25 };
+	const handler = shopOrder.createHandler({ env, catalog, fetchContent: async () => changed, getStripe: () => ({ checkout: { sessions: { retrieve: async () => session } } }) });
+	const result = await invoke(handler, request({ method: "GET", url: "/api/shop-order?session_id=cs_test_fixture123" }));
+	assert.equal(result.status, 200);
+	assert.equal(result.body.paid, true);
+	assert.equal(result.body.total, cartPrice.total);
+	assert.equal(result.body.lines[0].variantPrice, 1500);
 });

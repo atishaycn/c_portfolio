@@ -362,6 +362,17 @@ test("creates one paid Shop draft and saves its Gelato ID", async () => {
 	assert.deepEqual(fixture.state.gelatoRequests[0].body, { orderReferenceId: "cs_test_fixture123", limit: 100 });
 });
 
+test("creates the Gelato draft at the price recorded on the session after settings change", async () => {
+	const changed = structuredClone(content);
+	changed.shopSettings = { markup: 3, shippingPrints: 10, shippingWallArt: 25 };
+	const fixture = harness({ content: changed });
+	const response = await invoke(fixture.handler);
+	assert.equal(response.status, 200);
+	assert.equal(fixture.state.createdOrderBodies.length, 1);
+	assert.equal(fixture.state.sentEmails.length, 1);
+	assert.deepEqual(fixture.state.sentEmails[0].email, buildShopOrderEmail({ session: fixture.state.initialSession, pricedCart, gelatoOrderId: "gelato_order_fixture123" }));
+});
+
 test("uses Stripe session metadata to suppress a repeated order and email", async () => {
 	const fixture = harness();
 	assert.equal((await invoke(fixture.handler)).status, 200);

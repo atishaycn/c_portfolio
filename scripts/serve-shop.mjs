@@ -44,6 +44,7 @@ process.env.SHOP_SITE_URL = `http://127.0.0.1:${port}`;
 
 const handlers = new Map([
 	["/api/content", require("../api/content.js")],
+	["/api/shop-catalog", require("../api/shop-catalog.js")],
 	["/api/shop-checkout", require("../api/shop-checkout.js")],
 	["/api/shop-order", require("../api/shop-order.js")],
 	["/api/stripe-webhook", require("../api/stripe-webhook.js")],

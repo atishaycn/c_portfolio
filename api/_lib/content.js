@@ -17,6 +17,52 @@ const cleanKey = (value) =>
 		.replace(/-+/g, "-")
 		.replace(/^-|-$/g, "");
 
+const SHOP_SETTING_DEFAULTS = Object.freeze({ markup: 2.5, shippingPrints: 8, shippingWallArt: 20 });
+
+const shopSettingError = (message) => {
+	const error = new Error(message);
+	error.statusCode = 400;
+	return error;
+};
+
+const shopSettingValue = (value, fallback, isValid, message) => {
+	if (value === undefined || value === null) return fallback;
+	if (typeof value !== "number" || !Number.isFinite(value) || !isValid(value)) throw shopSettingError(message);
+	return value;
+};
+
+const isWholeDollarRate = (value) => Number.isInteger(value) && value >= 0 && value <= 100;
+
+const validateShopSettings = (candidate) => {
+	if (candidate === undefined || candidate === null) return { ...SHOP_SETTING_DEFAULTS };
+	if (typeof candidate !== "object" || Array.isArray(candidate)) {
+		throw shopSettingError("Shop settings must be an object");
+	}
+	return {
+		markup: shopSettingValue(
+			candidate.markup,
+			SHOP_SETTING_DEFAULTS.markup,
+			(value) => value >= 1.5 && value <= 5,
+			"Markup must be a number from 1.5 to 5",
+		),
+		shippingPrints: shopSettingValue(
+			candidate.shippingPrints,
+			SHOP_SETTING_DEFAULTS.shippingPrints,
+			isWholeDollarRate,
+			"Prints shipping must be a whole number of dollars from 0 to 100",
+		),
+		shippingWallArt: shopSettingValue(
+			candidate.shippingWallArt,
+			SHOP_SETTING_DEFAULTS.shippingWallArt,
+			isWholeDollarRate,
+			"Wall Art shipping must be a whole number of dollars from 0 to 100",
+		),
+	};
+};
+
+// Effective settings for pricing. Content from validateContent always has all three values.
+const shopSettings = (content) => validateShopSettings(content?.shopSettings);
+
 const validateContent = (candidate) => {
 	if (!candidate || !Array.isArray(candidate.albums) || !Array.isArray(candidate.groups)) {
 		const error = new Error("Content must include albums and groups");
@@ -156,6 +202,7 @@ const validateContent = (candidate) => {
 		groups,
 		albums,
 		trash,
+		shopSettings: validateShopSettings(candidate.shopSettings),
 	};
 };
 
@@ -189,4 +236,4 @@ const saveContent = async (candidate) => {
 	return next;
 };
 
-module.exports = { getContent, saveContent, validateContent };
+module.exports = { getContent, saveContent, shopSettings, validateContent, validateShopSettings };

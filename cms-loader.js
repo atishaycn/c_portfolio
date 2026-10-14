@@ -10,15 +10,18 @@
 		.catch(() => {
 			// The bundled gallery data remains a complete offline/static fallback.
 		});
-	const catalogRequest = isShopPage
-		? fetch("./content/shop-catalog.json", {
+	const loadCatalog = (url) =>
+		fetch(url, {
 			cache: "no-store",
 			headers: { Accept: "application/json" },
-		})
-			.then((response) => {
-				if (!response.ok) throw new Error("Shop catalog request failed");
-				return response.json();
-			})
+		}).then((response) => {
+			if (!response.ok) throw new Error("Shop catalog request failed");
+			return response.json();
+		});
+	// The file fallback keeps the store up when the server price endpoint is unreachable.
+	const catalogRequest = isShopPage
+		? loadCatalog("/api/shop-catalog")
+			.catch(() => loadCatalog("./content/shop-catalog.json"))
 			.catch(() => null)
 		: Promise.resolve(null);
 	const [, catalogData] = await Promise.all([contentRequest, catalogRequest]);

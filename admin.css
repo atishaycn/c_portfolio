@@ -354,6 +354,12 @@ a:focus-visible {
 	background: #f2f2ed;
 }
 
+.shop-settings-note {
+	margin: 0;
+	color: #77776f;
+	font-size: 13px;
+}
+
 .album-editor {
 	min-height: 620px;
 	padding: 24px;

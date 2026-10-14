@@ -1,6 +1,11 @@
+const { shopSettings, validateShopSettings } = require("./content");
+const SHOP_COSTS = require("./shop-costs.json");
+
 const SHOP_ORDER_APP = "claire-shop-store-v1";
 const PHOTO_PIXELS_PER_INCH = 125;
 const MAX_LINES = 20;
+const UNAVAILABLE_OPTIONS = "This product or its selected options are no longer available.";
+const PRICING_SNAPSHOT = /^m=(\d+(?:\.\d+)?);sp=(\d+);sw=(\d+)$/;
 
 const fail = (message, statusCode = 400) => Object.assign(new Error(message), { statusCode, publicMessage: true });
 const isRecord = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -45,10 +50,38 @@ const findPhoto = (content, photoId) => {
 	return null;
 };
 
-const priceCart = (request, catalog, content) => {
+const gelatoCost = (productSlug, size, options) => {
+	const product = SHOP_COSTS.products.find((entry) => entry.slug === productSlug);
+	return product?.variants.find((variant) => variant.size === size && optionValuesMatch(variant.options, options))?.cost;
+};
+
+// Same rule as calculateRetailPrice in scripts/shop-catalog.mjs; a test keeps the two in step.
+const retailPrice = (cost, markup) => {
+	const costs = [Number(cost?.hor), Number(cost?.ver)];
+	if (costs.some((value) => !Number.isFinite(value) || value <= 0)) throw fail(UNAVAILABLE_OPTIONS);
+	return Math.ceil(Math.max(...costs) * markup);
+};
+
+const formatPricing = (pricing) => `m=${pricing.markup};sp=${pricing.shippingPrints};sw=${pricing.shippingWallArt}`;
+
+const parsePricing = (value) => {
+	if (value === undefined) return undefined;
+	const match = typeof value === "string" ? value.match(PRICING_SNAPSHOT) : null;
+	if (!match) throw fail("Order details could not be verified.", 409);
+	try {
+		return validateShopSettings({ markup: Number(match[1]), shippingPrints: Number(match[2]), shippingWallArt: Number(match[3]) });
+	} catch {
+		throw fail("Order details could not be verified.", 409);
+	}
+};
+
+// Prices come from the Gelato costs file and the settings, never from the catalog's stored prices.
+// A pricing snapshot (recorded on the checkout session) wins over current settings.
+const priceCart = (request, catalog, content, pricingSnapshot) => {
 	const requestedLines = cartLines(request);
 	if (!Array.isArray(catalog?.products)) throw fail("The product catalog is unavailable. Please try again later.", 503);
 	if (!Array.isArray(content?.albums)) throw fail("Print content is unavailable. Please try again later.", 503);
+	const pricing = pricingSnapshot ?? shopSettings(content);
 
 	const lines = requestedLines.map((requested) => {
 		if (!isRecord(requested)) throw fail("One cart item is invalid. Reload the store and try again.");
@@ -88,7 +121,7 @@ const priceCart = (request, catalog, content) => {
 			throw fail("This photograph is too small for the selected size.");
 		}
 		const productUid = variant.productUid?.[orientation];
-		const unitAmount = Math.round(Number(variant.price) * 100);
+		const unitAmount = retailPrice(gelatoCost(product.slug, variant.size, options), pricing.markup) * 100;
 		if (typeof productUid !== "string" || !productUid || !Number.isSafeInteger(unitAmount) || unitAmount <= 0) {
 			throw fail("This product or its selected options are no longer available.");
 		}
@@ -116,8 +149,25 @@ const priceCart = (request, catalog, content) => {
 	});
 
 	const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
-	const shipping = lines.some((line) => line.category !== "Prints") ? 2000 : 800;
-	return { lines, subtotal, shipping, total: subtotal + shipping };
+	const shippingDollars = lines.some((line) => line.category !== "Prints") ? pricing.shippingWallArt : pricing.shippingPrints;
+	const shipping = shippingDollars * 100;
+	return { lines, subtotal, shipping, total: subtotal + shipping, pricing };
+};
+
+// The served catalog: the stored file with prices recomputed from the current settings. The file's sample markup is dropped.
+const pricedCatalog = (catalog, pricing) => {
+	const { markup, markupIsSample, ...rest } = catalog;
+	return {
+		...rest,
+		products: catalog.products.map((product) => ({
+			...product,
+			variants: product.variants.map((variant) => ({
+				...variant,
+				price: retailPrice(gelatoCost(product.slug, variant.size, variant.options), pricing.markup),
+			})),
+		})),
+		shipping: { prints: pricing.shippingPrints, wallArt: pricing.shippingWallArt },
+	};
 };
 
 // Stripe Tax adds tax on top of the catalog total, so catalog totals are compared against the amount before tax.
@@ -166,7 +216,7 @@ const sessionMetadata = (pricedCart) => {
 	if (!Array.isArray(pricedCart?.lines) || pricedCart.lines.length < 1 || pricedCart.lines.length > MAX_LINES) {
 		throw fail("Order details cannot be saved for this cart.");
 	}
-	const metadata = { app: SHOP_ORDER_APP, line_count: String(pricedCart.lines.length) };
+	const metadata = { app: SHOP_ORDER_APP, line_count: String(pricedCart.lines.length), pricing: formatPricing(pricedCart.pricing) };
 	pricedCart.lines.forEach((line, index) => {
 		const value = JSON.stringify({
 			p: line.productSlug,
@@ -204,7 +254,7 @@ const cartFromMetadata = (metadata) => {
 			quantity: line.q,
 		});
 	}
-	return { lines };
+	return { lines, pricing: parsePricing(metadata.pricing) };
 };
 
-module.exports = { SHOP_ORDER_APP, cartFromMetadata, cartLines, cropRectangle, fail, paidBeforeTax, parseSize, priceCart, printFileUrl, sessionMetadata };
+module.exports = { SHOP_ORDER_APP, cartFromMetadata, cartLines, cropRectangle, fail, paidBeforeTax, parseSize, priceCart, pricedCatalog, printFileUrl, sessionMetadata };

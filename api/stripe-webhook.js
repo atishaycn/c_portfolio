@@ -213,7 +213,7 @@ const createHandler = (overrides = {}) => {
 				if (!rawContent) throw fail("Authoritative print content is unavailable.");
 				const content = deps.validateContent(rawContent);
 				let pricedCart;
-				try { pricedCart = priceCart(cartRequest, deps.catalog, content); }
+				try { pricedCart = priceCart(cartRequest, deps.catalog, content, cartRequest.pricing); }
 				catch (error) { return await handleCartRefusal(error); }
 				if (session.currency !== "usd" || paidBeforeTax(session) !== pricedCart.total) {
 					await sendClaireEmailOnce({

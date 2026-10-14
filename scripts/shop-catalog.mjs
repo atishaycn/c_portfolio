@@ -7,7 +7,7 @@ import { pathToFileURL } from "node:url";
 const ROOT = resolve(import.meta.dirname, "..");
 const ENV_FILE = resolve(ROOT, ".env.gelato.local");
 const CATALOG_FILE = resolve(ROOT, "content", "shop-catalog.json");
-const COSTS_FILE = resolve(ROOT, "scripts", "shop-catalog-costs.json");
+const COSTS_FILE = resolve(ROOT, "api", "_lib", "shop-costs.json");
 const API_BASE = "https://product.gelatoapis.com/v3";
 const PAGE_SIZE = 100;
 const MAX_REQUEST_ATTEMPTS = 7;
