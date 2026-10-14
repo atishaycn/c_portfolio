@@ -4,10 +4,32 @@ The Shop page (`prints.html`, header "Shop") is a print store modelled on Claire
 
 ## Scope (v1)
 
-- Categories: **Prints** (Print, Fine Art Print, Large Format Print) and **Wall Art** (Canvas, Metal Print, Standout Print, Gallery Frame, Metal Frame, Framed Canvas, Wood Frame, Bamboo Panel, Wood Print, Acrylic Print). Pixieset's Digital, Cards and Albums are out of scope.
+- Gelato is the only print lab (user decision, 2026-10-13). The store sells only what Gelato makes; the Pixieset layout stays, the Pixieset product list does not. Pixieset's Digital, Cards and Albums are out of scope.
+- Categories: **Prints** (Print, Fine Art Print) and **Wall Art** (Canvas, Framed Canvas, Metal Print, Acrylic Print, Wood Print, Foam Print, Wood Frame, Metal Frame). See the Gelato mapping below.
 - Photos: albums and items with `printEnabled: true` in CMS content (same flag the lightbox "Order print" uses). Order follows the CMS.
-- Cart in `localStorage`. **No payment in v1**: checkout shows "Checkout coming soon" with an email link. Payment arrives later through the Stripe pilot (`shop/stripe-print-pilot`). Production keeps "Coming soon" until the user approves the store.
-- Prices, sizes and option lists live in one catalog config. Values are samples copied from Pixieset "From" prices until Claire sets real ones; mark them as samples in code.
+- Cart in `localStorage`. Checkout shows "Checkout coming soon" with an email link until Stripe checkout is built (it reuses the checks from `shop/stripe-print-pilot`). Production keeps "Coming soon" until the user approves the store.
+- Products, sizes, option lists and Gelato costs come from one generated catalog file that the browser and the server both read. Retail price = Gelato US cost × one markup number. The markup is a sample until Claire sets prices; mark it as a sample in code.
+- When the store goes live, the Shopify shop closes and the lightbox "Order print" link points at the store.
+
+## Gelato mapping
+
+Checked against the Gelato product API on 2026-10-13 (catalog attributes only; exact US sizes, product UIDs and costs come from the generated catalog file).
+
+| Store product | Gelato catalog | Options Gelato offers |
+|---|---|---|
+| Print | `posters` | Paper: coated silk, uncoated, off-white archival |
+| Fine Art Print | `fine-art` | One paper (200 gsm enhanced uncoated) |
+| Canvas | `canvas` | Depth: slim (2 cm) or thick (4 cm). No edge colour |
+| Framed Canvas | `framed-canvas` | Frame: black, natural wood, dark wood |
+| Metal Print | `metallic` | Finish: white matte or brushed silver (3 mm aluminium) |
+| Acrylic Print | `acrylic` | 4 mm, no options |
+| Wood Print | `wood-prints` | Thickness: 10 mm or 20 mm (birch plywood) |
+| Foam Print (was Standout) | `foam-print-product` | Edge: black or white (5 mm) |
+| Wood Frame (was Gallery Frame + Wood Frame) | `fine-art-framed-poster`; with mat: `mounted-fine-art` | Frame: black, white, natural wood, dark wood. Mat: none or mounted |
+| Metal Frame | `framed-posters` (aluminium); with mat: `mounted-framed-posters` | Frame: the aluminium colours Gelato lists (gold, silver, copper, black, white to confirm). Mat: none or mounted |
+
+- Dropped: Bamboo Panel (Gelato has none). Large Format Print is no longer a product; large sizes belong to Print and Fine Art Print.
+- A size is offered for a photo only when the original file has enough pixels for it.
 
 ## Screens
 

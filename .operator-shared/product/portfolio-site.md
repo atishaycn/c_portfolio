@@ -14,13 +14,15 @@
 | Photos and CMS content | Cloudinary cloud `dpmdkrggj`, Free plan | Content is one raw JSON asset with revisions. ~20% of 25 monthly credits after the 2026-10-04 Trash cleanup. Full backup: `~/Developer/cloudinary-backup-2026-10-04/`. |
 | Inquiry email | Resend, domain `clairethomas.art` | Key `RESEND_API_KEY` in Vercel. |
 | DNS, `contact@` forwarding | Namecheap | Never switch Mail Settings to Custom MX; it breaks `contact@` forwarding. |
-| Print shop (paused) | Shopify `shop.clairethomas.art` + Gelato fulfilment | Not linked from the header; the site Shop page says "Coming soon". Sync: `.github/workflows/portfolio-shop-sync.yml`, `PRINT_SHOP_SETUP.md`. |
-| Print checkout pilot | Stripe (test mode only) | Branch `shop/stripe-print-pilot`; refuses live keys. |
+| Print shop (closing) | Shopify `shop.clairethomas.art` + Gelato fulfilment | Not linked from the header; the lightbox "Order print" link on print-enabled photos still goes here. Closes when the Shop store goes live. Sync: `.github/workflows/portfolio-shop-sync.yml`, `PRINT_SHOP_SETUP.md`. |
+| Print lab | Gelato (store `GELATO_STORE_ID`, key in `.env.gelato.local`) | The only lab. The Shop store sends paid orders through the Gelato order API. The account still holds 48 Shopify-connected products and 4 templates from the old shop; delete them when Shopify closes, after the user confirms the exact list. |
+| Shop payment | Stripe | Claire's account; the user supplies the keys. Pilot code on `shop/stripe-print-pilot` is test mode only and refuses live keys. |
 | Client intake backend | Convex (team "Atishay Jain's team"; dev `veracious-partridge-753`) | Branch `feature/client-intake`. Browser never talks to Convex directly; Vercel functions sit in front (ADR 0001 on that branch). |
 | Photo source of truth (planned) | Google Drive folder `1j_p4uDzt0QPy18iu5K9uKnkoYVphUzaD` (`cporfltiopiocsog`), owner sunnyjaincn@gmail.com | GCP project `clairethomas-site`; `GOOGLE_DRIVE_API_KEY` in Vercel. Drive images load ~3× slower than Cloudinary and Google gives no delivery guarantee. |
 
 ## Settled decisions
 
 - Albums on the site: Events (`protests`), Nature (`the-natural-world`), Street (`shapes-and-shadows`), Slideshow (homepage only), Special occasions (nested under Events). Old album pages (`california`, `san-francisco`, `india`, `commissioned-work`) are orphaned; cleanup deferred by the user.
+- Print sales (2026-10-13): the Shop store on `prints.html` (`specs/shop-store.md`) replaces the Shopify shop. Gelato is the only lab and the catalog is limited to what Gelato makes. Stripe takes payment.
 - Booking testimonials stay hidden until Claire supplies real quotes (`bookingConfig.showTestimonials`).
 - The Drive replacement is per-album folders under `Website/` in the Drive folder, using shortcuts for byte-exact matches and uploads of backed-up originals for the rest. Visual (non-exact) matches need explicit approval.
