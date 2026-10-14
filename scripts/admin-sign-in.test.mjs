@@ -16,7 +16,7 @@ const NOW = Date.UTC(2026, 9, 14, 12, 7);
 const MINUTE = 60 * 1000;
 const SECRET = "sign-in-test-secret";
 const ADMIN = "claire@example.test";
-const baseEnv = { ADMIN_EMAIL: ADMIN, ADMIN_SESSION_SECRET: SECRET, RESEND_API_KEY: "re_test" };
+const baseEnv = { ADMIN_EMAIL: ADMIN, ADMIN_SESSION_SECRET: SECRET, RESEND_API_KEY: "re_test", ADMIN_SITE_URL: "https://clairethomas.art" };
 
 const withEnv = async (overrides, run) => {
 	const saved = Object.fromEntries(Object.keys(overrides).map((key) => [key, process.env[key]]));
@@ -149,7 +149,7 @@ test("request-link emails the admin one link keyed by the 15-minute window", () 
 	}));
 
 test("request-link returns the link only on localhost without Resend", () =>
-	withEnv({ ...baseEnv, RESEND_API_KEY: undefined }, async () => {
+	withEnv({ ...baseEnv, RESEND_API_KEY: undefined, ADMIN_SITE_URL: undefined }, async () => {
 		const resend = fakeResend();
 		const handler = createHandler({ fetchImpl: resend.fetchImpl, now: () => NOW });
 
@@ -230,3 +230,22 @@ test("admin page asks for an email only and redeems the link from the fragment",
 	assert.match(adminScript, /action: "redeem"/);
 	assert.match(adminScript, /history\.replaceState\(null, "", window\.location\.pathname \+ window\.location\.search\)/);
 });
+
+test("request-link takes the link origin from ADMIN_SITE_URL, never from a forged Host", () =>
+	withEnv(baseEnv, async () => {
+		const resend = fakeResend();
+		const handler = createHandler({ fetchImpl: resend.fetchImpl, now: () => NOW });
+		await call(handler, { body: { action: "request-link", email: ADMIN }, host: "evil.example", origin: undefined });
+		assert.equal(resend.calls.length, 1);
+		assert.match(resend.calls[0].payload.text, /https:\/\/clairethomas\.art\/admin\.html#login=/);
+		assert.doesNotMatch(resend.calls[0].payload.text, /evil\.example/);
+	}));
+
+test("request-link sends nothing off localhost when ADMIN_SITE_URL is missing", () =>
+	withEnv({ ...baseEnv, ADMIN_SITE_URL: undefined }, async () => {
+		const resend = fakeResend();
+		const handler = createHandler({ fetchImpl: resend.fetchImpl, now: () => NOW });
+		const result = await call(handler, { body: { action: "request-link", email: ADMIN } });
+		assert.deepEqual(result.json, { sent: true });
+		assert.equal(resend.calls.length, 0);
+	}));

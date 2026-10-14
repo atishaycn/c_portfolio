@@ -33,6 +33,20 @@ const withIdempotencyKey = (fetchImpl, key) => (url, options) =>
 		headers: { ...options.headers, "Idempotency-Key": key },
 	});
 
+// The emailed link's origin comes from configuration, never from the request's Host header, which a non-browser client can forge.
+// Local development without ADMIN_SITE_URL links back to the local host.
+const linkOrigin = (local, host) => {
+	const configured = String(process.env.ADMIN_SITE_URL || "").trim();
+	if (!configured) return local ? `http://${host}` : null;
+	try {
+		const url = new URL(configured);
+		if (url.protocol !== "https:" && !LOCAL_HOST.test(url.host)) return null;
+		return url.origin;
+	} catch {
+		return null;
+	}
+};
+
 // Every email gets the same answer, so the response never shows whether it is the admin's.
 const requestLink = async ({ request, response, body, fetchImpl, now }) => {
 	const adminEmail = String(process.env.ADMIN_EMAIL || "").trim();
@@ -41,7 +55,12 @@ const requestLink = async ({ request, response, body, fetchImpl, now }) => {
 
 	const host = requestHost(request);
 	const local = LOCAL_HOST.test(host);
-	const link = `${local ? "http" : "https"}://${host}/admin.html#login=${createLoginToken(adminEmail, now)}`;
+	const origin = linkOrigin(local, host);
+	if (!origin) {
+		console.error("Admin sign-in link not sent: ADMIN_SITE_URL is missing or invalid");
+		return json(response, 200, { sent: true });
+	}
+	const link = `${origin}/admin.html#login=${createLoginToken(adminEmail, now)}`;
 	const apiKey = process.env.RESEND_API_KEY;
 	if (!apiKey) {
 		if (local) return json(response, 200, { sent: true, devLink: link });
