@@ -24,14 +24,22 @@ The request is refused with HTTP 400 and a message the cart can show, and nothin
 
 ## Payment
 
-- Stripe-hosted Checkout, `mode: payment`, card, US shipping address, phone number.
+- Stripe-hosted Checkout, `mode: payment`, US shipping address, phone number. Payment methods come from the Stripe Dashboard settings: the current Stripe API refuses `payment_method_types` on a Checkout Session.
 - One Stripe line item per cart line, with the server price and a small preview image.
 - **Shipping (sample):** one flat rate per order: $8 when every line is in Prints, $20 when any line is Wall Art. Real shipping, tax and the returns policy are open decisions for the user; no tax is collected yet.
 - The session's metadata holds the order in compact form (one key per line: product slug, size, option values, photo ID, crop, quantity), because Stripe limits a metadata value to 500 characters. The webhook rebuilds product UIDs and file URLs from it with the same code that priced the cart.
 - Return: `prints.html?checkout=success&session_id=…` calls `GET /api/shop-order?session_id=…`; the cart is cleared only when the server says the session is paid. `prints.html?checkout=cancelled` keeps the cart.
 
+## Local testing
+
+- `npm run dev:shop` (`scripts/serve-shop.mjs`) serves the site and the shop endpoints on `127.0.0.1:8096` with checkout enabled. It serves the whole worktree, so it stays bound to localhost.
+- The request must carry an `Origin` equal to `SHOP_SITE_URL`, and a non-local origin must be https. A phone test over the tailnet therefore needs an https address (for example `tailscale serve`), not `http://100.87.15.27`.
+- The Stripe CLI paired with the sandbox can check a request shape without the secret key: `stripe post /v1/checkout/sessions -d …`, then expire the session.
+
 ## After payment (slice 2, not built)
 
 - `POST /api/stripe-webhook` verifies the signature, fetches the session again, checks that it is paid and that the amount equals the recomputed total, then creates one Gelato order with `orderType: "draft"` and `orderReferenceId` equal to the Stripe session ID, so a repeated webhook creates nothing new. A draft is not printed and not charged.
 - Claire gets an order email through Resend; the customer gets Stripe's receipt.
+- If the recomputed total differs from the paid amount (a price changed between cart and webhook), no order is created and Claire is told by email; a paid order must never be dropped silently.
+- Canvas wraps the image around the frame edge. The print file is cropped to the face size only, so check how Gelato fills the edges on the first draft order before canvas is sold.
 - Open decision for release: whether paid orders go to Gelato as real orders automatically, or Claire approves each draft in the Gelato dashboard.
