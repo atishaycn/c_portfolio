@@ -2,7 +2,8 @@ const { requireSession } = require("../_lib/auth");
 const { fetchAuthoritativeContent } = require("../_lib/cloudinary");
 const { validateContent } = require("../_lib/content");
 const { allowedOrigin, json, readJson } = require("../_lib/http");
-const { cartFromMetadata, cropRectangle, paidBeforeTax, priceCart, printFileUrl } = require("../_lib/shop-order");
+const { cartFromMetadata, cropRectangle, paidBeforeTax, priceCart, sessionMetadata } = require("../_lib/shop-order");
+const { buildGelatoOrder, printFiles } = require("../_lib/shop-fulfilment");
 const checkout = require("../shop-checkout");
 const { isShopOrderSession } = require("../shop-order");
 
@@ -10,7 +11,7 @@ const GELATO_ORDERS = "https://order.gelatoapis.com/v4/orders";
 const ORDER_ID_KEY = "gelato_order_id";
 const STATUS_KEY = "fulfilment_status";
 const SESSION_ID = /^cs_(test|live)_[A-Za-z0-9]+$/;
-const ACTIONS = new Set(["approve", "cancel"]);
+const ACTIONS = new Set(["approve", "cancel", "preview", "edit"]);
 const LIST_LIMIT = 100;
 const PREVIEW_WIDTH = 600;
 
@@ -71,34 +72,80 @@ const previewUrl = (cloudName, photo, rectangle) => {
 	return `https://res.cloudinary.com/${encodeURIComponent(cloudName)}/image/upload/c_crop,x_${x},y_${y},w_${width},h_${height}/w_${PREVIEW_WIDTH},c_limit/${publicId}`;
 };
 
-// Reprices the cart from the session's recorded settings. With verifyFiles, also confirms each original print file. Throws when the order cannot be shown or approved.
-const orderLines = async (deps, session, content, { verifyFiles = false } = {}) => {
+// Reprices the cart from the session's recorded settings. Throws when the order cannot be shown or approved.
+const pricedOrder = (deps, session, content) => {
 	const cartRequest = cartFromMetadata(session.metadata);
 	const pricedCart = priceCart(cartRequest, deps.catalog, content, cartRequest.pricing);
 	if (session.currency !== "usd" || paidBeforeTax(session) !== pricedCart.total) {
 		throw failWith("Order details could not be verified.", 409);
 	}
-	const resources = new Map();
-	const lines = [];
-	for (const line of pricedCart.lines) {
-		const rectangle = cropRectangle(line.photo, line.size, line.crop);
-		const lineSummary = { productName: line.productName, size: line.size, optionLabels: line.optionLabels, quantity: line.quantity };
-		if (!verifyFiles) {
-			lines.push({ ...lineSummary, previewUrl: previewUrl(deps.env.CLOUDINARY_CLOUD_NAME, line.photo, rectangle) });
-			continue;
+	return pricedCart;
+};
+
+const printDeps = (deps) => ({ cloudName: deps.env.CLOUDINARY_CLOUD_NAME, confirmOriginal: deps.confirmOriginal });
+
+const pickLine = (pricedCart, lineIndex) => {
+	if (!Number.isInteger(lineIndex) || lineIndex < 0 || lineIndex >= pricedCart.lines.length) throw failWith("Invalid order line.", 400);
+	return pricedCart.lines[lineIndex];
+};
+
+// An option value is offered only when changing that one group alone yields a catalog variant at the same unit price.
+const editOptionsFor = (deps, pricedCart, content, index) => {
+	const line = pricedCart.lines[index];
+	const product = deps.catalog.products.find((entry) => entry.slug === line.productSlug);
+	const samePrice = (key, value) => {
+		const trial = { lines: [{ productSlug: line.productSlug, size: line.size, options: { ...line.options, [key]: value }, photoId: line.photo.id, crop: line.crop, quantity: line.quantity }] };
+		try {
+			return priceCart(trial, deps.catalog, content, pricedCart.pricing).lines[0].variantPrice === line.variantPrice;
+		} catch {
+			return false;
 		}
-		let resource = resources.get(line.photo.publicId);
-		if (!resource) {
-			resource = await deps.confirmOriginal(line.photo);
-			if (resource.public_id !== line.photo.publicId || resource.width !== line.photo.width || resource.height !== line.photo.height) {
-				throw failWith("Original print file changed.", 409);
-			}
-			resources.set(line.photo.publicId, resource);
-		}
-		const printFile = printFileUrl(deps.env.CLOUDINARY_CLOUD_NAME, line.photo, resource, rectangle);
-		lines.push({ ...lineSummary, previewUrl: printFile.replace(/\/v(\d+)\//, `/w_${PREVIEW_WIDTH},c_limit/v$1/`) });
-	}
-	return lines;
+	};
+	return (product?.options || []).map((group) => ({
+		key: group.key,
+		label: group.label,
+		values: group.values.filter((entry) => samePrice(group.key, entry.value)).map(({ value, label }) => ({ value, label })),
+	}));
+};
+
+// Reprices the cart and returns one row per line. verifyFiles confirms each original and returns the print-file previews.
+const orderLines = async (deps, session, content, { verifyFiles = false, editable = false } = {}) => {
+	const pricedCart = pricedOrder(deps, session, content);
+	const files = verifyFiles ? await printFiles(printDeps(deps), pricedCart) : null;
+	return pricedCart.lines.map((line, index) => {
+		const row = {
+			productName: line.productName,
+			size: line.size,
+			optionLabels: line.optionLabels,
+			quantity: line.quantity,
+			previewUrl: files
+				? files[index].replace(/\/v(\d+)\//, `/w_${PREVIEW_WIDTH},c_limit/v$1/`)
+				: previewUrl(deps.env.CLOUDINARY_CLOUD_NAME, line.photo, cropRectangle(line.photo, line.size, line.crop)),
+		};
+		if (editable) Object.assign(row, { crop: line.crop, options: { ...line.options }, editOptions: editOptionsFor(deps, pricedCart, content, index) });
+		return row;
+	});
+};
+
+const previewFor = async (deps, session, body) => {
+	const pricedCart = pricedOrder(deps, session, await loadContent(deps));
+	const line = pickLine(pricedCart, body.lineIndex);
+	if (body.crop === undefined) throw failWith("The crop for one photograph is invalid. Edit it and try again.", 400);
+	return previewUrl(deps.env.CLOUDINARY_CLOUD_NAME, line.photo, cropRectangle(line.photo, line.size, body.crop));
+};
+
+// Shape-checks the edit request. Option and crop values are checked against the catalog when the cart is repriced.
+const editRequests = (lines, lineCount) => {
+	if (!Array.isArray(lines) || lines.length < 1) throw failWith("Invalid order request.", 400);
+	const seen = new Set();
+	return lines.map((entry) => {
+		if (!entry || typeof entry !== "object" || Array.isArray(entry)) throw failWith("Invalid order request.", 400);
+		const { index, crop, options } = entry;
+		if (!Number.isInteger(index) || index < 0 || index >= lineCount || seen.has(index)) throw failWith("Invalid order line.", 400);
+		if (!options || typeof options !== "object" || Array.isArray(options)) throw failWith("Invalid order request.", 400);
+		seen.add(index);
+		return { index, crop, options };
+	});
 };
 
 const gelatoState = async (deps, session) => {
@@ -116,15 +163,15 @@ const gelatoState = async (deps, session) => {
 
 const listRow = async (deps, session, content) => {
 	const fulfilment = session.metadata[STATUS_KEY];
-	let lines = [];
-	let linesOk = true;
-	try { lines = await orderLines(deps, session, content); }
-	catch { linesOk = false; }
-
 	let state;
 	if (fulfilment === "cancelled") state = "cancelled";
 	else if (fulfilment === "approved-test") state = "approved-test";
 	else state = await gelatoState(deps, session);
+
+	let lines = [];
+	let linesOk = true;
+	try { lines = await orderLines(deps, session, content, { editable: state === "waiting" }); }
+	catch { linesOk = false; }
 	if (!linesOk && state !== "cancelled") state = "needs-attention";
 
 	return {
@@ -199,6 +246,49 @@ const cancel = async (deps, stripe, session) => {
 	return "cancelled";
 };
 
+// Replaces the draft only when every edited line keeps its unit price and the total is unchanged.
+// The new draft is created before the old one is deleted, so a failure never leaves the session without a draft.
+const editOrder = async (deps, stripe, session, rawLines) => {
+	if (session.metadata[STATUS_KEY] === "cancelled") throw failWith("This order is cancelled.", 409);
+	if (session.metadata[STATUS_KEY] === "approved-test") throw failWith("This order is already approved.", 409);
+	if (session.payment_status !== "paid") throw failWith("This order is not paid.", 409);
+	const oldDraftId = session.metadata[ORDER_ID_KEY];
+	if (!oldDraftId) throw failWith("This order has no Gelato draft yet.", 409);
+	const draft = await gelatoOrder(deps, session, oldDraftId);
+	if (!draft) throw failWith("The Gelato draft was not found.", 409);
+	if (draft.orderType === "order") throw failWith("This order is already approved.", 409);
+	if (draft.orderType !== "draft") throw failWith("This Gelato order cannot be edited.", 409);
+
+	const current = cartFromMetadata(session.metadata);
+	const edits = editRequests(rawLines, current.lines.length);
+	const content = await loadContent(deps);
+	const before = pricedOrder(deps, session, content);
+	const editedLines = current.lines.map((line, index) => {
+		const edit = edits.find((entry) => entry.index === index);
+		return edit ? { ...line, crop: edit.crop, options: edit.options } : line;
+	});
+	const after = priceCart({ lines: editedLines }, deps.catalog, content, current.pricing);
+	const priceChanged = after.total !== before.total
+		|| edits.some(({ index }) => after.lines[index].variantPrice !== before.lines[index].variantPrice);
+	if (priceChanged) throw failWith("This change would alter the price.", 409);
+
+	const lineMetadata = sessionMetadata(after);
+	const files = await printFiles(printDeps(deps), after);
+	const created = await gelatoCall(deps, "POST", "", buildGelatoOrder(session, after, files));
+	if (!created.ok) throw failWith("Gelato could not create the new draft. Try again.");
+	const newDraftId = (await created.json())?.id;
+	if (typeof newDraftId !== "string" || !newDraftId) throw failWith("Gelato could not create the new draft. Try again.");
+
+	const removed = await gelatoCall(deps, "DELETE", `/${encodeURIComponent(oldDraftId)}`);
+	if (!removed.ok && removed.status !== 404) {
+		// Best effort: keep the session on its old draft by removing the new one.
+		await gelatoCall(deps, "DELETE", `/${encodeURIComponent(newDraftId)}`).catch(() => {});
+		throw failWith("Gelato could not replace the draft. Try again.");
+	}
+	await stripe.checkout.sessions.update(session.id, { metadata: { ...lineMetadata, [ORDER_ID_KEY]: newDraftId } });
+	return "waiting";
+};
+
 const postBody = async (request) => {
 	let body;
 	try { body = await readJson(request, 8192); }
@@ -251,6 +341,8 @@ const createHandler = (overrides = {}) => {
 			if (!ACTIONS.has(body.action)) throw failWith("Unknown order action.", 400);
 			if (!SESSION_ID.test(body.sessionId || "")) throw failWith("Invalid checkout session ID.", 400);
 			const session = await loadOrder(stripe, body.sessionId);
+			if (body.action === "preview") return reply(response, 200, { previewUrl: await previewFor(deps, session, body) });
+			if (body.action === "edit") return reply(response, 200, { state: await editOrder(deps, stripe, session, body.lines) });
 			const state = body.action === "approve"
 				? await approve(deps, stripe, session)
 				: await cancel(deps, stripe, session);

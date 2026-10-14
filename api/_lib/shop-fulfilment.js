@@ -1,6 +1,26 @@
+const { cropRectangle, printFileUrl } = require("./shop-order");
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const fail = (message) => new Error(message);
+
+// Confirms each original once and returns one cropped print file URL per line.
+const printFiles = async ({ cloudName, confirmOriginal }, pricedCart) => {
+	const resources = new Map();
+	const files = [];
+	for (const line of pricedCart.lines) {
+		let resource = resources.get(line.photo.publicId);
+		if (!resource) {
+			resource = await confirmOriginal(line.photo);
+			if (resource.public_id !== line.photo.publicId || resource.width !== line.photo.width || resource.height !== line.photo.height) {
+				throw Object.assign(new Error("Original print file changed."), { statusCode: 409, publicMessage: true });
+			}
+			resources.set(line.photo.publicId, resource);
+		}
+		files.push(printFileUrl(cloudName, line.photo, resource, cropRectangle(line.photo, line.size, line.crop)));
+	}
+	return files;
+};
 const trimmed = (value) => typeof value === "string" ? value.trim() : "";
 const shippingDetails = (session) => session?.collected_information?.shipping_details || session?.shipping_details;
 const customerName = (session) => trimmed(shippingDetails(session)?.name) || trimmed(session?.customer_details?.name);
@@ -107,4 +127,4 @@ const buildShopOrderRefusalEmail = ({ session, error }) => {
 	};
 };
 
-module.exports = { buildGelatoOrder, buildShopOrderEmail, buildShopOrderMismatchEmail, buildShopOrderRefusalEmail };
+module.exports = { buildGelatoOrder, buildShopOrderEmail, buildShopOrderMismatchEmail, buildShopOrderRefusalEmail, printFiles };

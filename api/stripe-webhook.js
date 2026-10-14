@@ -1,8 +1,8 @@
 const { fetchAuthoritativeContent } = require("./_lib/cloudinary");
 const { validateContent } = require("./_lib/content");
 const { json } = require("./_lib/http");
-const { buildGelatoOrder, buildShopOrderEmail, buildShopOrderMismatchEmail, buildShopOrderRefusalEmail } = require("./_lib/shop-fulfilment");
-const { SHOP_ORDER_APP, cartFromMetadata, cropRectangle, paidBeforeTax, priceCart, printFileUrl } = require("./_lib/shop-order");
+const { buildGelatoOrder, buildShopOrderEmail, buildShopOrderMismatchEmail, buildShopOrderRefusalEmail, printFiles } = require("./_lib/shop-fulfilment");
+const { SHOP_ORDER_APP, cartFromMetadata, paidBeforeTax, priceCart } = require("./_lib/shop-order");
 const checkout = require("./shop-checkout");
 const { sendWithResend } = require("./_lib/inquiry");
 
@@ -129,24 +129,6 @@ const findGelatoOrder = async (deps, sessionId) => {
 	return match.id;
 };
 
-const printFiles = async (deps, pricedCart) => {
-	const cloudName = deps.env.CLOUDINARY_CLOUD_NAME;
-	const resources = new Map();
-	const files = [];
-	for (const line of pricedCart.lines) {
-		let resource = resources.get(line.photo.publicId);
-		if (!resource) {
-			resource = await deps.confirmOriginal(line.photo);
-			if (resource.public_id !== line.photo.publicId || resource.width !== line.photo.width || resource.height !== line.photo.height) {
-				throw fail("Original print file changed.");
-			}
-			resources.set(line.photo.publicId, resource);
-		}
-		files.push(printFileUrl(cloudName, line.photo, resource, cropRectangle(line.photo, line.size, line.crop)));
-	}
-	return files;
-};
-
 const sendClaireEmailOnce = async ({ deps, stripe, session, key, idempotencyKey, email }) => {
 	if (!deps.env.RESEND_API_KEY || session.metadata?.[key] === "true") return;
 	try {
@@ -231,7 +213,7 @@ const createHandler = (overrides = {}) => {
 				if (!gelatoOrderId) {
 					gelatoOrderId = await findGelatoOrder(deps, session.id) || "";
 					if (!gelatoOrderId) {
-						const files = await printFiles(deps, pricedCart);
+						const files = await printFiles({ cloudName: deps.env.CLOUDINARY_CLOUD_NAME, confirmOriginal: deps.confirmOriginal }, pricedCart);
 						const order = buildGelatoOrder(session, pricedCart, files);
 						const created = await gelatoRequest(deps, "", order);
 						if (typeof created?.id !== "string" || !created.id) throw fail("Gelato returned an invalid order.");

@@ -34,6 +34,7 @@ const state = {
 	ordersLoading: false,
 	ordersError: null,
 	ordersBusy: false,
+	orderEdit: null,
 	dirty: false,
 	saving: false,
 	shopSyncing: false,
@@ -863,6 +864,138 @@ const runOrderAction = async (order, action) => {
 	await loadOrders();
 };
 
+const EDIT_PREVIEW_DELAY_MS = 300;
+
+const startOrderEdit = (order) => {
+	state.orderEdit = {
+		sessionId: order.sessionId,
+		lines: order.lines.map((line) => ({
+			crop: { ...line.crop },
+			options: { ...line.options },
+			editOptions: line.editOptions,
+			previewUrl: line.previewUrl,
+			previewToken: 0,
+			previewTimer: null,
+		})),
+	};
+	render();
+};
+
+const discardOrderEdit = () => {
+	state.orderEdit = null;
+	render();
+};
+
+const schedulePreview = (sessionId, lineIndex, line, image) => {
+	window.clearTimeout(line.previewTimer);
+	line.previewTimer = window.setTimeout(async () => {
+		const token = line.previewToken + 1;
+		line.previewToken = token;
+		try {
+			const result = await request("/api/admin/shop-orders", {
+				method: "POST",
+				body: JSON.stringify({ action: "preview", sessionId, lineIndex, crop: line.crop }),
+			});
+			if (line.previewToken !== token) return;
+			line.previewUrl = result.previewUrl;
+			image.src = result.previewUrl;
+		} catch (error) {
+			showMessage(error.message, true);
+		}
+	}, EDIT_PREVIEW_DELAY_MS);
+};
+
+const sliderControl = (labelText, value, onInput) => {
+	const label = document.createElement("label");
+	label.textContent = labelText;
+	const input = document.createElement("input");
+	input.type = "range";
+	input.min = "-50";
+	input.max = "50";
+	input.step = "1";
+	input.value = String(value);
+	input.addEventListener("input", () => onInput(Number(input.value)));
+	label.append(input);
+	return label;
+};
+
+const orderEditor = (order) => {
+	const editor = document.createElement("div");
+	editor.className = "order-editor";
+	state.orderEdit.lines.forEach((line, lineIndex) => {
+		const row = document.createElement("div");
+		row.className = "order-edit-line";
+		const image = document.createElement("img");
+		image.src = line.previewUrl;
+		image.alt = "";
+		const controls = document.createElement("div");
+		controls.className = "order-edit-controls";
+		const name = document.createElement("p");
+		name.textContent = order.lines[lineIndex].productName;
+		controls.append(
+			name,
+			sliderControl("Move left / right", line.crop.x, (value) => {
+				line.crop.x = value;
+				schedulePreview(order.sessionId, lineIndex, line, image);
+			}),
+			sliderControl("Move up / down", line.crop.y, (value) => {
+				line.crop.y = value;
+				schedulePreview(order.sessionId, lineIndex, line, image);
+			}),
+		);
+		for (const group of line.editOptions) {
+			const label = document.createElement("label");
+			label.textContent = group.label;
+			const select = document.createElement("select");
+			for (const option of group.values) {
+				const item = document.createElement("option");
+				item.value = option.value;
+				item.textContent = option.label;
+				item.selected = option.value === line.options[group.key];
+				select.append(item);
+			}
+			select.addEventListener("change", () => {
+				line.options[group.key] = select.value;
+			});
+			label.append(select);
+			controls.append(label);
+		}
+		row.append(image, controls);
+		editor.append(row);
+	});
+
+	const actions = document.createElement("div");
+	actions.className = "order-actions";
+	const save = createButton("Save changes", "primary-button", () => saveOrderEdit(order));
+	save.disabled = state.ordersBusy;
+	const discard = createButton("Discard", "secondary-button", discardOrderEdit);
+	discard.disabled = state.ordersBusy;
+	actions.append(save, discard);
+	editor.append(actions);
+	return editor;
+};
+
+const saveOrderEdit = async (order) => {
+	if (state.ordersBusy || !state.orderEdit) return;
+	if (!window.confirm("Save these changes to the order? The print files sent to Gelato will change.")) return;
+	state.ordersBusy = true;
+	render();
+	try {
+		const lines = state.orderEdit.lines.map((line, index) => ({ index, crop: line.crop, options: line.options }));
+		await request("/api/admin/shop-orders", {
+			method: "POST",
+			body: JSON.stringify({ action: "edit", sessionId: order.sessionId, lines }),
+		});
+		state.orderEdit = null;
+		showMessage("Order updated: Waiting.");
+	} catch (error) {
+		showMessage(error.message, true);
+	} finally {
+		state.ordersBusy = false;
+	}
+	await loadOrders();
+};
+
 const orderCard = (order) => {
 	const card = document.createElement("article");
 	card.className = "order-card";
@@ -881,6 +1014,11 @@ const orderCard = (order) => {
 	badge.textContent = orderStateLabels[order.state] || order.state;
 	header.append(summary, badge);
 	card.append(header);
+
+	if (order.state === "waiting" && state.orderEdit?.sessionId === order.sessionId) {
+		card.append(orderEditor(order));
+		return card;
+	}
 
 	const lines = document.createElement("div");
 	lines.className = "order-lines";
@@ -908,9 +1046,11 @@ const orderCard = (order) => {
 		actions.className = "order-actions";
 		const approve = createButton("Approve", "primary-button", () => runOrderAction(order, "approve"));
 		approve.disabled = state.ordersBusy;
+		const edit = createButton("Edit", "secondary-button", () => startOrderEdit(order));
+		edit.disabled = state.ordersBusy;
 		const cancel = createButton("Cancel order", "danger-button", () => runOrderAction(order, "cancel"));
 		cancel.disabled = state.ordersBusy;
-		actions.append(approve, cancel);
+		actions.append(approve, edit, cancel);
 		card.append(actions);
 	}
 	return card;

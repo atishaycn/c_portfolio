@@ -668,6 +668,52 @@ a:focus-visible {
 	gap: 8px;
 }
 
+.order-editor {
+	display: grid;
+	gap: 16px;
+}
+
+.order-edit-line {
+	display: grid;
+	grid-template-columns: 96px minmax(0, 1fr);
+	align-items: start;
+	gap: 13px;
+}
+
+.order-edit-line img {
+	width: 96px;
+	height: 77px;
+	border-radius: 7px;
+	object-fit: cover;
+}
+
+.order-edit-controls {
+	display: grid;
+	gap: 10px;
+	min-width: 0;
+}
+
+.order-edit-controls p {
+	margin: 0;
+	font-weight: 600;
+}
+
+.order-edit-controls label {
+	display: grid;
+	gap: 4px;
+	color: #55554f;
+	font-size: 13px;
+}
+
+.order-edit-controls select {
+	padding: 7px 9px;
+	border: 1px solid #d6d6cf;
+	border-radius: 7px;
+	color: #111;
+	font: inherit;
+	background: #fff;
+}
+
 @media (max-width: 900px) {
 	.admin-header {
 		position: static;

@@ -8,6 +8,7 @@ process.env.ADMIN_EMAIL = "claire@example.test";
 const { createSession } = require("../api/_lib/auth.js");
 const order = require("../api/_lib/shop-order.js");
 const shopOrders = require("../api/admin/shop-orders.js");
+const shopOrder = require("../api/shop-order.js");
 const catalog = require("../content/shop-catalog.json");
 
 const content = {
@@ -30,7 +31,12 @@ const clone = (value) => structuredClone(value);
 const pricedCart = order.priceCart(cart, catalog, clone(content));
 const SESSION_ID = "cs_test_fixture";
 
-const sessionFixture = (id, { tax = 0, paymentStatus = "paid", metadata = {}, created = 1_760_000_000 } = {}) => ({
+const frameCart = { lines: [
+	{ productSlug: "wood-frame", size: "8 x 10", options: { frame: "black" }, photoId: "photo-one", crop: { x: 0, y: 0 }, quantity: 1 },
+] };
+const framePriced = order.priceCart(frameCart, catalog, clone(content));
+
+const sessionFixture = (id, { tax = 0, paymentStatus = "paid", metadata = {}, created = 1_760_000_000, priced = pricedCart } = {}) => ({
 	id,
 	object: "checkout.session",
 	livemode: false,
@@ -38,11 +44,11 @@ const sessionFixture = (id, { tax = 0, paymentStatus = "paid", metadata = {}, cr
 	status: "complete",
 	payment_status: paymentStatus,
 	currency: "usd",
-	amount_total: pricedCart.total + tax,
+	amount_total: priced.total + tax,
 	total_details: { amount_tax: tax },
 	created,
 	payment_intent: `pi_${id}`,
-	metadata: { ...order.sessionMetadata(pricedCart), ...metadata },
+	metadata: { ...order.sessionMetadata(priced), ...metadata },
 	customer_details: { name: "Casey Rivera", email: "casey@example.test", phone: "+14155550123" },
 	collected_information: {
 		shipping_details: {
@@ -67,6 +73,7 @@ const harness = ({ sessions = [], gelatoOrders = [], gelatoDown = false, origina
 		events: [],
 		contentFetches: 0,
 		confirms: 0,
+		created: 0,
 	};
 	const stripe = {
 		checkout: {
@@ -100,6 +107,12 @@ const harness = ({ sessions = [], gelatoOrders = [], gelatoDown = false, origina
 		store.gelatoCalls.push({ method: init.method, url, body, key: init.headers["X-API-KEY"] });
 		if (url.endsWith(":search")) {
 			return ok({ orders: [...store.gelato.values()].filter((entry) => entry.orderReferenceId === body.orderReferenceId) });
+		}
+		if (init.method === "POST" && url === "https://order.gelatoapis.com/v4/orders") {
+			store.created += 1;
+			const entry = { id: `g_new_${store.created}`, orderReferenceId: body.orderReferenceId, orderType: "draft", items: body.items };
+			store.gelato.set(entry.id, entry);
+			return ok(entry);
 		}
 		const id = decodeURIComponent(url.split("/").pop());
 		const existing = store.gelato.get(id);
@@ -393,4 +406,131 @@ test("cancel deletes the draft before refunding, and an already-refunded payment
 	assert.equal(result.status, 200);
 	assert.equal(result.body.state, "cancelled");
 	assert.equal(retry.store.sessions.get(SESSION_ID).metadata.fulfilment_status, "cancelled");
+});
+
+const optionLabel = (productSlug, key, value) => catalog.products
+	.find((entry) => entry.slug === productSlug).options
+	.find((group) => group.key === key).values
+	.find((entry) => entry.value === value).label;
+const woodFrameGroup = catalog.products.find((entry) => entry.slug === "wood-frame").options[0];
+const draftsFor = (store, sessionId) => [...store.gelato.values()].filter((entry) => entry.orderReferenceId === sessionId);
+const editRequest = (sessionId, lines) => postAction("edit", sessionId, { body: { action: "edit", sessionId, lines } });
+const shopOrderView = (store, sessionId) => invoke(shopOrder.createHandler({
+	env: { STRIPE_SECRET_KEY: "sk_test_fixture" },
+	catalog,
+	fetchContent: async () => clone(content),
+	getStripe: () => ({ checkout: { sessions: { retrieve: async (id) => clone(store.sessions.get(id)) } } }),
+}), { method: "GET", url: `/api/shop-order?session_id=${sessionId}`, headers: {} });
+
+test("listing gives waiting lines their crop, options and same-price option choices only", async () => {
+	const { handler } = harness({
+		sessions: [
+			sessionFixture("cs_test_print", { metadata: { gelato_order_id: "g_print" } }),
+			sessionFixture("cs_test_frame", { priced: framePriced, metadata: { gelato_order_id: "g_frame" } }),
+			sessionFixture("cs_test_sent", { metadata: { gelato_order_id: "g_order" } }),
+		],
+		gelatoOrders: [draftOrder("g_print", "cs_test_print"), draftOrder("g_frame", "cs_test_frame"), { id: "g_order", orderReferenceId: "cs_test_sent", orderType: "order" }],
+	});
+	const result = await invoke(handler, authed());
+	const rows = Object.fromEntries(result.body.orders.map((row) => [row.sessionId, row]));
+	const [printLine] = rows.cs_test_print.lines;
+	assert.deepEqual(printLine.crop, { x: 0, y: 0 });
+	assert.deepEqual(printLine.options, { paper: "semi-gloss" });
+	// Matte and archival matte cost more at 8 x 10, so they are left out.
+	const paper = printLine.editOptions.find((group) => group.key === "paper");
+	assert.deepEqual(paper.values, [{ value: "semi-gloss", label: optionLabel("print", "paper", "semi-gloss") }]);
+	const [frameLine] = rows.cs_test_frame.lines;
+	assert.deepEqual(frameLine.editOptions[0].values.map((entry) => entry.value).sort(), ["black", "dark-wood", "natural-wood", "white"]);
+	const [sentLine] = rows.cs_test_sent.lines;
+	assert.equal(sentLine.crop, undefined);
+	assert.equal(sentLine.editOptions, undefined);
+});
+
+test("preview returns the crop of one line and saves nothing", async () => {
+	const { handler, store } = harness({ sessions: [sessionFixture(SESSION_ID, { metadata: { gelato_order_id: "g_draft" } })], gelatoOrders: [draftOrder("g_draft", SESSION_ID)] });
+	const preview = (crop, lineIndex = 0) => invoke(handler, postAction("preview", SESSION_ID, { body: { action: "preview", sessionId: SESSION_ID, lineIndex, crop } }));
+	const left = await preview({ x: -50, y: 0 });
+	const right = await preview({ x: 50, y: 0 });
+	assert.equal(left.status, 200);
+	assert.match(left.body.previewUrl, /\/image\/upload\/c_crop,x_\d+,y_\d+,w_\d+,h_\d+\/w_600,c_limit\/nature\/photo-one$/);
+	assert.notEqual(left.body.previewUrl, right.body.previewUrl);
+	assert.equal((await preview({ x: 51, y: 0 })).status, 400);
+	assert.equal((await preview({ x: 0, y: 0 }, 1)).status, 400);
+	assert.equal(store.updates.length, 0);
+	assert.equal(store.gelatoCalls.length, 0);
+	assert.equal(store.confirms, 0);
+});
+
+test("a same-price edit replaces the draft and its print file, and the buyer's view shows the new options", async () => {
+	const { handler, store } = harness({
+		sessions: [sessionFixture(SESSION_ID, { priced: framePriced, metadata: { gelato_order_id: "g_draft" } })],
+		gelatoOrders: [draftOrder("g_draft", SESSION_ID)],
+	});
+	const before = store.sessions.get(SESSION_ID).metadata;
+	const result = await invoke(handler, editRequest(SESSION_ID, [{ index: 0, crop: { x: 10, y: -20 }, options: { frame: "white" } }]));
+	assert.equal(result.status, 200);
+	assert.deepEqual(result.body, { state: "waiting" });
+
+	const drafts = draftsFor(store, SESSION_ID);
+	assert.equal(drafts.length, 1);
+	const [draft] = drafts;
+	assert.notEqual(draft.id, "g_draft");
+	assert.equal(store.gelato.has("g_draft"), false);
+	assert.equal(store.gelatoCalls.some((call) => call.method === "PATCH"), false);
+	const whiteVariant = catalog.products.find((entry) => entry.slug === "wood-frame").variants
+		.find((variant) => variant.size === "8 x 10" && variant.options.frame === "white");
+	assert.equal(draft.items[0].productUid, whiteVariant.productUid.hor);
+	assert.equal(draft.items[0].quantity, 1);
+	assert.match(draft.items[0].files[0].url, /\/image\/upload\/c_crop,x_\d+,y_\d+,w_\d+,h_\d+\/v7\/nature\/photo-one\.jpg$/);
+
+	const metadata = store.sessions.get(SESSION_ID).metadata;
+	assert.equal(metadata.gelato_order_id, draft.id);
+	assert.equal(metadata.app, before.app);
+	assert.equal(metadata.pricing, before.pricing);
+	assert.equal(metadata.line_count, "1");
+	assert.equal(JSON.parse(metadata.line_0).o.frame, "white");
+	assert.deepEqual(JSON.parse(metadata.line_0).c, [10, -20]);
+
+	const view = await shopOrderView(store, SESSION_ID);
+	assert.equal(view.status, 200);
+	assert.deepEqual(view.body.lines[0].optionLabels, { [woodFrameGroup.label]: optionLabel("wood-frame", "frame", "white") });
+});
+
+test("an edit that would change the price is refused and changes nothing", async () => {
+	const { handler, store } = harness({ sessions: [sessionFixture(SESSION_ID, { metadata: { gelato_order_id: "g_draft" } })], gelatoOrders: [draftOrder("g_draft", SESSION_ID)] });
+	const result = await invoke(handler, editRequest(SESSION_ID, [{ index: 0, crop: { x: 0, y: 0 }, options: { paper: "matte" } }]));
+	assert.equal(result.status, 409);
+	assert.equal(result.body.error, "This change would alter the price.");
+	assert.deepEqual([...store.gelato.keys()], ["g_draft"]);
+	assert.equal(store.gelatoCalls.some((call) => ["POST", "DELETE", "PATCH"].includes(call.method)), false);
+	assert.equal(store.updates.length, 0);
+	assert.equal(store.confirms, 0);
+});
+
+test("edit refuses cancelled, sent and test-approved orders", async () => {
+	const { handler, store } = harness({
+		sessions: [
+			sessionFixture("cs_test_cancelled", { priced: framePriced, metadata: { gelato_order_id: "g_c", fulfilment_status: "cancelled" } }),
+			sessionFixture("cs_test_sent", { priced: framePriced, metadata: { gelato_order_id: "g_o" } }),
+			sessionFixture("cs_test_test", { priced: framePriced, metadata: { gelato_order_id: "g_t", fulfilment_status: "approved-test" } }),
+		],
+		gelatoOrders: [draftOrder("g_c", "cs_test_cancelled"), { id: "g_o", orderReferenceId: "cs_test_sent", orderType: "order" }, draftOrder("g_t", "cs_test_test")],
+	});
+	const lines = [{ index: 0, crop: { x: 0, y: 0 }, options: { frame: "white" } }];
+	for (const id of ["cs_test_cancelled", "cs_test_sent", "cs_test_test"]) {
+		assert.equal((await invoke(handler, editRequest(id, lines))).status, 409, id);
+	}
+	assert.equal(store.created, 0);
+	assert.equal(store.updates.length, 0);
+});
+
+test("edit rejects an unknown or repeated line, an out-of-range crop and an option that is not a catalog variant", async () => {
+	const { handler, store } = harness({ sessions: [sessionFixture(SESSION_ID, { metadata: { gelato_order_id: "g_draft" } })], gelatoOrders: [draftOrder("g_draft", SESSION_ID)] });
+	const same = { index: 0, crop: { x: 0, y: 0 }, options: { paper: "semi-gloss" } };
+	assert.equal((await invoke(handler, editRequest(SESSION_ID, [{ ...same, index: 1 }]))).status, 400);
+	assert.equal((await invoke(handler, editRequest(SESSION_ID, [same, same]))).status, 400);
+	assert.equal((await invoke(handler, editRequest(SESSION_ID, [{ ...same, crop: { x: 0, y: 60 } }]))).status, 400);
+	assert.equal((await invoke(handler, editRequest(SESSION_ID, [{ ...same, options: { paper: "gold" } }]))).status, 400);
+	assert.equal(store.created, 0);
+	assert.equal(store.updates.length, 0);
 });
