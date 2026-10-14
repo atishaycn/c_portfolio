@@ -55,8 +55,11 @@ const lineName = (line) => {
 	return [line.productName, line.size, ...options].join(" · ").slice(0, 250);
 };
 
+const RETURNS_NOTE = "Made to order. Damaged or wrong items are reprinted or refunded: send a photo within 30 days to contact@clairethomas.art.";
+
 const checkoutParameters = (pricedCart, filesByLine, origin) => ({
 	mode: "payment",
+	automatic_tax: { enabled: true },
 	shipping_address_collection: { allowed_countries: ["US"] },
 	phone_number_collection: { enabled: true },
 	line_items: pricedCart.lines.map((line) => ({
@@ -64,6 +67,7 @@ const checkoutParameters = (pricedCart, filesByLine, origin) => ({
 		price_data: {
 			currency: "usd",
 			unit_amount: line.variantPrice,
+			tax_behavior: "exclusive",
 			product_data: {
 				name: lineName(line),
 				description: TEST_ONLY_MESSAGE,
@@ -76,12 +80,17 @@ const checkoutParameters = (pricedCart, filesByLine, origin) => ({
 			type: "fixed_amount",
 			fixed_amount: { amount: pricedCart.shipping, currency: "usd" },
 			display_name: "US shipping",
+			tax_behavior: "exclusive",
+			tax_code: "txcd_92010001",
 		},
 	}],
 	metadata: sessionMetadata(pricedCart),
 	success_url: `${origin}/prints.html?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
 	cancel_url: `${origin}/prints.html?checkout=cancelled`,
-	custom_text: { submit: { message: TEST_ONLY_MESSAGE } },
+	custom_text: {
+		submit: { message: TEST_ONLY_MESSAGE },
+		shipping_address: { message: RETURNS_NOTE },
+	},
 });
 
 const reply = (response, status, body, headers = {}) => json(response, status, body, { "Cache-Control": "no-store", ...headers });
@@ -176,6 +185,7 @@ module.exports = createHandler();
 module.exports.createHandler = createHandler;
 module.exports.checkoutGuard = checkoutGuard;
 module.exports.checkoutParameters = checkoutParameters;
+module.exports.RETURNS_NOTE = RETURNS_NOTE;
 module.exports.confirmOriginal = confirmOriginal;
 module.exports.getStripeClient = getStripeClient;
 module.exports.siteOrigin = siteOrigin;

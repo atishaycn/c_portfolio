@@ -120,6 +120,9 @@ const priceCart = (request, catalog, content) => {
 	return { lines, subtotal, shipping, total: subtotal + shipping };
 };
 
+// Stripe Tax adds tax on top of the catalog total, so catalog totals are compared against the amount before tax.
+const paidBeforeTax = (session) => session.amount_total - (session.total_details?.amount_tax ?? 0);
+
 const cropRectangle = (photo, size, crop = { x: 0, y: 0 }) => {
 	const dimensions = parseSize(size);
 	const width = Number(photo?.width);
@@ -204,4 +207,4 @@ const cartFromMetadata = (metadata) => {
 	return { lines };
 };
 
-module.exports = { SHOP_ORDER_APP, cartFromMetadata, cartLines, cropRectangle, fail, parseSize, priceCart, printFileUrl, sessionMetadata };
+module.exports = { SHOP_ORDER_APP, cartFromMetadata, cartLines, cropRectangle, fail, paidBeforeTax, parseSize, priceCart, printFileUrl, sessionMetadata };

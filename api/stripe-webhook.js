@@ -2,7 +2,7 @@ const { fetchAuthoritativeContent } = require("./_lib/cloudinary");
 const { validateContent } = require("./_lib/content");
 const { json } = require("./_lib/http");
 const { buildGelatoOrder, buildShopOrderEmail, buildShopOrderMismatchEmail, buildShopOrderRefusalEmail } = require("./_lib/shop-fulfilment");
-const { SHOP_ORDER_APP, cartFromMetadata, cropRectangle, priceCart, printFileUrl } = require("./_lib/shop-order");
+const { SHOP_ORDER_APP, cartFromMetadata, cropRectangle, paidBeforeTax, priceCart, printFileUrl } = require("./_lib/shop-order");
 const checkout = require("./shop-checkout");
 const { sendWithResend } = require("./_lib/inquiry");
 
@@ -215,7 +215,7 @@ const createHandler = (overrides = {}) => {
 				let pricedCart;
 				try { pricedCart = priceCart(cartRequest, deps.catalog, content); }
 				catch (error) { return await handleCartRefusal(error); }
-				if (session.currency !== "usd" || session.amount_total !== pricedCart.total) {
+				if (session.currency !== "usd" || paidBeforeTax(session) !== pricedCart.total) {
 					await sendClaireEmailOnce({
 						deps,
 						stripe,

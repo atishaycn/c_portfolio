@@ -659,7 +659,7 @@
 				'<button class="shop-cart-remove" type="button" data-shop-action="remove-line" data-line-id="' + escapeHtml(line.lineId) + '">Remove</button></div></div><strong class="shop-cart-line__total">' + formatPrice(lineTotal(line)) + '</strong></article>';
 		}).join("");
 		return '<section class="shop-page shop-cart-page"><div class="shop-shell"><header class="shop-cart-heading"><p class="shop-eyebrow">SHOPPING CART</p><h1>Your cart</h1></header><div class="shop-cart-lines">' + lines + '</div>' +
-			notice + '<div class="shop-cart-summary"><div><span>Subtotal</span><strong>' + formatPrice(cartSubtotal(state.cart)) + '</strong></div><p>US shipping is added at checkout.</p><button class="shop-primary-button" type="button" data-shop-action="checkout"' + (state.checkoutStarting ? ' disabled' : '') + '>' + (state.checkoutStarting ? 'Starting checkout…' : 'Checkout') + '</button>' +
+			notice + '<div class="shop-cart-summary"><div><span>Subtotal</span><strong>' + formatPrice(cartSubtotal(state.cart)) + '</strong></div><p>US shipping and sales tax are added at checkout.</p><p>Made to order. Damaged or wrong items are reprinted or refunded: send a photo within 30 days to contact@clairethomas.art.</p><button class="shop-primary-button" type="button" data-shop-action="checkout"' + (state.checkoutStarting ? ' disabled' : '') + '>' + (state.checkoutStarting ? 'Starting checkout…' : 'Checkout') + '</button>' +
 			'<p class="shop-checkout-message" data-shop-checkout tabindex="-1"' + (state.checkoutMessage ? '' : ' hidden') + ' role="status">' + escapeHtml(state.checkoutMessage || '') + '</p></div></div></section>';
 	}
 
@@ -721,7 +721,7 @@
 			const details = [line.size, options, 'Quantity: ' + line.quantity].filter(Boolean).join(' · ');
 			return '<li class="shop-order-line"><div><strong>' + escapeHtml(line.productName || 'Print') + '</strong><p>' + escapeHtml(details) + '</p></div><span>' + formatCents(line.lineTotal) + '</span></li>';
 		}).join("");
-		return '<section class="shop-page shop-order-page"><div class="shop-shell"><h1>Thank you. Your order is confirmed.</h1><ul class="shop-order-lines">' + lines + '</ul><p class="shop-order-total"><span>Total</span><strong>' + formatCents(state.order.total) + '</strong></p></div></section>';
+		return '<section class="shop-page shop-order-page"><div class="shop-shell"><h1>Thank you. Your order is confirmed.</h1><ul class="shop-order-lines">' + lines + '</ul>' + (state.order.tax > 0 ? '<p class="shop-order-tax"><span>Sales tax</span><strong>' + formatCents(state.order.tax) + '</strong></p>' : '') + '<p class="shop-order-total"><span>Total</span><strong>' + formatCents(state.order.total) + '</strong></p></div></section>';
 	}
 
 	function renderStoreContent(state) {

@@ -240,9 +240,45 @@ test("builds Claire's two-line order email with total and Gelato ID", () => {
 			"- Print · 8 x 10 · Paper: Semi-gloss × 2 — $30.00",
 			"- Canvas · 8 x 10 · Depth: Thick × 1 — $65.00",
 			"Total: $115.00",
+			"Sales tax: $0.00",
+			"Paid: $115.00",
 			"Gelato order: gelato_order_fixture123",
+			"Draft order: check it and submit it in the Gelato dashboard (Orders → Drafts).",
 		].join("\n"),
 	});
+});
+
+test("shows sales tax and the tax-inclusive amount paid in Claire's order email", () => {
+	const session = { ...baseSession(), amount_total: pricedCart.total + 1000, total_details: { amount_tax: 1000 } };
+	const email = buildShopOrderEmail({ session, pricedCart, gelatoOrderId: "gelato_order_fixture123" });
+	assert.deepEqual(email.text.split("\n").slice(-6), [
+		"- Canvas · 8 x 10 · Depth: Thick × 1 — $65.00",
+		"Total: $115.00",
+		"Sales tax: $10.00",
+		"Paid: $125.00",
+		"Gelato order: gelato_order_fixture123",
+		"Draft order: check it and submit it in the Gelato dashboard (Orders → Drafts).",
+	]);
+});
+
+test("creates the Gelato draft when the tax-inclusive payment matches the pre-tax catalog total", async () => {
+	const session = { ...baseSession(), amount_total: pricedCart.total + 1000, total_details: { amount_tax: 1000 } };
+	const fixture = harness({ session });
+	const response = await invoke(fixture.handler);
+	assert.equal(response.status, 200);
+	assert.equal(fixture.state.createdOrderBodies.length, 1);
+	assert.equal(fixture.state.sentEmails.length, 1);
+	assert.equal(fixture.state.sentEmails[0].email.subject, "Shop order paid — $115.00");
+});
+
+test("emails a mismatch and creates no draft when the pre-tax amount differs from the catalog total", async () => {
+	const session = { ...baseSession(), amount_total: pricedCart.total + 1000, total_details: { amount_tax: 500 } };
+	const fixture = harness({ session });
+	const response = await invoke(fixture.handler);
+	assert.equal(response.status, 200);
+	assert.equal(fixture.state.createdOrderBodies.length, 0);
+	assert.equal(fixture.state.sentEmails.length, 1);
+	assert.match(fixture.state.sentEmails[0].email.subject, /^Shop order total mismatch/);
 });
 
 test("builds a refusal email with only the Stripe session, paid total and reason", () => {

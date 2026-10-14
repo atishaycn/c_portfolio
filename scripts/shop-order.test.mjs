@@ -260,6 +260,7 @@ test("checkout passes exact server-priced lines, shipping, metadata and return U
 	const expectedMetadata = order.sessionMetadata(p);
 	assert.deepEqual(calls[0], {
 		mode: "payment",
+		automatic_tax: { enabled: true },
 		shipping_address_collection: { allowed_countries: ["US"] },
 		phone_number_collection: { enabled: true },
 		line_items: [
@@ -268,6 +269,7 @@ test("checkout passes exact server-priced lines, shipping, metadata and return U
 				price_data: {
 					currency: "usd",
 					unit_amount: 1500,
+					tax_behavior: "exclusive",
 					product_data: {
 						name: "Print · 8 x 10 · Paper: Semi-gloss",
 						description: "Test checkout only. No real payment, printing, or shipping.",
@@ -280,6 +282,7 @@ test("checkout passes exact server-priced lines, shipping, metadata and return U
 				price_data: {
 					currency: "usd",
 					unit_amount: 6500,
+					tax_behavior: "exclusive",
 					product_data: {
 						name: "Canvas · 8 x 10 · Depth: Thick",
 						description: "Test checkout only. No real payment, printing, or shipping.",
@@ -288,11 +291,14 @@ test("checkout passes exact server-priced lines, shipping, metadata and return U
 				},
 			},
 		],
-		shipping_options: [{ shipping_rate_data: { type: "fixed_amount", fixed_amount: { amount: 2000, currency: "usd" }, display_name: "US shipping" } }],
+		shipping_options: [{ shipping_rate_data: { type: "fixed_amount", fixed_amount: { amount: 2000, currency: "usd" }, display_name: "US shipping", tax_behavior: "exclusive", tax_code: "txcd_92010001" } }],
 		metadata: expectedMetadata,
 		success_url: "http://127.0.0.1:8096/prints.html?checkout=success&session_id={CHECKOUT_SESSION_ID}",
 		cancel_url: "http://127.0.0.1:8096/prints.html?checkout=cancelled",
-		custom_text: { submit: { message: "Test checkout only. No real payment, printing, or shipping." } },
+		custom_text: {
+			submit: { message: "Test checkout only. No real payment, printing, or shipping." },
+			shipping_address: { message: "Made to order. Damaged or wrong items are reprinted or refunded: send a photo within 30 days to contact@clairethomas.art." },
+		},
 	});
 	assert.equal(calls.length, 1);
 });
@@ -347,11 +353,48 @@ test("order status rebuilds the order from app metadata and rejects sessions fro
 	assert.deepEqual(result.body, {
 		paid: true,
 		total: cartPrice.total,
+		tax: 0,
 		currency: "usd",
 		lines: [{ productName: "Print", size: "8 x 10", optionLabels: { Paper: "Semi-gloss" }, quantity: 1, variantPrice: 1500, lineTotal: 1500 }],
 	});
 	const otherApp = shopOrder.createHandler({ env, getStripe: () => ({ checkout: { sessions: { retrieve: async () => ({ ...session, metadata: { ...session.metadata, app: "other" } }) } } }) });
 	assert.equal((await invoke(otherApp, request({ method: "GET", url: "/api/shop-order?session_id=cs_test_fixture123" }))).status, 404);
+});
+
+test("order status returns the tax-inclusive amount paid and the tax when the pre-tax total matches", async () => {
+	const cartPrice = priced();
+	const session = {
+		livemode: false,
+		mode: "payment",
+		status: "complete",
+		payment_status: "paid",
+		currency: "usd",
+		amount_total: cartPrice.total + 1234,
+		total_details: { amount_tax: 1234 },
+		metadata: order.sessionMetadata(cartPrice),
+	};
+	const handler = shopOrder.createHandler({ env, catalog, fetchContent: async () => rawContent(), getStripe: () => ({ checkout: { sessions: { retrieve: async () => session } } }) });
+	const result = await invoke(handler, request({ method: "GET", url: "/api/shop-order?session_id=cs_test_fixture123" }));
+	assert.equal(result.status, 200);
+	assert.equal(result.body.paid, true);
+	assert.equal(result.body.total, cartPrice.total + 1234);
+	assert.equal(result.body.tax, 1234);
+});
+
+test("order status refuses a paid session whose pre-tax amount does not match the catalog", async () => {
+	const cartPrice = priced();
+	const session = {
+		livemode: false,
+		mode: "payment",
+		status: "complete",
+		payment_status: "paid",
+		currency: "usd",
+		amount_total: cartPrice.total + 1000 - 500,
+		total_details: { amount_tax: 1000 },
+		metadata: order.sessionMetadata(cartPrice),
+	};
+	const handler = shopOrder.createHandler({ env, catalog, fetchContent: async () => rawContent(), getStripe: () => ({ checkout: { sessions: { retrieve: async () => session } } }) });
+	assert.equal((await invoke(handler, request({ method: "GET", url: "/api/shop-order?session_id=cs_test_fixture123" }))).status, 409);
 });
 
 test("order status reports unpaid sessions and treats missing Stripe sessions as not found", async () => {

@@ -69,7 +69,10 @@ const buildShopOrderEmail = ({ session, pricedCart, gelatoOrderId }) => {
 			"Items:",
 			...lines,
 			`Total: ${money(pricedCart.total)}`,
+			`Sales tax: ${money(session?.total_details?.amount_tax ?? 0)}`,
+			`Paid: ${money(session?.amount_total)}`,
 			`Gelato order: ${gelatoOrderId}`,
+			"Draft order: check it and submit it in the Gelato dashboard (Orders → Drafts).",
 		].join("\n"),
 	};
 };

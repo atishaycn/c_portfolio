@@ -1,7 +1,7 @@
 const { fetchAuthoritativeContent } = require("./_lib/cloudinary");
 const { validateContent } = require("./_lib/content");
 const { json } = require("./_lib/http");
-const { SHOP_ORDER_APP, cartFromMetadata, fail, priceCart } = require("./_lib/shop-order");
+const { SHOP_ORDER_APP, cartFromMetadata, fail, paidBeforeTax, priceCart } = require("./_lib/shop-order");
 const checkout = require("./shop-checkout");
 
 const failWith = (message, statusCode = 503) => Object.assign(new Error(message), { statusCode, publicMessage: true });
@@ -58,7 +58,7 @@ const createHandler = (overrides = {}) => {
 				throw failWith("Order details are temporarily unavailable. Please try again later.");
 			}
 			const pricedCart = priceCart(cartRequest, deps.catalog, content);
-			if (session.currency !== "usd" || (session.amount_total != null && session.amount_total !== pricedCart.total)) {
+			if (session.currency !== "usd" || (session.amount_total != null && paidBeforeTax(session) !== pricedCart.total)) {
 				throw fail("Order details could not be verified.", 409);
 			}
 			const lines = pricedCart.lines.map((line) => ({
@@ -71,7 +71,8 @@ const createHandler = (overrides = {}) => {
 			}));
 			reply(response, 200, {
 				paid: session.status === "complete" && session.payment_status === "paid",
-				total: pricedCart.total,
+				total: session.amount_total ?? pricedCart.total,
+				tax: session.total_details?.amount_tax ?? 0,
 				currency: "usd",
 				lines,
 			});
