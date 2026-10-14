@@ -79,12 +79,14 @@ const buildShopOrderEmail = ({ session, pricedCart, gelatoOrderId }) => {
 
 const buildShopOrderMismatchEmail = ({ session, pricedCart }) => {
 	const currency = trimmed(session?.currency).toUpperCase() || "unknown currency";
+	const beforeTax = session?.amount_total == null ? null : session.amount_total - (session.total_details?.amount_tax ?? 0);
 	return {
-		subject: `Shop order total mismatch — paid ${money(session?.amount_total)} ${currency}, current ${money(pricedCart?.total)} USD`,
+		subject: `Shop order total mismatch — paid ${money(beforeTax)} ${currency} before tax, current ${money(pricedCart?.total)} USD`,
 		text: [
 			"A paid Shop checkout does not match the current catalog total.",
 			`Stripe session: ${trimmed(session?.id) || "unknown"}`,
 			`Paid total: ${money(session?.amount_total)} ${currency}`,
+			`Paid before tax: ${money(beforeTax)} ${currency}`,
 			`Current catalog total: ${money(pricedCart?.total)} USD`,
 			"No Gelato draft order was created. Please review this payment.",
 		].join("\n"),

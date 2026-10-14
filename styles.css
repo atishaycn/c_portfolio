@@ -2608,6 +2608,7 @@ body[data-page="protests"] .masonry-grid {
 .shop-order-line > span { flex: 0 0 auto; font-size: 14px; }
 .shop-order-total { display: flex; justify-content: space-between; margin-top: 18px; color: #333 !important; }
 .shop-order-total strong { font-weight: 500; }
+.shop-order-tax { display: flex; justify-content: space-between; margin-top: 18px; color: #333 !important; }
 
 .shop-mockup {
 	position: relative;
