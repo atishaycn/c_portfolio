@@ -1,0 +1,3079 @@
+{
+  "generatedAt": "2026-10-13",
+  "country": "US",
+  "currency": "USD",
+  "markup": 2.5,
+  "markupIsSample": true,
+  "products": [
+    {
+      "slug": "print",
+      "name": "Print",
+      "category": "Prints",
+      "gelatoCatalog": "posters",
+      "options": [
+        {
+          "key": "paper",
+          "label": "Paper",
+          "values": [
+            {
+              "value": "semi-gloss",
+              "label": "Semi-gloss"
+            },
+            {
+              "value": "matte",
+              "label": "Matte"
+            },
+            {
+              "value": "archival-matte",
+              "label": "Archival matte"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "size": "8 x 10",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_8x10-inch-200x250-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_8x10-inch-200x250-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 15
+        },
+        {
+          "size": "8 x 10",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_8x10-inch-200x250-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_8x10-inch-200x250-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 17
+        },
+        {
+          "size": "8 x 10",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_8x10-inch-200x250-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_8x10-inch-200x250-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 21
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_8x12-inch-a4_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_8x12-inch-a4_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 18
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_8x12-inch-a4_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_8x12-inch-a4_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 19
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_8x12-inch-a4_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_8x12-inch-a4_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 25
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_12x12-inch-300x300-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_12x12-inch-300x300-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 16
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_12x12-inch-300x300-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_12x12-inch-300x300-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 18
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_12x12-inch-300x300-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_12x12-inch-300x300-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 23
+        },
+        {
+          "size": "11 x 14",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_11x14-inch-270x350-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_11x14-inch-270x350-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 16
+        },
+        {
+          "size": "11 x 14",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_11x14-inch-270x350-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_11x14-inch-270x350-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 18
+        },
+        {
+          "size": "11 x 14",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_11x14-inch-270x350-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_11x14-inch-270x350-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 23
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_12x16-inch-300x400-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_12x16-inch-300x400-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 17
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_12x16-inch-300x400-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_12x16-inch-300x400-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 18
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_12x16-inch-300x400-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_12x16-inch-300x400-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 23
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_12x18-inch-300x450-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_12x18-inch-300x450-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 21
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_12x18-inch-300x450-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_12x18-inch-300x450-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 23
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_12x18-inch-300x450-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_12x18-inch-300x450-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 29
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_16x16-inch-400x400-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_16x16-inch-400x400-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 21
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_16x16-inch-400x400-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_16x16-inch-400x400-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 23
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_16x16-inch-400x400-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_16x16-inch-400x400-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 29
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_16x20-inch-400x500-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_16x20-inch-400x500-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 22
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_16x20-inch-400x500-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_16x20-inch-400x500-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 24
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_16x20-inch-400x500-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_16x20-inch-400x500-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 31
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_16x24-inch-400x600-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_16x24-inch-400x600-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 26
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_16x24-inch-400x600-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_16x24-inch-400x600-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 27
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_16x24-inch-400x600-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_16x24-inch-400x600-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 35
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_20x20-inch-500x500-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_20x20-inch-500x500-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 28
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_20x20-inch-500x500-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_20x20-inch-500x500-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 30
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_20x20-inch-500x500-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_20x20-inch-500x500-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 39
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_18x24-inch-450x600-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_18x24-inch-450x600-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 28
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_18x24-inch-450x600-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_18x24-inch-450x600-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 30
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_18x24-inch-450x600-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_18x24-inch-450x600-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 39
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_24x36-inch-600x900-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_24x36-inch-600x900-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 38
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_24x36-inch-600x900-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_24x36-inch-600x900-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 40
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_24x36-inch-600x900-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_24x36-inch-600x900-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 51
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_28x40-inch-700x1000-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_28x40-inch-700x1000-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 39
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_28x40-inch-700x1000-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_28x40-inch-700x1000-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 41
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_28x40-inch-700x1000-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_28x40-inch-700x1000-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 53
+        },
+        {
+          "size": "30 x 40",
+          "options": {
+            "paper": "semi-gloss"
+          },
+          "productUid": {
+            "hor": "flat_30x40-inch-750x1000-mm_200-gsm-80lb-coated-silk_4-0_hor",
+            "ver": "flat_30x40-inch-750x1000-mm_200-gsm-80lb-coated-silk_4-0_ver"
+          },
+          "price": 44
+        },
+        {
+          "size": "30 x 40",
+          "options": {
+            "paper": "matte"
+          },
+          "productUid": {
+            "hor": "flat_30x40-inch-750x1000-mm_200-gsm-80lb-uncoated_4-0_hor",
+            "ver": "flat_30x40-inch-750x1000-mm_200-gsm-80lb-uncoated_4-0_ver"
+          },
+          "price": 46
+        },
+        {
+          "size": "30 x 40",
+          "options": {
+            "paper": "archival-matte"
+          },
+          "productUid": {
+            "hor": "flat_30x40-inch-750x1000-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_hor",
+            "ver": "flat_30x40-inch-750x1000-mm_250-gsm-100lb-uncoated-offwhite-archival_4-0_ver"
+          },
+          "price": 59
+        }
+      ]
+    },
+    {
+      "slug": "fine-art-print",
+      "name": "Fine Art Print",
+      "category": "Prints",
+      "gelatoCatalog": "fine-art",
+      "options": [],
+      "variants": [
+        {
+          "size": "8 x 10",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_8x10-inch-200x250-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_8x10-inch-200x250-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 22
+        },
+        {
+          "size": "8 x 12",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_a4-8x12-inch_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_a4-8x12-inch_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 26
+        },
+        {
+          "size": "12 x 12",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_12x12-inch-300x300-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_12x12-inch-300x300-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 27
+        },
+        {
+          "size": "11 x 14",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_11x14-inch-270x350-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_11x14-inch-270x350-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 27
+        },
+        {
+          "size": "12 x 16",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_12x16-inch-300x400-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_12x16-inch-300x400-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 30
+        },
+        {
+          "size": "12 x 18",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_12x18-inch-300x450-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_12x18-inch-300x450-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 36
+        },
+        {
+          "size": "16 x 16",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_16x16-inch-400x400-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_16x16-inch-400x400-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 37
+        },
+        {
+          "size": "16 x 20",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_16x20-inch-400x500-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_16x20-inch-400x500-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 38
+        },
+        {
+          "size": "16 x 24",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_16x24-inch-400x600-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_16x24-inch-400x600-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 39
+        },
+        {
+          "size": "20 x 20",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_20x20-inch-500x500-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_20x20-inch-500x500-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 41
+        },
+        {
+          "size": "18 x 24",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_18x24-inch-450x600-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_18x24-inch-450x600-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 42
+        },
+        {
+          "size": "24 x 36",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_24x36-inch-600x900-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_24x36-inch-600x900-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 55
+        },
+        {
+          "size": "28 x 40",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_28x40-inch-700x1000-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_28x40-inch-700x1000-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 57
+        },
+        {
+          "size": "30 x 40",
+          "options": {},
+          "productUid": {
+            "hor": "fine_arts_poster_geo_simplified_product_12-0_hor_30x40-inch-750x1000-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "fine_arts_poster_geo_simplified_product_12-0_ver_30x40-inch-750x1000-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 62
+        }
+      ]
+    },
+    {
+      "slug": "canvas",
+      "name": "Canvas",
+      "category": "Wall Art",
+      "gelatoCatalog": "canvas",
+      "options": [
+        {
+          "key": "depth",
+          "label": "Depth",
+          "values": [
+            {
+              "value": "slim",
+              "label": "Slim"
+            },
+            {
+              "value": "thick",
+              "label": "Thick"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "size": "8 x 10",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_8x10-inch-200x250-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_8x10-inch-200x250-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 37
+        },
+        {
+          "size": "8 x 10",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_8x10-inch-200x250-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_8x10-inch-200x250-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 65
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_8x12-inch-200x300-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_8x12-inch-200x300-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 41
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_8x12-inch-200x300-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_8x12-inch-200x300-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 68
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_12x12-inch-300x300-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_12x12-inch-300x300-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 53
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_12x12-inch-300x300-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_12x12-inch-300x300-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 74
+        },
+        {
+          "size": "11 x 14",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_11x14-inch-270x350-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_11x14-inch-270x350-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 54
+        },
+        {
+          "size": "11 x 14",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_11x14-inch-270x350-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_11x14-inch-270x350-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 77
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_12x16-inch-300x400-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_12x16-inch-300x400-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 63
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_12x16-inch-300x400-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_12x16-inch-300x400-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 84
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_12x18-inch-300x450-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_12x18-inch-300x450-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 64
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_12x18-inch-300x450-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_12x18-inch-300x450-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 85
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_16x16-inch-400x400-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_16x16-inch-400x400-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 68
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_16x16-inch-400x400-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_16x16-inch-400x400-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 88
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_16x20-inch-400x500-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_16x20-inch-400x500-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 71
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_16x20-inch-400x500-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_16x20-inch-400x500-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 92
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_16x24-inch-400x600-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_16x24-inch-400x600-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 72
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_16x24-inch-400x600-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_16x24-inch-400x600-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 94
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_20x20-inch-500x500-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_20x20-inch-500x500-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 92
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_20x20-inch-500x500-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_20x20-inch-500x500-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 120
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_18x24-inch-450x600-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_18x24-inch-450x600-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 94
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_18x24-inch-450x600-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_18x24-inch-450x600-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 122
+        },
+        {
+          "size": "20 x 30",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_20x30-inch-500x750-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_20x30-inch-500x750-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 130
+        },
+        {
+          "size": "20 x 30",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_20x30-inch-500x750-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_20x30-inch-500x750-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 169
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_24x36-inch-600x900-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_24x36-inch-600x900-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 157
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_24x36-inch-600x900-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_24x36-inch-600x900-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 192
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "depth": "slim"
+          },
+          "productUid": {
+            "hor": "canvas_28x40-inch-700x1000-mm_canvas_wood-fsc-slim_4-0_hor",
+            "ver": "canvas_28x40-inch-700x1000-mm_canvas_wood-fsc-slim_4-0_ver"
+          },
+          "price": 162
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "depth": "thick"
+          },
+          "productUid": {
+            "hor": "canvas_28x40-inch-700x1000-mm_canvas_wood-fsc-thick_4-0_hor",
+            "ver": "canvas_28x40-inch-700x1000-mm_canvas_wood-fsc-thick_4-0_ver"
+          },
+          "price": 209
+        }
+      ]
+    },
+    {
+      "slug": "framed-canvas",
+      "name": "Framed Canvas",
+      "category": "Wall Art",
+      "gelatoCatalog": "framed-canvas",
+      "options": [
+        {
+          "key": "frame",
+          "label": "Frame",
+          "values": [
+            {
+              "value": "black",
+              "label": "Black"
+            },
+            {
+              "value": "natural-wood",
+              "label": "Natural wood"
+            },
+            {
+              "value": "dark-wood",
+              "label": "Dark wood"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "size": "8 x 10",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_200x250-mm-8x10-inch_black_252x302-mm-10x12-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_200x250-mm-8x10-inch_black_252x302-mm-10x12-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 82
+        },
+        {
+          "size": "8 x 10",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_200x250-mm-8x10-inch_natural-wood_252x302-mm-10x12-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_200x250-mm-8x10-inch_natural-wood_252x302-mm-10x12-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 82
+        },
+        {
+          "size": "8 x 10",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_200x250-mm-8x10-inch_dark-wood_252x302-mm-10x12-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_200x250-mm-8x10-inch_dark-wood_252x302-mm-10x12-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 82
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_200x300-mm-8x12-inch_black_252x352-mm-10x14-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_200x300-mm-8x12-inch_black_252x352-mm-10x14-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 98
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_200x300-mm-8x12-inch_natural-wood_252x352-mm-10x14-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_200x300-mm-8x12-inch_natural-wood_252x352-mm-10x14-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 98
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_200x300-mm-8x12-inch_dark-wood_252x352-mm-10x14-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_200x300-mm-8x12-inch_dark-wood_252x352-mm-10x14-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 98
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_300x300-mm-12x12-inch_black_352x352-mm-14x14-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_300x300-mm-12x12-inch_black_352x352-mm-14x14-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 105
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_300x300-mm-12x12-inch_natural-wood_352x352-mm-14x14-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_300x300-mm-12x12-inch_natural-wood_352x352-mm-14x14-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 105
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_300x300-mm-12x12-inch_dark-wood_352x352-mm-14x14-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_300x300-mm-12x12-inch_dark-wood_352x352-mm-14x14-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 105
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_300x400-mm-12x16-inch_black_352x452-mm-14x18-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_300x400-mm-12x16-inch_black_352x452-mm-14x18-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 118
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_300x400-mm-12x16-inch_natural-wood_352x452-mm-14x18-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_300x400-mm-12x16-inch_natural-wood_352x452-mm-14x18-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 118
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_300x400-mm-12x16-inch_dark-wood_352x452-mm-14x18-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_300x400-mm-12x16-inch_dark-wood_352x452-mm-14x18-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 118
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_300x450-mm-12x18-inch_black_352x502-mm-14x20-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_300x450-mm-12x18-inch_black_352x502-mm-14x20-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 127
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_300x450-mm-12x18-inch_natural-wood_352x502-mm-14x20-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_300x450-mm-12x18-inch_natural-wood_352x502-mm-14x20-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 127
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_300x450-mm-12x18-inch_dark-wood_352x502-mm-14x20-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_300x450-mm-12x18-inch_dark-wood_352x502-mm-14x20-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 127
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_400x500-mm-16x20-inch_black_452x552-mm-18x22-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_400x500-mm-16x20-inch_black_452x552-mm-18x22-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 152
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_400x500-mm-16x20-inch_natural-wood_452x552-mm-18x22-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_400x500-mm-16x20-inch_natural-wood_452x552-mm-18x22-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 152
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_400x500-mm-16x20-inch_dark-wood_452x552-mm-18x22-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_400x500-mm-16x20-inch_dark-wood_452x552-mm-18x22-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 152
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_400x600-mm-16x24-inch_black_452x652-mm-18x26-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_400x600-mm-16x24-inch_black_452x652-mm-18x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 168
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_400x600-mm-16x24-inch_natural-wood_452x652-mm-18x26-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_400x600-mm-16x24-inch_natural-wood_452x652-mm-18x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 168
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_400x600-mm-16x24-inch_dark-wood_452x652-mm-18x26-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_400x600-mm-16x24-inch_dark-wood_452x652-mm-18x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 168
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_450x600-mm-18x24-inch_black_502x652-mm-20x26-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_450x600-mm-18x24-inch_black_502x652-mm-20x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 182
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_450x600-mm-18x24-inch_natural-wood_502x652-mm-20x26-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_450x600-mm-18x24-inch_natural-wood_502x652-mm-20x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 182
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_450x600-mm-18x24-inch_dark-wood_502x652-mm-20x26-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_450x600-mm-18x24-inch_dark-wood_502x652-mm-20x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 182
+        },
+        {
+          "size": "20 x 30",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_500x750-mm-20x30-inch_black_552x802-mm-22x32-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_500x750-mm-20x30-inch_black_552x802-mm-22x32-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 225
+        },
+        {
+          "size": "20 x 30",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_500x750-mm-20x30-inch_natural-wood_552x802-mm-22x32-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_500x750-mm-20x30-inch_natural-wood_552x802-mm-22x32-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 225
+        },
+        {
+          "size": "20 x 30",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_500x750-mm-20x30-inch_dark-wood_552x802-mm-22x32-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_500x750-mm-20x30-inch_dark-wood_552x802-mm-22x32-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 225
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_600x900-mm-24x36-inch_black_652x952-mm-26x38-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_600x900-mm-24x36-inch_black_652x952-mm-26x38-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 280
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_600x900-mm-24x36-inch_natural-wood_652x952-mm-26x38-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_600x900-mm-24x36-inch_natural-wood_652x952-mm-26x38-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 280
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_canvas_geo_simplified_600x900-mm-24x36-inch_dark-wood_652x952-mm-26x38-inch_wood-fsc-slim_hor_wood_w14xt42-mm_canvas_4-0",
+            "ver": "framed_canvas_geo_simplified_600x900-mm-24x36-inch_dark-wood_652x952-mm-26x38-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+          },
+          "price": 280
+        }
+      ]
+    },
+    {
+      "slug": "metal-print",
+      "name": "Metal Print",
+      "category": "Wall Art",
+      "gelatoCatalog": "metallic",
+      "options": [
+        {
+          "key": "finish",
+          "label": "Finish",
+          "values": [
+            {
+              "value": "white-matte",
+              "label": "White matte"
+            },
+            {
+              "value": "brushed-silver",
+              "label": "Brushed silver"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "size": "8 x 12",
+          "options": {
+            "finish": "white-matte"
+          },
+          "productUid": {
+            "hor": "metallic_8x12-inch-200x300-mm_3-mm_4-0_hor",
+            "ver": "metallic_8x12-inch-200x300-mm_3-mm_4-0_ver"
+          },
+          "price": 42
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "finish": "brushed-silver"
+          },
+          "productUid": {
+            "hor": "metallic_8x12-inch-200x300-mm_3-mm-silver-brushed_hor-grain_4-0_hor",
+            "ver": "metallic_8x12-inch-200x300-mm_3-mm-silver-brushed_hor-grain_4-0_ver"
+          },
+          "price": 67
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "finish": "white-matte"
+          },
+          "productUid": {
+            "hor": "metallic_12x12-inch-300x300-mm_3-mm_4-0_hor",
+            "ver": "metallic_12x12-inch-300x300-mm_3-mm_4-0_ver"
+          },
+          "price": 49
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "finish": "brushed-silver"
+          },
+          "productUid": {
+            "hor": "metallic_12x12-inch-300x300-mm_3-mm-silver-brushed_hor-grain_4-0_hor",
+            "ver": "metallic_12x12-inch-300x300-mm_3-mm-silver-brushed_hor-grain_4-0_ver"
+          },
+          "price": 78
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "finish": "white-matte"
+          },
+          "productUid": {
+            "hor": "metallic_12x16-inch-300x400-mm_3-mm_4-0_hor",
+            "ver": "metallic_12x16-inch-300x400-mm_3-mm_4-0_ver"
+          },
+          "price": 60
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "finish": "brushed-silver"
+          },
+          "productUid": {
+            "hor": "metallic_12x16-inch-300x400-mm_3-mm-silver-brushed_hor-grain_4-0_hor",
+            "ver": "metallic_12x16-inch-300x400-mm_3-mm-silver-brushed_hor-grain_4-0_ver"
+          },
+          "price": 95
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "finish": "white-matte"
+          },
+          "productUid": {
+            "hor": "metallic_12x18-inch-300x450-mm_3-mm_4-0_hor",
+            "ver": "metallic_12x18-inch-300x450-mm_3-mm_4-0_ver"
+          },
+          "price": 62
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "finish": "brushed-silver"
+          },
+          "productUid": {
+            "hor": "metallic_12x18-inch-300x450-mm_3-mm-silver-brushed_hor-grain_4-0_hor",
+            "ver": "metallic_12x18-inch-300x450-mm_3-mm-silver-brushed_hor-grain_4-0_ver"
+          },
+          "price": 100
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "finish": "white-matte"
+          },
+          "productUid": {
+            "hor": "metallic_16x16-inch-400x400-mm_3-mm_4-0_hor",
+            "ver": "metallic_16x16-inch-400x400-mm_3-mm_4-0_ver"
+          },
+          "price": 65
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "finish": "brushed-silver"
+          },
+          "productUid": {
+            "hor": "metallic_16x16-inch-400x400-mm_3-mm-silver-brushed_hor-grain_4-0_hor",
+            "ver": "metallic_16x16-inch-400x400-mm_3-mm-silver-brushed_hor-grain_4-0_ver"
+          },
+          "price": 104
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "finish": "white-matte"
+          },
+          "productUid": {
+            "hor": "metallic_16x20-inch-400x500-mm_3-mm_4-0_hor",
+            "ver": "metallic_16x20-inch-400x500-mm_3-mm_4-0_ver"
+          },
+          "price": 69
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "finish": "brushed-silver"
+          },
+          "productUid": {
+            "hor": "metallic_16x20-inch-400x500-mm_3-mm-silver-brushed_hor-grain_4-0_hor",
+            "ver": "metallic_16x20-inch-400x500-mm_3-mm-silver-brushed_hor-grain_4-0_ver"
+          },
+          "price": 111
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "finish": "white-matte"
+          },
+          "productUid": {
+            "hor": "metallic_16x24-inch-400x600-mm_3-mm_4-0_hor",
+            "ver": "metallic_16x24-inch-400x600-mm_3-mm_4-0_ver"
+          },
+          "price": 71
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "finish": "brushed-silver"
+          },
+          "productUid": {
+            "hor": "metallic_16x24-inch-400x600-mm_3-mm-silver-brushed_hor-grain_4-0_hor",
+            "ver": "metallic_16x24-inch-400x600-mm_3-mm-silver-brushed_hor-grain_4-0_ver"
+          },
+          "price": 113
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "finish": "white-matte"
+          },
+          "productUid": {
+            "hor": "metallic_20x20-inch-500x500-mm_3-mm_4-0_hor",
+            "ver": "metallic_20x20-inch-500x500-mm_3-mm_4-0_ver"
+          },
+          "price": 75
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "finish": "brushed-silver"
+          },
+          "productUid": {
+            "hor": "metallic_20x20-inch-500x500-mm_3-mm-silver-brushed_hor-grain_4-0_hor",
+            "ver": "metallic_20x20-inch-500x500-mm_3-mm-silver-brushed_hor-grain_4-0_ver"
+          },
+          "price": 120
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "finish": "white-matte"
+          },
+          "productUid": {
+            "hor": "metallic_18x24-inch-450x600-mm_3-mm_4-0_hor",
+            "ver": "metallic_18x24-inch-450x600-mm_3-mm_4-0_ver"
+          },
+          "price": 78
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "finish": "brushed-silver"
+          },
+          "productUid": {
+            "hor": "metallic_18x24-inch-450x600-mm_3-mm-silver-brushed_hor-grain_4-0_hor",
+            "ver": "metallic_18x24-inch-450x600-mm_3-mm-silver-brushed_hor-grain_4-0_ver"
+          },
+          "price": 124
+        },
+        {
+          "size": "20 x 30",
+          "options": {
+            "finish": "white-matte"
+          },
+          "productUid": {
+            "hor": "metallic_20x30-inch-500x750-mm_3-mm_4-0_hor",
+            "ver": "metallic_20x30-inch-500x750-mm_3-mm_4-0_ver"
+          },
+          "price": 97
+        },
+        {
+          "size": "20 x 30",
+          "options": {
+            "finish": "brushed-silver"
+          },
+          "productUid": {
+            "hor": "metallic_20x30-inch-500x750-mm_3-mm-silver-brushed_hor-grain_4-0_hor",
+            "ver": "metallic_20x30-inch-500x750-mm_3-mm-silver-brushed_hor-grain_4-0_ver"
+          },
+          "price": 155
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "finish": "white-matte"
+          },
+          "productUid": {
+            "hor": "metallic_24x36-inch-600x900-mm_3-mm_4-0_hor",
+            "ver": "metallic_24x36-inch-600x900-mm_3-mm_4-0_ver"
+          },
+          "price": 126
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "finish": "brushed-silver"
+          },
+          "productUid": {
+            "hor": "metallic_24x36-inch-600x900-mm_3-mm-silver-brushed_hor-grain_4-0_hor",
+            "ver": "metallic_24x36-inch-600x900-mm_3-mm-silver-brushed_hor-grain_4-0_ver"
+          },
+          "price": 201
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "finish": "white-matte"
+          },
+          "productUid": {
+            "hor": "metallic_28x40-inch-700x1000-mm_3-mm_4-0_hor",
+            "ver": "metallic_28x40-inch-700x1000-mm_3-mm_4-0_ver"
+          },
+          "price": 144
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "finish": "brushed-silver"
+          },
+          "productUid": {
+            "hor": "metallic_28x40-inch-700x1000-mm_3-mm-silver-brushed_hor-grain_4-0_hor",
+            "ver": "metallic_28x40-inch-700x1000-mm_3-mm-silver-brushed_hor-grain_4-0_ver"
+          },
+          "price": 230
+        }
+      ]
+    },
+    {
+      "slug": "acrylic-print",
+      "name": "Acrylic Print",
+      "category": "Wall Art",
+      "gelatoCatalog": "acrylic",
+      "options": [],
+      "variants": [
+        {
+          "size": "8 x 12",
+          "options": {},
+          "productUid": {
+            "hor": "acrylic_8x12-inch-200x300-mm_4-mm_4-0_hor",
+            "ver": "acrylic_8x12-inch-200x300-mm_4-mm_4-0_ver"
+          },
+          "price": 62
+        },
+        {
+          "size": "12 x 12",
+          "options": {},
+          "productUid": {
+            "hor": "acrylic_12x12-inch-300x300-mm_4-mm_4-0_hor",
+            "ver": "acrylic_12x12-inch-300x300-mm_4-mm_4-0_ver"
+          },
+          "price": 71
+        },
+        {
+          "size": "12 x 16",
+          "options": {},
+          "productUid": {
+            "hor": "acrylic_12x16-inch-300x400-mm_4-mm_4-0_hor",
+            "ver": "acrylic_12x16-inch-300x400-mm_4-mm_4-0_ver"
+          },
+          "price": 85
+        },
+        {
+          "size": "12 x 18",
+          "options": {},
+          "productUid": {
+            "hor": "acrylic_12x18-inch-300x450-mm_4-mm_4-0_hor",
+            "ver": "acrylic_12x18-inch-300x450-mm_4-mm_4-0_ver"
+          },
+          "price": 98
+        },
+        {
+          "size": "16 x 16",
+          "options": {},
+          "productUid": {
+            "hor": "acrylic_16x16-inch-400x400-mm_4-mm_4-0_hor",
+            "ver": "acrylic_16x16-inch-400x400-mm_4-mm_4-0_ver"
+          },
+          "price": 104
+        },
+        {
+          "size": "16 x 20",
+          "options": {},
+          "productUid": {
+            "hor": "acrylic_16x20-inch-400x500-mm_4-mm_4-0_hor",
+            "ver": "acrylic_16x20-inch-400x500-mm_4-mm_4-0_ver"
+          },
+          "price": 107
+        },
+        {
+          "size": "16 x 24",
+          "options": {},
+          "productUid": {
+            "hor": "acrylic_16x24-inch-400x600-mm_4-mm_4-0_hor",
+            "ver": "acrylic_16x24-inch-400x600-mm_4-mm_4-0_ver"
+          },
+          "price": 109
+        },
+        {
+          "size": "20 x 20",
+          "options": {},
+          "productUid": {
+            "hor": "acrylic_20x20-inch-500x500-mm_4-mm_4-0_hor",
+            "ver": "acrylic_20x20-inch-500x500-mm_4-mm_4-0_ver"
+          },
+          "price": 112
+        },
+        {
+          "size": "18 x 24",
+          "options": {},
+          "productUid": {
+            "hor": "acrylic_18x24-inch-450x600-mm_4-mm_4-0_hor",
+            "ver": "acrylic_18x24-inch-450x600-mm_4-mm_4-0_ver"
+          },
+          "price": 116
+        },
+        {
+          "size": "20 x 30",
+          "options": {},
+          "productUid": {
+            "hor": "acrylic_20x30-inch-500x750-mm_4-mm_4-0_hor",
+            "ver": "acrylic_20x30-inch-500x750-mm_4-mm_4-0_ver"
+          },
+          "price": 156
+        },
+        {
+          "size": "24 x 36",
+          "options": {},
+          "productUid": {
+            "hor": "acrylic_24x36-inch-600x900-mm_4-mm_4-0_hor",
+            "ver": "acrylic_24x36-inch-600x900-mm_4-mm_4-0_ver"
+          },
+          "price": 178
+        },
+        {
+          "size": "28 x 40",
+          "options": {},
+          "productUid": {
+            "hor": "acrylic_28x40-inch-700x1000-mm_4-mm_4-0_hor",
+            "ver": "acrylic_28x40-inch-700x1000-mm_4-mm_4-0_ver"
+          },
+          "price": 218
+        }
+      ]
+    },
+    {
+      "slug": "wood-print",
+      "name": "Wood Print",
+      "category": "Wall Art",
+      "gelatoCatalog": "wood-prints",
+      "options": [
+        {
+          "key": "thickness",
+          "label": "Thickness",
+          "values": [
+            {
+              "value": "10-mm",
+              "label": "10 mm"
+            },
+            {
+              "value": "20-mm",
+              "label": "20 mm"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "size": "8 x 12",
+          "options": {
+            "thickness": "10-mm"
+          },
+          "productUid": {
+            "hor": "wood_8x12-inch-200x300-mm_lined-plywood_10-mm_hor-grain_4-0_hor",
+            "ver": "wood_8x12-inch-200x300-mm_lined-plywood_10-mm_hor-grain_4-0_ver"
+          },
+          "price": 49
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "thickness": "20-mm"
+          },
+          "productUid": {
+            "hor": "wood_8x12-inch-200x300-mm_lined-plywood_20-mm_hor-grain_4-0_hor",
+            "ver": "wood_8x12-inch-200x300-mm_lined-plywood_20-mm_hor-grain_4-0_ver"
+          },
+          "price": 73
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "thickness": "10-mm"
+          },
+          "productUid": {
+            "hor": "wood_12x12-inch-300x300-mm_lined-plywood_10-mm_hor-grain_4-0_hor",
+            "ver": "wood_12x12-inch-300x300-mm_lined-plywood_10-mm_hor-grain_4-0_ver"
+          },
+          "price": 82
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "thickness": "20-mm"
+          },
+          "productUid": {
+            "hor": "wood_12x12-inch-300x300-mm_lined-plywood_20-mm_hor-grain_4-0_hor",
+            "ver": "wood_12x12-inch-300x300-mm_lined-plywood_20-mm_hor-grain_4-0_ver"
+          },
+          "price": 123
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "thickness": "10-mm"
+          },
+          "productUid": {
+            "hor": "wood_12x16-inch-300x400-mm_lined-plywood_10-mm_hor-grain_4-0_hor",
+            "ver": "wood_12x16-inch-300x400-mm_lined-plywood_10-mm_hor-grain_4-0_ver"
+          },
+          "price": 100
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "thickness": "20-mm"
+          },
+          "productUid": {
+            "hor": "wood_12x16-inch-300x400-mm_lined-plywood_20-mm_hor-grain_4-0_hor",
+            "ver": "wood_12x16-inch-300x400-mm_lined-plywood_20-mm_hor-grain_4-0_ver"
+          },
+          "price": 149
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "thickness": "10-mm"
+          },
+          "productUid": {
+            "hor": "wood_12x18-inch-300x450-mm_lined-plywood_10-mm_hor-grain_4-0_hor",
+            "ver": "wood_12x18-inch-300x450-mm_lined-plywood_10-mm_hor-grain_4-0_ver"
+          },
+          "price": 102
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "thickness": "20-mm"
+          },
+          "productUid": {
+            "hor": "wood_12x18-inch-300x450-mm_lined-plywood_20-mm_hor-grain_4-0_hor",
+            "ver": "wood_12x18-inch-300x450-mm_lined-plywood_20-mm_hor-grain_4-0_ver"
+          },
+          "price": 152
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "thickness": "10-mm"
+          },
+          "productUid": {
+            "hor": "wood_16x16-inch-400x400-mm_lined-plywood_10-mm_hor-grain_4-0_hor",
+            "ver": "wood_16x16-inch-400x400-mm_lined-plywood_10-mm_hor-grain_4-0_ver"
+          },
+          "price": 108
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "thickness": "20-mm"
+          },
+          "productUid": {
+            "hor": "wood_16x16-inch-400x400-mm_lined-plywood_20-mm_hor-grain_4-0_hor",
+            "ver": "wood_16x16-inch-400x400-mm_lined-plywood_20-mm_hor-grain_4-0_ver"
+          },
+          "price": 162
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "thickness": "10-mm"
+          },
+          "productUid": {
+            "hor": "wood_16x20-inch-400x500-mm_lined-plywood_10-mm_hor-grain_4-0_hor",
+            "ver": "wood_16x20-inch-400x500-mm_lined-plywood_10-mm_hor-grain_4-0_ver"
+          },
+          "price": 127
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "thickness": "20-mm"
+          },
+          "productUid": {
+            "hor": "wood_16x20-inch-400x500-mm_lined-plywood_20-mm_hor-grain_4-0_hor",
+            "ver": "wood_16x20-inch-400x500-mm_lined-plywood_20-mm_hor-grain_4-0_ver"
+          },
+          "price": 190
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "thickness": "10-mm"
+          },
+          "productUid": {
+            "hor": "wood_16x24-inch-400x600-mm_lined-plywood_10-mm_hor-grain_4-0_hor",
+            "ver": "wood_16x24-inch-400x600-mm_lined-plywood_10-mm_hor-grain_4-0_ver"
+          },
+          "price": 133
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "thickness": "20-mm"
+          },
+          "productUid": {
+            "hor": "wood_16x24-inch-400x600-mm_lined-plywood_20-mm_hor-grain_4-0_hor",
+            "ver": "wood_16x24-inch-400x600-mm_lined-plywood_20-mm_hor-grain_4-0_ver"
+          },
+          "price": 199
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "thickness": "10-mm"
+          },
+          "productUid": {
+            "hor": "wood_20x20-inch-500x500-mm_lined-plywood_10-mm_hor-grain_4-0_hor",
+            "ver": "wood_20x20-inch-500x500-mm_lined-plywood_10-mm_hor-grain_4-0_ver"
+          },
+          "price": 153
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "thickness": "20-mm"
+          },
+          "productUid": {
+            "hor": "wood_20x20-inch-500x500-mm_lined-plywood_20-mm_hor-grain_4-0_hor",
+            "ver": "wood_20x20-inch-500x500-mm_lined-plywood_20-mm_hor-grain_4-0_ver"
+          },
+          "price": 229
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "thickness": "10-mm"
+          },
+          "productUid": {
+            "hor": "wood_18x24-inch-450x600-mm_lined-plywood_10-mm_hor-grain_4-0_hor",
+            "ver": "wood_18x24-inch-450x600-mm_lined-plywood_10-mm_hor-grain_4-0_ver"
+          },
+          "price": 157
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "thickness": "20-mm"
+          },
+          "productUid": {
+            "hor": "wood_18x24-inch-450x600-mm_lined-plywood_20-mm_hor-grain_4-0_hor",
+            "ver": "wood_18x24-inch-450x600-mm_lined-plywood_20-mm_hor-grain_4-0_ver"
+          },
+          "price": 236
+        },
+        {
+          "size": "20 x 30",
+          "options": {
+            "thickness": "10-mm"
+          },
+          "productUid": {
+            "hor": "wood_20x30-inch-500x750-mm_lined-plywood_10-mm_hor-grain_4-0_hor",
+            "ver": "wood_20x30-inch-500x750-mm_lined-plywood_10-mm_hor-grain_4-0_ver"
+          },
+          "price": 178
+        },
+        {
+          "size": "20 x 30",
+          "options": {
+            "thickness": "20-mm"
+          },
+          "productUid": {
+            "hor": "wood_20x30-inch-500x750-mm_lined-plywood_20-mm_hor-grain_4-0_hor",
+            "ver": "wood_20x30-inch-500x750-mm_lined-plywood_20-mm_hor-grain_4-0_ver"
+          },
+          "price": 267
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "thickness": "10-mm"
+          },
+          "productUid": {
+            "hor": "wood_24x36-inch-600x900-mm_lined-plywood_10-mm_hor-grain_4-0_hor",
+            "ver": "wood_24x36-inch-600x900-mm_lined-plywood_10-mm_hor-grain_4-0_ver"
+          },
+          "price": 207
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "thickness": "20-mm"
+          },
+          "productUid": {
+            "hor": "wood_24x36-inch-600x900-mm_lined-plywood_20-mm_hor-grain_4-0_hor",
+            "ver": "wood_24x36-inch-600x900-mm_lined-plywood_20-mm_hor-grain_4-0_ver"
+          },
+          "price": 310
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "thickness": "10-mm"
+          },
+          "productUid": {
+            "hor": "wood_28x40-inch-700x1000-mm_lined-plywood_10-mm_hor-grain_4-0_hor",
+            "ver": "wood_28x40-inch-700x1000-mm_lined-plywood_10-mm_hor-grain_4-0_ver"
+          },
+          "price": 244
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "thickness": "20-mm"
+          },
+          "productUid": {
+            "hor": "wood_28x40-inch-700x1000-mm_lined-plywood_20-mm_hor-grain_4-0_hor",
+            "ver": "wood_28x40-inch-700x1000-mm_lined-plywood_20-mm_hor-grain_4-0_ver"
+          },
+          "price": 366
+        }
+      ]
+    },
+    {
+      "slug": "foam-print",
+      "name": "Foam Print",
+      "category": "Wall Art",
+      "gelatoCatalog": "foam-print-product",
+      "options": [
+        {
+          "key": "edge",
+          "label": "Edge",
+          "values": [
+            {
+              "value": "black",
+              "label": "Black"
+            },
+            {
+              "value": "white",
+              "label": "White"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "size": "8 x 12",
+          "options": {
+            "edge": "black"
+          },
+          "productUid": {
+            "hor": "foam_8x12-inch-200x300-mm_5-mm_black_4-0_hor",
+            "ver": "foam_8x12-inch-200x300-mm_5-mm_black_4-0_ver"
+          },
+          "price": 31
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "edge": "white"
+          },
+          "productUid": {
+            "hor": "foam_8x12-inch-200x300-mm_5-mm_white_4-0_hor",
+            "ver": "foam_8x12-inch-200x300-mm_5-mm_white_4-0_ver"
+          },
+          "price": 31
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "edge": "black"
+          },
+          "productUid": {
+            "hor": "foam_12x12-inch-300x300-mm_5-mm_black_4-0_hor",
+            "ver": "foam_12x12-inch-300x300-mm_5-mm_black_4-0_ver"
+          },
+          "price": 34
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "edge": "white"
+          },
+          "productUid": {
+            "hor": "foam_12x12-inch-300x300-mm_5-mm_white_4-0_hor",
+            "ver": "foam_12x12-inch-300x300-mm_5-mm_white_4-0_ver"
+          },
+          "price": 34
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "edge": "black"
+          },
+          "productUid": {
+            "hor": "foam_12x16-inch-300x400-mm_5-mm_black_4-0_hor",
+            "ver": "foam_12x16-inch-300x400-mm_5-mm_black_4-0_ver"
+          },
+          "price": 38
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "edge": "white"
+          },
+          "productUid": {
+            "hor": "foam_12x16-inch-300x400-mm_5-mm_white_4-0_hor",
+            "ver": "foam_12x16-inch-300x400-mm_5-mm_white_4-0_ver"
+          },
+          "price": 38
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "edge": "black"
+          },
+          "productUid": {
+            "hor": "foam_12x18-inch-300x450-mm_5-mm_black_4-0_hor",
+            "ver": "foam_12x18-inch-300x450-mm_5-mm_black_4-0_ver"
+          },
+          "price": 40
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "edge": "white"
+          },
+          "productUid": {
+            "hor": "foam_12x18-inch-300x450-mm_5-mm_white_4-0_hor",
+            "ver": "foam_12x18-inch-300x450-mm_5-mm_white_4-0_ver"
+          },
+          "price": 40
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "edge": "black"
+          },
+          "productUid": {
+            "hor": "foam_16x16-inch-400x400-mm_5-mm_black_4-0_hor",
+            "ver": "foam_16x16-inch-400x400-mm_5-mm_black_4-0_ver"
+          },
+          "price": 43
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "edge": "white"
+          },
+          "productUid": {
+            "hor": "foam_16x16-inch-400x400-mm_5-mm_white_4-0_hor",
+            "ver": "foam_16x16-inch-400x400-mm_5-mm_white_4-0_ver"
+          },
+          "price": 43
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "edge": "black"
+          },
+          "productUid": {
+            "hor": "foam_16x20-inch-400x500-mm_5-mm_black_4-0_hor",
+            "ver": "foam_16x20-inch-400x500-mm_5-mm_black_4-0_ver"
+          },
+          "price": 49
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "edge": "white"
+          },
+          "productUid": {
+            "hor": "foam_16x20-inch-400x500-mm_5-mm_white_4-0_hor",
+            "ver": "foam_16x20-inch-400x500-mm_5-mm_white_4-0_ver"
+          },
+          "price": 49
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "edge": "black"
+          },
+          "productUid": {
+            "hor": "foam_16x24-inch-400x600-mm_5-mm_black_4-0_hor",
+            "ver": "foam_16x24-inch-400x600-mm_5-mm_black_4-0_ver"
+          },
+          "price": 51
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "edge": "white"
+          },
+          "productUid": {
+            "hor": "foam_16x24-inch-400x600-mm_5-mm_white_4-0_hor",
+            "ver": "foam_16x24-inch-400x600-mm_5-mm_white_4-0_ver"
+          },
+          "price": 51
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "edge": "black"
+          },
+          "productUid": {
+            "hor": "foam_20x20-inch-500x500-mm_5-mm_black_4-0_hor",
+            "ver": "foam_20x20-inch-500x500-mm_5-mm_black_4-0_ver"
+          },
+          "price": 54
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "edge": "white"
+          },
+          "productUid": {
+            "hor": "foam_20x20-inch-500x500-mm_5-mm_white_4-0_hor",
+            "ver": "foam_20x20-inch-500x500-mm_5-mm_white_4-0_ver"
+          },
+          "price": 54
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "edge": "black"
+          },
+          "productUid": {
+            "hor": "foam_18x24-inch-450x600-mm_5-mm_black_4-0_hor",
+            "ver": "foam_18x24-inch-450x600-mm_5-mm_black_4-0_ver"
+          },
+          "price": 61
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "edge": "white"
+          },
+          "productUid": {
+            "hor": "foam_18x24-inch-450x600-mm_5-mm_white_4-0_hor",
+            "ver": "foam_18x24-inch-450x600-mm_5-mm_white_4-0_ver"
+          },
+          "price": 61
+        },
+        {
+          "size": "20 x 30",
+          "options": {
+            "edge": "black"
+          },
+          "productUid": {
+            "hor": "foam_20x30-inch-500x750-mm_5-mm_black_4-0_hor",
+            "ver": "foam_20x30-inch-500x750-mm_5-mm_black_4-0_ver"
+          },
+          "price": 71
+        },
+        {
+          "size": "20 x 30",
+          "options": {
+            "edge": "white"
+          },
+          "productUid": {
+            "hor": "foam_20x30-inch-500x750-mm_5-mm_white_4-0_hor",
+            "ver": "foam_20x30-inch-500x750-mm_5-mm_white_4-0_ver"
+          },
+          "price": 71
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "edge": "black"
+          },
+          "productUid": {
+            "hor": "foam_24x36-inch-600x900-mm_5-mm_black_4-0_hor",
+            "ver": "foam_24x36-inch-600x900-mm_5-mm_black_4-0_ver"
+          },
+          "price": 90
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "edge": "white"
+          },
+          "productUid": {
+            "hor": "foam_24x36-inch-600x900-mm_5-mm_white_4-0_hor",
+            "ver": "foam_24x36-inch-600x900-mm_5-mm_white_4-0_ver"
+          },
+          "price": 90
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "edge": "black"
+          },
+          "productUid": {
+            "hor": "foam_28x40-inch-700x1000-mm_5-mm_black_4-0_hor",
+            "ver": "foam_28x40-inch-700x1000-mm_5-mm_black_4-0_ver"
+          },
+          "price": 104
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "edge": "white"
+          },
+          "productUid": {
+            "hor": "foam_28x40-inch-700x1000-mm_5-mm_white_4-0_hor",
+            "ver": "foam_28x40-inch-700x1000-mm_5-mm_white_4-0_ver"
+          },
+          "price": 104
+        }
+      ]
+    },
+    {
+      "slug": "wood-frame",
+      "name": "Wood Frame",
+      "category": "Wall Art",
+      "gelatoCatalog": "mounted-fine-art",
+      "options": [
+        {
+          "key": "frame",
+          "label": "Frame",
+          "values": [
+            {
+              "value": "black",
+              "label": "Black"
+            },
+            {
+              "value": "white",
+              "label": "White"
+            },
+            {
+              "value": "natural-wood",
+              "label": "Natural wood"
+            },
+            {
+              "value": "dark-wood",
+              "label": "Dark wood"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "size": "8 x 10",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_8x10-inch-200x250-mm_8x10-inch-200x250-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_8x10-inch-200x250-mm_8x10-inch-200x250-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 79
+        },
+        {
+          "size": "8 x 10",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_8x10-inch-200x250-mm_8x10-inch-200x250-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_8x10-inch-200x250-mm_8x10-inch-200x250-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 79
+        },
+        {
+          "size": "8 x 10",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_8x10-inch-200x250-mm_8x10-inch-200x250-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_8x10-inch-200x250-mm_8x10-inch-200x250-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 79
+        },
+        {
+          "size": "8 x 10",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_8x10-inch-200x250-mm_8x10-inch-200x250-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_8x10-inch-200x250-mm_8x10-inch-200x250-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 79
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_8x12-inch-a4_8x12-inch-a4_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_8x12-inch-a4_8x12-inch-a4_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 97
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_8x12-inch-a4_8x12-inch-a4_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_8x12-inch-a4_8x12-inch-a4_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 97
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_8x12-inch-a4_8x12-inch-a4_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_8x12-inch-a4_8x12-inch-a4_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 97
+        },
+        {
+          "size": "8 x 12",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_8x12-inch-a4_8x12-inch-a4_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_8x12-inch-a4_8x12-inch-a4_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 97
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_12x12-inch-300x300-mm_12x12-inch-300x300-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_12x12-inch-300x300-mm_12x12-inch-300x300-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 115
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_12x12-inch-300x300-mm_12x12-inch-300x300-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_12x12-inch-300x300-mm_12x12-inch-300x300-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 115
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_12x12-inch-300x300-mm_12x12-inch-300x300-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_12x12-inch-300x300-mm_12x12-inch-300x300-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 115
+        },
+        {
+          "size": "12 x 12",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_12x12-inch-300x300-mm_12x12-inch-300x300-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_12x12-inch-300x300-mm_12x12-inch-300x300-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 115
+        },
+        {
+          "size": "11 x 14",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_11x14-inch-270x350-mm_11x14-inch-270x350-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_11x14-inch-270x350-mm_11x14-inch-270x350-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 122
+        },
+        {
+          "size": "11 x 14",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_11x14-inch-270x350-mm_11x14-inch-270x350-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_11x14-inch-270x350-mm_11x14-inch-270x350-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 122
+        },
+        {
+          "size": "11 x 14",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_11x14-inch-270x350-mm_11x14-inch-270x350-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_11x14-inch-270x350-mm_11x14-inch-270x350-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 122
+        },
+        {
+          "size": "11 x 14",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_11x14-inch-270x350-mm_11x14-inch-270x350-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_11x14-inch-270x350-mm_11x14-inch-270x350-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 122
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_12x16-inch-300x400-mm_12x16-inch-300x400-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_12x16-inch-300x400-mm_12x16-inch-300x400-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 128
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_12x16-inch-300x400-mm_12x16-inch-300x400-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_12x16-inch-300x400-mm_12x16-inch-300x400-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 128
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_12x16-inch-300x400-mm_12x16-inch-300x400-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_12x16-inch-300x400-mm_12x16-inch-300x400-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 128
+        },
+        {
+          "size": "12 x 16",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_12x16-inch-300x400-mm_12x16-inch-300x400-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_12x16-inch-300x400-mm_12x16-inch-300x400-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 128
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_12x18-inch-300x450-mm_12x18-inch-300x450-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_12x18-inch-300x450-mm_12x18-inch-300x450-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 130
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_12x18-inch-300x450-mm_12x18-inch-300x450-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_12x18-inch-300x450-mm_12x18-inch-300x450-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 130
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_12x18-inch-300x450-mm_12x18-inch-300x450-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_12x18-inch-300x450-mm_12x18-inch-300x450-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 130
+        },
+        {
+          "size": "12 x 18",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_12x18-inch-300x450-mm_12x18-inch-300x450-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_12x18-inch-300x450-mm_12x18-inch-300x450-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 130
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_16x16-inch-400x400-mm_16x16-inch-400x400-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_16x16-inch-400x400-mm_16x16-inch-400x400-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 146
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_16x16-inch-400x400-mm_16x16-inch-400x400-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_16x16-inch-400x400-mm_16x16-inch-400x400-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 146
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_16x16-inch-400x400-mm_16x16-inch-400x400-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_16x16-inch-400x400-mm_16x16-inch-400x400-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 146
+        },
+        {
+          "size": "16 x 16",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_16x16-inch-400x400-mm_16x16-inch-400x400-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_16x16-inch-400x400-mm_16x16-inch-400x400-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 146
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_16x20-inch-400x500-mm_16x20-inch-400x500-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_16x20-inch-400x500-mm_16x20-inch-400x500-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 162
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_16x20-inch-400x500-mm_16x20-inch-400x500-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_16x20-inch-400x500-mm_16x20-inch-400x500-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 162
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_16x20-inch-400x500-mm_16x20-inch-400x500-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_16x20-inch-400x500-mm_16x20-inch-400x500-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 162
+        },
+        {
+          "size": "16 x 20",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_16x20-inch-400x500-mm_16x20-inch-400x500-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_16x20-inch-400x500-mm_16x20-inch-400x500-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 162
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_16x24-inch-400x600-mm_16x24-inch-400x600-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_16x24-inch-400x600-mm_16x24-inch-400x600-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 170
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_16x24-inch-400x600-mm_16x24-inch-400x600-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_16x24-inch-400x600-mm_16x24-inch-400x600-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 170
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_16x24-inch-400x600-mm_16x24-inch-400x600-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_16x24-inch-400x600-mm_16x24-inch-400x600-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 170
+        },
+        {
+          "size": "16 x 24",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_16x24-inch-400x600-mm_16x24-inch-400x600-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_16x24-inch-400x600-mm_16x24-inch-400x600-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 170
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_20x20-inch-500x500-mm_20x20-inch-500x500-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_20x20-inch-500x500-mm_20x20-inch-500x500-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 178
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_20x20-inch-500x500-mm_20x20-inch-500x500-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_20x20-inch-500x500-mm_20x20-inch-500x500-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 178
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_20x20-inch-500x500-mm_20x20-inch-500x500-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_20x20-inch-500x500-mm_20x20-inch-500x500-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 178
+        },
+        {
+          "size": "20 x 20",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_20x20-inch-500x500-mm_20x20-inch-500x500-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_20x20-inch-500x500-mm_20x20-inch-500x500-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 178
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_18x24-inch-450x600-mm_18x24-inch-450x600-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_18x24-inch-450x600-mm_18x24-inch-450x600-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 176
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_18x24-inch-450x600-mm_18x24-inch-450x600-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_18x24-inch-450x600-mm_18x24-inch-450x600-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 176
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_18x24-inch-450x600-mm_18x24-inch-450x600-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_18x24-inch-450x600-mm_18x24-inch-450x600-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 176
+        },
+        {
+          "size": "18 x 24",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_18x24-inch-450x600-mm_18x24-inch-450x600-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_18x24-inch-450x600-mm_18x24-inch-450x600-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 176
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_24x36-inch-600x900-mm_24x36-inch-600x900-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_24x36-inch-600x900-mm_24x36-inch-600x900-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 282
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_24x36-inch-600x900-mm_24x36-inch-600x900-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_24x36-inch-600x900-mm_24x36-inch-600x900-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 282
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_24x36-inch-600x900-mm_24x36-inch-600x900-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_24x36-inch-600x900-mm_24x36-inch-600x900-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 282
+        },
+        {
+          "size": "24 x 36",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_24x36-inch-600x900-mm_24x36-inch-600x900-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_24x36-inch-600x900-mm_24x36-inch-600x900-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 282
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_28x40-inch-700x1000-mm_28x40-inch-700x1000-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_28x40-inch-700x1000-mm_28x40-inch-700x1000-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 335
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_28x40-inch-700x1000-mm_28x40-inch-700x1000-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_28x40-inch-700x1000-mm_28x40-inch-700x1000-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 335
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_28x40-inch-700x1000-mm_28x40-inch-700x1000-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_28x40-inch-700x1000-mm_28x40-inch-700x1000-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 335
+        },
+        {
+          "size": "28 x 40",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_28x40-inch-700x1000-mm_28x40-inch-700x1000-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_28x40-inch-700x1000-mm_28x40-inch-700x1000-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 335
+        },
+        {
+          "size": "30 x 40",
+          "options": {
+            "frame": "black"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_hor_30x40-inch-750x1000-mm_30x40-inch-750x1000-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_wood_w12xt22-mm_poster-mounting_plexiglass_ver_30x40-inch-750x1000-mm_30x40-inch-750x1000-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 387
+        },
+        {
+          "size": "30 x 40",
+          "options": {
+            "frame": "white"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_hor_30x40-inch-750x1000-mm_30x40-inch-750x1000-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_white_wood_w12xt22-mm_poster-mounting_plexiglass_ver_30x40-inch-750x1000-mm_30x40-inch-750x1000-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 387
+        },
+        {
+          "size": "30 x 40",
+          "options": {
+            "frame": "natural-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_30x40-inch-750x1000-mm_30x40-inch-750x1000-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_natural-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_30x40-inch-750x1000-mm_30x40-inch-750x1000-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 404
+        },
+        {
+          "size": "30 x 40",
+          "options": {
+            "frame": "dark-wood"
+          },
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_hor_30x40-inch-750x1000-mm_30x40-inch-750x1000-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_dark-wood_wood_w12xt22-mm_poster-mounting_plexiglass_ver_30x40-inch-750x1000-mm_30x40-inch-750x1000-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 387
+        }
+      ]
+    },
+    {
+      "slug": "metal-frame",
+      "name": "Metal Frame",
+      "category": "Wall Art",
+      "gelatoCatalog": "mounted-fine-art",
+      "options": [],
+      "variants": [
+        {
+          "size": "8 x 10",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_8x10-inch-200x250-mm_8x10-inch-200x250-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_8x10-inch-200x250-mm_8x10-inch-200x250-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 91
+        },
+        {
+          "size": "8 x 12",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_8x12-inch-a4_8x12-inch-a4_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_8x12-inch-a4_8x12-inch-a4_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 91
+        },
+        {
+          "size": "12 x 12",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_12x12-inch-300x300-mm_12x12-inch-300x300-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_12x12-inch-300x300-mm_12x12-inch-300x300-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 111
+        },
+        {
+          "size": "11 x 14",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_11x14-inch-270x350-mm_11x14-inch-270x350-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_11x14-inch-270x350-mm_11x14-inch-270x350-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 117
+        },
+        {
+          "size": "12 x 16",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_12x16-inch-300x400-mm_12x16-inch-300x400-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_12x16-inch-300x400-mm_12x16-inch-300x400-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 124
+        },
+        {
+          "size": "12 x 18",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_12x18-inch-300x450-mm_12x18-inch-300x450-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_12x18-inch-300x450-mm_12x18-inch-300x450-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 126
+        },
+        {
+          "size": "16 x 16",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_16x16-inch-400x400-mm_16x16-inch-400x400-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_16x16-inch-400x400-mm_16x16-inch-400x400-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 142
+        },
+        {
+          "size": "16 x 20",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_16x20-inch-400x500-mm_16x20-inch-400x500-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_16x20-inch-400x500-mm_16x20-inch-400x500-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 157
+        },
+        {
+          "size": "16 x 24",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_16x24-inch-400x600-mm_16x24-inch-400x600-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_16x24-inch-400x600-mm_16x24-inch-400x600-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 165
+        },
+        {
+          "size": "20 x 20",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_20x20-inch-500x500-mm_20x20-inch-500x500-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_20x20-inch-500x500-mm_20x20-inch-500x500-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 173
+        },
+        {
+          "size": "18 x 24",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_18x24-inch-450x600-mm_18x24-inch-450x600-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_18x24-inch-450x600-mm_18x24-inch-450x600-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 171
+        },
+        {
+          "size": "24 x 36",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_24x36-inch-600x900-mm_24x36-inch-600x900-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_24x36-inch-600x900-mm_24x36-inch-600x900-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 277
+        },
+        {
+          "size": "28 x 40",
+          "options": {},
+          "productUid": {
+            "hor": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_hor_28x40-inch-700x1000-mm_28x40-inch-700x1000-mm_200-gsm-80lb-enhanced-uncoated",
+            "ver": "framed_fine_arts_poster_mounted_geo_simplified_product_12-0_black_aluminum_w10xt22-mm_poster-mounting_plexiglass_ver_28x40-inch-700x1000-mm_28x40-inch-700x1000-mm_200-gsm-80lb-enhanced-uncoated"
+          },
+          "price": 330
+        }
+      ]
+    }
+  ]
+}
