@@ -9,7 +9,7 @@ const { isShopOrderSession } = require("../shop-order");
 const GELATO_ORDERS = "https://order.gelatoapis.com/v4/orders";
 const ORDER_ID_KEY = "gelato_order_id";
 const STATUS_KEY = "fulfilment_status";
-const SESSION_ID = /^cs_test_[A-Za-z0-9]+$/;
+const SESSION_ID = /^cs_(test|live)_[A-Za-z0-9]+$/;
 const ACTIONS = new Set(["approve", "cancel"]);
 const LIST_LIMIT = 100;
 const PREVIEW_WIDTH = 600;
@@ -58,18 +58,35 @@ const existingGelatoOrder = async (deps, session) => {
 	return gelatoOrderId ? gelatoOrder(deps, session, gelatoOrderId) : null;
 };
 
-// Reprices the cart from the session's recorded settings and confirms each print file. Throws when the order cannot be shown or approved.
-const orderLines = async (deps, session) => {
-	const cartRequest = cartFromMetadata(session.metadata);
+const loadContent = async (deps) => {
 	const raw = await deps.fetchContent();
 	if (!raw) throw failWith("Print content is unavailable. Try again later.");
-	const pricedCart = priceCart(cartRequest, deps.catalog, deps.validateContent(raw), cartRequest.pricing);
+	return deps.validateContent(raw);
+};
+
+// Listing skips the Cloudinary Admin API (rate-limited) and previews the crop by public ID; Approve confirms the original.
+const previewUrl = (cloudName, photo, rectangle) => {
+	const { x, y, width, height } = rectangle;
+	const publicId = photo.publicId.split("/").map(encodeURIComponent).join("/");
+	return `https://res.cloudinary.com/${encodeURIComponent(cloudName)}/image/upload/c_crop,x_${x},y_${y},w_${width},h_${height}/w_${PREVIEW_WIDTH},c_limit/${publicId}`;
+};
+
+// Reprices the cart from the session's recorded settings. With verifyFiles, also confirms each original print file. Throws when the order cannot be shown or approved.
+const orderLines = async (deps, session, content, { verifyFiles = false } = {}) => {
+	const cartRequest = cartFromMetadata(session.metadata);
+	const pricedCart = priceCart(cartRequest, deps.catalog, content, cartRequest.pricing);
 	if (session.currency !== "usd" || paidBeforeTax(session) !== pricedCart.total) {
 		throw failWith("Order details could not be verified.", 409);
 	}
 	const resources = new Map();
 	const lines = [];
 	for (const line of pricedCart.lines) {
+		const rectangle = cropRectangle(line.photo, line.size, line.crop);
+		const lineSummary = { productName: line.productName, size: line.size, optionLabels: line.optionLabels, quantity: line.quantity };
+		if (!verifyFiles) {
+			lines.push({ ...lineSummary, previewUrl: previewUrl(deps.env.CLOUDINARY_CLOUD_NAME, line.photo, rectangle) });
+			continue;
+		}
 		let resource = resources.get(line.photo.publicId);
 		if (!resource) {
 			resource = await deps.confirmOriginal(line.photo);
@@ -78,14 +95,8 @@ const orderLines = async (deps, session) => {
 			}
 			resources.set(line.photo.publicId, resource);
 		}
-		const printFile = printFileUrl(deps.env.CLOUDINARY_CLOUD_NAME, line.photo, resource, cropRectangle(line.photo, line.size, line.crop));
-		lines.push({
-			productName: line.productName,
-			size: line.size,
-			optionLabels: line.optionLabels,
-			quantity: line.quantity,
-			previewUrl: printFile.replace(/\/v(\d+)\//, `/w_${PREVIEW_WIDTH},c_limit/v$1/`),
-		});
+		const printFile = printFileUrl(deps.env.CLOUDINARY_CLOUD_NAME, line.photo, resource, rectangle);
+		lines.push({ ...lineSummary, previewUrl: printFile.replace(/\/v(\d+)\//, `/w_${PREVIEW_WIDTH},c_limit/v$1/`) });
 	}
 	return lines;
 };
@@ -103,11 +114,11 @@ const gelatoState = async (deps, session) => {
 	return "needs-attention";
 };
 
-const listRow = async (deps, session) => {
+const listRow = async (deps, session, content) => {
 	const fulfilment = session.metadata[STATUS_KEY];
 	let lines = [];
 	let linesOk = true;
-	try { lines = await orderLines(deps, session); }
+	try { lines = await orderLines(deps, session, content); }
 	catch { linesOk = false; }
 
 	let state;
@@ -151,7 +162,7 @@ const approve = async (deps, stripe, session) => {
 	if (!gelato) throw failWith("The Gelato draft was not found.", 409);
 	if (gelato.orderType === "order") return "approved";
 	if (gelato.orderType !== "draft") throw failWith("This Gelato order cannot be approved.", 409);
-	await orderLines(deps, session);
+	await orderLines(deps, session, await loadContent(deps), { verifyFiles: true });
 
 	if (!sendsToGelato(deps.env)) {
 		if (status !== "approved-test") {
@@ -174,10 +185,15 @@ const cancel = async (deps, stripe, session) => {
 	const paymentIntent = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
 	if (!paymentIntent) throw failWith("This order has no payment to refund.", 409);
 
-	await stripe.refunds.create({ payment_intent: paymentIntent }, { idempotencyKey: `shop-cancel/${session.id}` });
+	// Draft first: if the refund then fails, a retry finds no draft and only refunds.
 	if (gelato) {
 		const response = await gelatoCall(deps, "DELETE", `/${encodeURIComponent(gelato.id)}`);
 		if (!response.ok && response.status !== 404) throw failWith("Gelato could not delete the draft. Try again.");
+	}
+	try {
+		await stripe.refunds.create({ payment_intent: paymentIntent }, { idempotencyKey: `shop-cancel/${session.id}` });
+	} catch (error) {
+		if (error.code !== "charge_already_refunded") throw error;
 	}
 	await stripe.checkout.sessions.update(session.id, { metadata: { [STATUS_KEY]: "cancelled" } });
 	return "cancelled";
@@ -227,7 +243,8 @@ const createHandler = (overrides = {}) => {
 			if (request.method === "GET") {
 				const listed = await stripe.checkout.sessions.list({ limit: LIST_LIMIT });
 				const sessions = (listed.data || []).filter((session) => isShopOrderSession(session) && session.payment_status === "paid");
-				return reply(response, 200, { orders: await Promise.all(sessions.map((session) => listRow(deps, session))) });
+				const content = sessions.length ? await loadContent(deps) : null;
+				return reply(response, 200, { orders: await Promise.all(sessions.map((session) => listRow(deps, session, content))) });
 			}
 
 			const body = await postBody(request);

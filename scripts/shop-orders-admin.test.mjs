@@ -57,13 +57,16 @@ const draftOrder = (id, sessionId) => ({ id, orderReferenceId: sessionId, orderT
 const ok = (value) => ({ ok: true, status: 200, json: async () => clone(value) });
 const notFound = () => ({ ok: false, status: 404, json: async () => ({}) });
 
-const harness = ({ sessions = [], gelatoOrders = [], gelatoDown = false, originalChanged = false, env = {} } = {}) => {
+const harness = ({ sessions = [], gelatoOrders = [], gelatoDown = false, originalChanged = false, refundError = null, env = {} } = {}) => {
 	const store = {
 		sessions: new Map(sessions.map((session) => [session.id, clone(session)])),
 		updates: [],
 		refunds: [],
 		gelato: new Map(gelatoOrders.map((entry) => [entry.id, clone(entry)])),
 		gelatoCalls: [],
+		events: [],
+		contentFetches: 0,
+		confirms: 0,
 	};
 	const stripe = {
 		checkout: {
@@ -84,6 +87,8 @@ const harness = ({ sessions = [], gelatoOrders = [], gelatoDown = false, origina
 		},
 		refunds: {
 			create: async (params, options) => {
+				store.events.push("refund");
+				if (refundError) throw Object.assign(new Error(refundError), { code: refundError });
 				store.refunds.push({ params: clone(params), options: clone(options) });
 				return { id: "re_fixture" };
 			},
@@ -106,19 +111,21 @@ const harness = ({ sessions = [], gelatoOrders = [], gelatoDown = false, origina
 		}
 		if (init.method === "DELETE") {
 			if (!existing) return notFound();
+			store.events.push("delete-draft");
 			store.gelato.delete(id);
 			return { ok: true, status: 204, json: async () => ({}) };
 		}
 		throw new Error(`Unexpected Gelato call ${init.method}`);
 	};
 	const confirmOriginal = async (photo) => {
+		store.confirms += 1;
 		if (originalChanged) return { public_id: photo.publicId, width: photo.width + 1, height: photo.height, version: 7, format: "jpg" };
 		return { public_id: photo.publicId, width: photo.width, height: photo.height, version: 7, format: "jpg" };
 	};
 	const handler = shopOrders.createHandler({
 		env: { CLOUDINARY_CLOUD_NAME: "fixture", STRIPE_SECRET_KEY: "sk_test_fixture", GELATO_API_KEY: "gelato_fixture", ...env },
 		catalog,
-		fetchContent: async () => clone(content),
+		fetchContent: async () => { store.contentFetches += 1; return clone(content); },
 		confirmOriginal,
 		getStripe: () => stripe,
 		gelatoFetch,
@@ -199,7 +206,7 @@ test("lists only paid shop orders with buyer name and city, and no street, email
 	assert.equal(row.lines[0].productName, pricedCart.lines[0].productName);
 	assert.equal(row.lines[0].quantity, 2);
 	assert.match(row.lines[0].previewUrl, /c_crop,/);
-	assert.match(row.lines[0].previewUrl, /\/w_600,c_limit\/v7\/nature\/photo-one\.jpg$/);
+	assert.match(row.lines[0].previewUrl, /\/image\/upload\/c_crop,x_\d+,y_\d+,w_\d+,h_\d+\/w_600,c_limit\/nature\/photo-one$/);
 	const serialized = JSON.stringify(result.body);
 	for (const secret of ["123 Market", "Market Street", "casey@example.test", "+14155550123"]) {
 		assert.equal(serialized.includes(secret), false, `response leaks ${secret}`);
@@ -364,4 +371,26 @@ test("rejects an unknown action and a malformed session ID", async () => {
 	const { handler } = harness({ sessions: [sessionFixture(SESSION_ID)] });
 	assert.equal((await invoke(handler, postAction("refund", SESSION_ID))).status, 400);
 	assert.equal((await invoke(handler, postAction("cancel", "not-a-session"))).status, 400);
+});
+
+test("listing reads content once and never calls the Cloudinary Admin API per photo", async () => {
+	const sessions = ["cs_test_a", "cs_test_b", "cs_test_c"].map((id) => sessionFixture(id, { metadata: { gelato_order_id: `g_${id}` } }));
+	const { store, handler } = harness({ sessions, gelatoOrders: sessions.map((entry) => draftOrder(`g_${entry.id}`, entry.id)) });
+	const result = await invoke(handler, authed());
+	assert.equal(result.status, 200);
+	assert.equal(result.body.orders.length, 3);
+	assert.equal(store.contentFetches, 1);
+	assert.equal(store.confirms, 0);
+});
+
+test("cancel deletes the draft before refunding, and an already-refunded payment still completes", async () => {
+	const first = harness({ sessions: [sessionFixture(SESSION_ID, { metadata: { gelato_order_id: "g_one" } })], gelatoOrders: [draftOrder("g_one", SESSION_ID)] });
+	assert.equal((await invoke(first.handler, postAction("cancel", SESSION_ID))).status, 200);
+	assert.deepEqual(first.store.events, ["delete-draft", "refund"]);
+
+	const retry = harness({ sessions: [sessionFixture(SESSION_ID, { metadata: { gelato_order_id: "g_one" } })], refundError: "charge_already_refunded" });
+	const result = await invoke(retry.handler, postAction("cancel", SESSION_ID));
+	assert.equal(result.status, 200);
+	assert.equal(result.body.state, "cancelled");
+	assert.equal(retry.store.sessions.get(SESSION_ID).metadata.fulfilment_status, "cancelled");
 });
