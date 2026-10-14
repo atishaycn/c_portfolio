@@ -24,6 +24,12 @@
   - Description: Every open workstream with its branch, worktree, status and next step; open loose ends; archived branches.
   - Read If: Starting a session, picking up or finishing any workstream, or asked "what's open".
 
+### `research/` - Cited findings
+
+- `pixieset-build-vs-buy.md`
+  - Description: Pixieset features and prices mapped to what our site has, build effort per feature, our stack's running cost, and the build-or-buy recommendation.
+  - Read If: Planning client galleries, invoices, contracts, booking tools or any Pixieset-like feature, or choosing a photography business platform.
+
 ### `specs/` - System contracts
 
 - `release-and-security.md`
