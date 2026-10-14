@@ -20,6 +20,9 @@
 
 ### `plans/` - Live work tracking
 
+- `cloudflare-migration.md`
+  - Description: Plan and constraints for moving the whole site from Vercel to Cloudflare Workers Free: CPU limit, adapter, workers.dev testing, DNS and contact@ mail cutover.
+  - Read If: Working on hosting, deploys, DNS, or the `infra/cloudflare` branch.
 - `work-board.md`
   - Description: Every open workstream with its branch, worktree, status and next step; open loose ends; archived branches.
   - Read If: Starting a session, picking up or finishing any workstream, or asked "what's open".
