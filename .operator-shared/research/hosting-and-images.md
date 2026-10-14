@@ -20,6 +20,12 @@ Last Updated: 2026-10-14. Prices from the vendors' pages (sources at the end); C
 - Work: admin uploads to R2 (signed uploads), the CMS JSON as an R2 object, every image URL in the site and Shop, and the print-file crop rebuilt with Cloudflare's `trim` parameters. Output size limits for full-resolution print files were not confirmed; check them before moving the Shop.
 - Effort: about 3–5 agent days.
 
+## Vercel Hobby and a shop-only move
+
+- The project is on Vercel Hobby (user, 2026-10-14), and the user does not want to pay for Pro.
+- Vercel counts "advertising the sale of a product or service" and "any method of requesting or processing payment from visitors" as commercial, and calls circumventing its limits a violation. The Booking page (priced packages) and the Shop pages already advertise sales, so moving only the shop's functions off Vercel would not make the Vercel site non-commercial.
+- Whole-site move to Cloudflare: static pages are free on any plan; functions fit Workers Free (100,000 requests a day) only if each request stays under 10 ms CPU, and a request over it fails with error 1102. The scrypt admin login exceeds that, so plan on Workers Paid ($5/mo) or measure first.
+
 ## Recommendation
 
 - Stay on Vercel and Cloudinary now: Cloudinary costs $0 with about 3× headroom, and the move saves at most $180/yr for about a week of work plus DNS and mail risk.
