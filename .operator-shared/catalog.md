@@ -8,6 +8,9 @@
 - `catalog.md`
   - Description: This catalog.
   - Read If: Auto-injected.
+- `../GLOSSARY.md`
+  - Description: The project's ubiquitous language: the domain terms for the portfolio, booking, Shop, and client intake.
+  - Read If: Naming things, writing user-facing text, or re-explaining a message with `/wait-what`.
 
 ### `product/` - Business and product intent
 
