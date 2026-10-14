@@ -32,6 +32,9 @@
 - `shop-checkout.md`
   - Description: Cart to Stripe payment to Gelato order: server-side pricing, photo size check, print file, test-mode guard, shipping sample, webhook plan.
   - Read If: Building or changing checkout, payment, order handling, or anything that sends an order to Gelato.
+- `shop-admin.md`
+  - Description: Admin shop settings (markup, shipping rates) and the Orders tab: approve, cancel with refund, edit crop and same-price options.
+  - Read If: Changing shop settings, order review, or any admin endpoint that moves money.
 - `site-design.md`
   - Description: Public site navigation, homepage, section pages and colour decisions the user settled.
   - Read If: Changing any public page layout, navigation or styling.

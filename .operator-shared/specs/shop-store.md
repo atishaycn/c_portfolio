@@ -38,7 +38,7 @@ Checked against the Gelato product API on 2026-10-13 (every product in each cata
 
 - `scripts/shop-catalog.mjs` reads the Gelato product API (GET and search only) and writes `content/shop-catalog.json`, which the site serves and the checkout server reads. It is the only source of products, options, sizes, product UIDs and retail prices.
 - Each variant is one size plus one value per option, with the Gelato product UID for both orientations and one retail price.
-- Retail price = Gelato US cost × `markup`, rounded up to a whole dollar. `markup` is 2.5 (user decision, 2026-10-14: launch with it; Claire may change it later). Gelato costs stay out of the served file; the script writes them to `scripts/shop-catalog-costs.json`.
+- Retail price = Gelato US cost × `markup`, rounded up to a whole dollar. `markup` is 2.5 by default; Claire changes it in the admin (`specs/shop-admin.md`). Gelato costs stay out of the served file; the script writes them to `scripts/shop-catalog-costs.json`.
 - Shipping is not in the price.
 - The browser loads the file before the store renders (`cms-loader.js` fetches it on the Shop page and hands it to `shop.js`). `shop.js` holds only presentation: descriptions, option descriptions, swatch colours and mockup styles, keyed by product slug and option value. If the file cannot be loaded, the Shop page says the store is unavailable and shows the email link.
 - A price shown anywhere in the store is the variant's `price` from the file, and a chosen option is shown by its `label` from the file, never its raw `value`. A cart line whose product, size or option values match no variant is dropped.
