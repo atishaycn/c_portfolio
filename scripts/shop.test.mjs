@@ -16,6 +16,48 @@ const plain = (value) => JSON.parse(JSON.stringify(value));
 const slugPart = (value) => String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const sizeArea = (size) => size.split("x").map((side) => Number(side.trim())).reduce((area, side) => area * side, 1);
 
+test("maps cart lines to the checkout request without prices", () => {
+	const request = plain(shop.checkoutRequest([{
+		lineId: "line-1",
+		productSlug: "print",
+		selections: { size: "12 x 16", paper: "matte" },
+		photoId: "photo-1",
+		crop: { x: 18, y: -12 },
+		quantity: 3,
+		unitPrice: 19.5,
+	}]));
+	assert.deepEqual(request, {
+		lines: [{
+			productSlug: "print",
+			size: "12 x 16",
+			options: { paper: "matte" },
+			photoId: "photo-1",
+			crop: { x: 18, y: -12 },
+			quantity: 3,
+		}],
+	});
+	assert.equal("price" in request.lines[0], false);
+});
+
+test("checks the 125 ppi limit on both sides at the boundary in either orientation", () => {
+	assert.equal(shop.photoSupportsSize({ width: 4999, height: 3750 }, "30 x 40"), false);
+	assert.equal(shop.photoSupportsSize({ width: 5000, height: 3750 }, "30 x 40"), true);
+	assert.equal(shop.photoSupportsSize({ width: 3750, height: 4999 }, "30 x 40"), false);
+	assert.equal(shop.photoSupportsSize({ width: 3750, height: 5000 }, "30 x 40"), true);
+	assert.equal(shop.photoSupportsSize({ width: 5000, height: 3456 }, "30 x 40"), false);
+});
+
+test("reads the Stripe return parameters", () => {
+	assert.deepEqual(plain(shop.readCheckoutParams("?checkout=success&session_id=cs_test_abc")), {
+		checkout: "success",
+		sessionId: "cs_test_abc",
+	});
+	assert.deepEqual(plain(shop.readCheckoutParams("?checkout=cancelled")), {
+		checkout: "cancelled",
+		sessionId: "",
+	});
+});
+
 test("builds catalog products, sizes, options, and defaults from the generated file", () => {
 	assert.equal(startedEmpty, true);
 	assert.deepEqual(

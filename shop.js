@@ -253,8 +253,54 @@
 		return "$" + Number(value).toFixed(2);
 	}
 
+	function formatCents(value) {
+		return formatPrice(Number(value) / 100);
+	}
+
 	const CART_STORAGE_KEY = "ct-shop-cart-v1";
 	const CROP_OFFSET_LIMIT = 50;
+	const PHOTO_PIXELS_PER_INCH = 125;
+	const CHECKOUT_ERROR = "Checkout could not be started. Please try again.";
+	const ORDER_ERROR = "We could not confirm this order yet.";
+
+	function photoSupportsSize(photo, size) {
+		const match = String(size || "").match(/^\s*(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)\s*$/i);
+		const width = Number(photo && photo.width);
+		const height = Number(photo && photo.height);
+		if (!match || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return false;
+		const sizeWidth = Number(match[1]);
+		const sizeHeight = Number(match[2]);
+		return Math.max(width, height) >= Math.max(sizeWidth, sizeHeight) * PHOTO_PIXELS_PER_INCH
+			&& Math.min(width, height) >= Math.min(sizeWidth, sizeHeight) * PHOTO_PIXELS_PER_INCH;
+	}
+
+	function checkoutRequest(cart) {
+		return {
+			lines: (Array.isArray(cart) ? cart : []).map((line) => {
+				const selections = line && line.selections && typeof line.selections === "object" ? line.selections : {};
+				const { size, ...options } = selections;
+				return {
+					productSlug: line.productSlug,
+					size,
+					options,
+					photoId: line.photoId,
+					crop: clampCrop(line.crop),
+					quantity: line.quantity,
+				};
+			}),
+		};
+	}
+
+	function readCheckoutParams(search) {
+		const query = String(search || "").replace(/^\?/, "");
+		const parameter = (name) => {
+			const entry = query.split("&").find((part) => part.split("=", 1)[0] === name);
+			if (!entry) return "";
+			const value = entry.slice(entry.indexOf("=") + 1).replace(/\+/g, " ");
+			try { return decodeURIComponent(value); } catch { return ""; }
+		};
+		return { checkout: parameter("checkout"), sessionId: parameter("session_id") };
+	}
 
 	function clampCrop(crop) {
 		const offset = crop && typeof crop === "object" ? crop : {};
@@ -514,9 +560,12 @@
 	function renderOptionGroup(product, group, state) {
 		const selection = state.selections[group.key] || "";
 		const invalid = state.invalid && state.invalid.has(group.key);
-		const selectedOption = group.options.find((entry) => entry.value === selection);
+		const options = state.screen === "customize" && group.key === "size"
+			? group.options.filter((entry) => state.lines.every((line) => photoSupportsSize(photoForId(state.photos, line.photoId), entry.value)))
+			: group.options;
+		const selectedOption = options.find((entry) => entry.value === selection);
 		const selectedText = selectedOption ? selectedOption.label : (invalid ? "* Select an option" : "");
-		const buttons = group.options.map((entry) => {
+		const buttons = options.map((entry) => {
 			const isSelected = selection === entry.value;
 			const swatch = group.kind === "swatch"
 				? '<span class="shop-swatch" style="--shop-swatch:' + escapeHtml(entry.swatch || "#ccc") + '" aria-hidden="true"></span>'
@@ -597,7 +646,10 @@
 	}
 
 	function renderCartPage(state) {
-		if (!state.cart.length) return '<section class="shop-page shop-cart-page"><div class="shop-shell"><header class="shop-cart-heading"><p class="shop-eyebrow">SHOPPING CART</p><h1>Your cart is empty</h1></header><a class="shop-primary-button shop-cart-browse" href="./prints.html">Browse products</a></div></section>';
+		const notice = state.checkoutNotice
+			? '<p class="shop-checkout-notice" role="status">' + escapeHtml(state.checkoutNotice) + '</p>'
+			: '';
+		if (!state.cart.length) return '<section class="shop-page shop-cart-page"><div class="shop-shell"><header class="shop-cart-heading"><p class="shop-eyebrow">SHOPPING CART</p><h1>Your cart is empty</h1></header>' + notice + '<a class="shop-primary-button shop-cart-browse" href="./prints.html">Browse products</a></div></section>';
 		const lines = state.cart.map((line) => {
 			const product = productForSlug(line.productSlug);
 			const photo = photoForId(state.photos, line.photoId);
@@ -606,24 +658,20 @@
 				'<div class="shop-cart-line__details"><h2>' + escapeHtml(product.name) + '</h2><p>' + escapeHtml(summary) + '</p><div class="shop-cart-line__tools"><div class="shop-quantity"><button type="button" data-shop-action="quantity-down" data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Decrease quantity">−</button><input type="number" min="1" step="1" value="' + line.quantity + '" data-shop-quantity data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Quantity"/><button type="button" data-shop-action="quantity-up" data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Increase quantity">+</button></div>' +
 				'<button class="shop-cart-remove" type="button" data-shop-action="remove-line" data-line-id="' + escapeHtml(line.lineId) + '">Remove</button></div></div><strong class="shop-cart-line__total">' + formatPrice(lineTotal(line)) + '</strong></article>';
 		}).join("");
-		const emailText = state.cart.map((line) => {
-			const product = productForSlug(line.productSlug);
-			return product.name + " — " + [line.selections.size, selectedOptions(product, line.selections)].filter(Boolean).join(" / ") + " × " + line.quantity + " — " + formatPrice(lineTotal(line));
-		}).join("\n");
-		const mailto = "mailto:contact@clairethomas.art?subject=" + encodeURIComponent("Print order inquiry") + "&body=" + encodeURIComponent("Hello Claire,\n\nI would like to order:\n" + emailText + "\n\nSubtotal: " + formatPrice(cartSubtotal(state.cart)));
 		return '<section class="shop-page shop-cart-page"><div class="shop-shell"><header class="shop-cart-heading"><p class="shop-eyebrow">SHOPPING CART</p><h1>Your cart</h1></header><div class="shop-cart-lines">' + lines + '</div>' +
-			'<div class="shop-cart-summary"><div><span>Subtotal</span><strong>' + formatPrice(cartSubtotal(state.cart)) + '</strong></div><p>Shipping and taxes are confirmed by email.</p><button class="shop-primary-button" type="button" data-shop-action="checkout">Checkout</button>' +
-			'<p class="shop-checkout-message" data-shop-checkout tabindex="-1"' + (state.checkoutOpen ? '' : ' hidden') + ' role="status">Checkout coming soon — email <a href="' + escapeHtml(mailto) + '">contact@clairethomas.art</a> to order.</p></div></div></section>';
+			notice + '<div class="shop-cart-summary"><div><span>Subtotal</span><strong>' + formatPrice(cartSubtotal(state.cart)) + '</strong></div><p>US shipping is added at checkout.</p><button class="shop-primary-button" type="button" data-shop-action="checkout"' + (state.checkoutStarting ? ' disabled' : '') + '>' + (state.checkoutStarting ? 'Starting checkout…' : 'Checkout') + '</button>' +
+			'<p class="shop-checkout-message" data-shop-checkout tabindex="-1"' + (state.checkoutMessage ? '' : ' hidden') + ' role="status">' + escapeHtml(state.checkoutMessage || '') + '</p></div></div></section>';
 	}
 
 	function renderPicker(state) {
 		const tiles = state.photos.map((photo) => {
 			const id = photoIdFor(photo);
 			const selected = state.selectedPhotoIds.has(id);
+			const eligible = photoSupportsSize(photo, state.pickerSize);
 			const source = state.imageUrl(photo);
 			const ratio = (Number(photo.width) || 1) / (Number(photo.height) || 1);
-			return '<button class="shop-picker-photo' + (selected ? ' is-selected' : '') + '" type="button" data-shop-action="picker-toggle" data-photo-id="' + escapeHtml(id) + '" aria-pressed="' + selected + '" aria-label="' + escapeHtml(photo.title || photo.alt || "Photograph") + '" style="--shop-photo-ratio:' + ratio.toFixed(4) + '"><span class="shop-picker-photo__image">' +
-				(source ? '<img src="' + escapeHtml(source) + '" alt="" loading="lazy"/>' : '<span class="shop-mockup__placeholder"></span>') + '</span><span class="shop-picker-photo__check" aria-hidden="true">✓</span>' + (photo.title ? '<span class="shop-picker-photo__title">' + escapeHtml(photo.title) + '</span>' : '') + '</button>';
+			return '<button class="shop-picker-photo' + (selected ? ' is-selected' : '') + (eligible ? '' : ' is-too-small') + '" type="button" data-shop-action="picker-toggle" data-photo-id="' + escapeHtml(id) + '" aria-pressed="' + selected + '" aria-label="' + escapeHtml((photo.title || photo.alt || "Photograph") + (eligible ? '' : ', Too small for this size')) + '"' + (eligible ? '' : ' disabled') + ' style="--shop-photo-ratio:' + ratio.toFixed(4) + '"><span class="shop-picker-photo__image">' +
+				(source ? '<img src="' + escapeHtml(source) + '" alt="" loading="lazy"/>' : '<span class="shop-mockup__placeholder"></span>') + '</span><span class="shop-picker-photo__check" aria-hidden="true">✓</span>' + (photo.title ? '<span class="shop-picker-photo__title">' + escapeHtml(photo.title) + '</span>' : '') + (eligible ? '' : '<span class="shop-picker-photo__warning">Too small for this size</span>') + '</button>';
 		}).join("");
 		return '<div class="shop-picker-overlay" data-shop-picker-backdrop><section class="shop-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="shop-picker-title" tabindex="-1"><header class="shop-picker-header"><button class="shop-icon-button" type="button" data-shop-action="picker-close" aria-label="Close">×</button><div><h1 id="shop-picker-title">Select photos</h1><p>' + state.selectedPhotoIds.size + ' ' + (state.selectedPhotoIds.size === 1 ? 'photo' : 'photos') + ' selected</p></div><a class="shop-picker-cart" href="./prints.html?view=cart" aria-label="Cart, ' + cartCount(state.cart) + ' items">Cart <span>' + cartCount(state.cart) + '</span></a><button class="shop-picker-next" type="button" data-shop-action="picker-next"' + (state.selectedPhotoIds.size ? '' : ' disabled') + '>Next</button></header>' +
 			(state.photos.length ? '<div class="shop-picker-grid">' + tiles + '</div>' : '<p class="shop-picker-empty">No print-enabled photos are available yet.</p>') + '</section></div>';
@@ -637,12 +685,13 @@
 	function renderCustomizeLine(line, state, index) {
 		const product = state.product;
 		const photo = photoForId(state.photos, line.photoId);
-		const sizes = product.sizes.map((size) => '<option value="' + escapeHtml(size) + '"' + (size === state.selections.size ? ' selected' : '') + '>' + escapeHtml(size) + '</option>').join("");
+		const selections = line.selections || state.selections;
+		const sizes = product.sizes.filter((size) => photoSupportsSize(photo, size)).map((size) => '<option value="' + escapeHtml(size) + '"' + (size === selections.size ? ' selected' : '') + '>' + escapeHtml(size) + '</option>').join("");
 		const cropping = state.cropActiveLineId === line.lineId;
 		return '<article class="shop-customize-card"><header class="shop-customize-card__heading"><p>PHOTO ' + (index + 1) + ' OF ' + state.lines.length + '</p><h2>' + escapeHtml(photo && (photo.title || photo.alt) || 'Selected photograph') + '</h2></header>' +
-			'<div class="shop-customize-art-wrap"><div class="shop-customize-art' + (cropping ? ' is-crop-active' : '') + '" data-shop-crop-id="' + escapeHtml(line.lineId) + '" tabindex="0" role="group" aria-label="' + (cropping ? 'Drag or use arrow keys to adjust crop' : 'Photograph preview') + '">' + renderMockup(product, state.selections, photo, { imageUrl: state.imageUrl, eager: true, view: "front", crop: line.crop }) + '</div></div>' +
+			'<div class="shop-customize-art-wrap"><div class="shop-customize-art' + (cropping ? ' is-crop-active' : '') + '" data-shop-crop-id="' + escapeHtml(line.lineId) + '" tabindex="0" role="group" aria-label="' + (cropping ? 'Drag or use arrow keys to adjust crop' : 'Photograph preview') + '">' + renderMockup(product, selections, photo, { imageUrl: state.imageUrl, eager: true, view: "front", crop: line.crop }) + '</div></div>' +
 			'<div class="shop-customize-line-controls"><div class="shop-customize-crop-actions"><button type="button" data-shop-action="crop-toggle" data-line-id="' + escapeHtml(line.lineId) + '">' + (cropping ? 'Done cropping' : 'Edit crop') + '</button><button type="button" data-shop-action="change-photo" data-line-id="' + escapeHtml(line.lineId) + '">Change</button></div>' +
-			(cropping ? '<p class="shop-crop-help">Drag the photo or use arrow keys to reposition it.</p>' : '') + '<div class="shop-customize-size-quantity"><label>Size<select data-shop-size-select aria-label="Print size">' + sizes + '</select></label>' +
+			(cropping ? '<p class="shop-crop-help">Drag the photo or use arrow keys to reposition it.</p>' : '') + '<div class="shop-customize-size-quantity"><label>Size<select data-shop-size-select data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Print size">' + sizes + '</select></label>' +
 			'<label class="shop-quantity-field">Quantity<span class="shop-quantity"><button type="button" data-shop-action="quantity-down" data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Decrease quantity">−</button><input type="number" min="1" step="1" value="' + line.quantity + '" data-shop-quantity data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Quantity"/><button type="button" data-shop-action="quantity-up" data-line-id="' + escapeHtml(line.lineId) + '" aria-label="Increase quantity">+</button></span></label></div></div></article>';
 	}
 
@@ -655,17 +704,30 @@
 
 	function renderCustomize(state) {
 		const product = state.product;
-		const size = state.selections.size || product.sizes[0];
 		const line = state.lines.find((entry) => entry.lineId === state.previewLineId) || state.lines[0];
+		const selections = line && line.selections || state.selections;
+		const size = selections.size || product.sizes[0];
 		const photo = line && photoForId(state.photos, line.photoId);
-		const preview = state.previewLineId && line ? '<div class="shop-preview-overlay" data-shop-preview-backdrop><section class="shop-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="shop-preview-title" tabindex="-1"><header><h2 id="shop-preview-title">Preview on the wall</h2><button class="shop-icon-button" type="button" data-shop-action="preview-close" aria-label="Close preview">×</button></header><div class="shop-preview-wall">' + renderMockup(product, state.selections, photo, { imageUrl: state.imageUrl, eager: true, view: "wall", crop: line.crop }) + '</div></section></div>' : '';
-		return '<section class="shop-page shop-customize-page"><header class="shop-customize-bar"><button class="shop-customize-back" type="button" data-shop-action="customize-back" aria-label="Back to photo selection">←</button><div class="shop-customize-bar__title"><h1 tabindex="-1">' + escapeHtml(size) + '" ' + escapeHtml(product.name) + '</h1><p>' + escapeHtml(customizePrice(product, state.selections)) + '</p></div><div class="shop-customize-bar__actions"><button type="button" data-shop-action="preview">Preview</button><button type="button" data-shop-action="edit-product">Edit product</button><button class="shop-customize-add" type="button" data-shop-action="add-to-cart">Add to cart</button></div></header>' +
+		const preview = state.previewLineId && line ? '<div class="shop-preview-overlay" data-shop-preview-backdrop><section class="shop-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="shop-preview-title" tabindex="-1"><header><h2 id="shop-preview-title">Preview on the wall</h2><button class="shop-icon-button" type="button" data-shop-action="preview-close" aria-label="Close preview">×</button></header><div class="shop-preview-wall">' + renderMockup(product, selections, photo, { imageUrl: state.imageUrl, eager: true, view: "wall", crop: line.crop }) + '</div></section></div>' : '';
+		return '<section class="shop-page shop-customize-page"><header class="shop-customize-bar"><button class="shop-customize-back" type="button" data-shop-action="customize-back" aria-label="Back to photo selection">←</button><div class="shop-customize-bar__title"><h1 tabindex="-1">' + escapeHtml(size) + '" ' + escapeHtml(product.name) + '</h1><p>' + escapeHtml(customizePrice(product, selections)) + '</p></div><div class="shop-customize-bar__actions"><button type="button" data-shop-action="preview">Preview</button><button type="button" data-shop-action="edit-product">Edit product</button><button class="shop-customize-add" type="button" data-shop-action="add-to-cart">Add to cart</button></div></header>' +
 			'<div class="shop-shell shop-customize-shell"><div class="shop-customize-lines">' + state.lines.map((entry, index) => renderCustomizeLine(entry, state, index)).join("") + '</div></div>' + renderEditPanel(state) + preview + '</section>';
+	}
+
+	function renderOrderPage(state) {
+		if (state.orderStatus === "loading") return '<section class="shop-page shop-order-page"><div class="shop-shell"><h1>Order confirmation</h1><p role="status">Confirming your order…</p></div></section>';
+		if (state.orderStatus !== "confirmed") return '<section class="shop-page shop-order-page"><div class="shop-shell"><h1>Order confirmation</h1><p role="status">' + escapeHtml(state.orderError || ORDER_ERROR) + '</p><a href="./prints.html?view=cart">Return to your cart</a></div></section>';
+		const lines = (state.order.lines || []).map((line) => {
+			const options = Object.entries(line.optionLabels || {}).map(([label, value]) => label + ': ' + value).join(' · ');
+			const details = [line.size, options, 'Quantity: ' + line.quantity].filter(Boolean).join(' · ');
+			return '<li class="shop-order-line"><div><strong>' + escapeHtml(line.productName || 'Print') + '</strong><p>' + escapeHtml(details) + '</p></div><span>' + formatCents(line.lineTotal) + '</span></li>';
+		}).join("");
+		return '<section class="shop-page shop-order-page"><div class="shop-shell"><h1>Thank you. Your order is confirmed.</h1><ul class="shop-order-lines">' + lines + '</ul><p class="shop-order-total"><span>Total</span><strong>' + formatCents(state.order.total) + '</strong></p></div></section>';
 	}
 
 	function renderStoreContent(state) {
 		let content;
-		if (state.screen === "cart") content = renderCartPage(state);
+		if (state.screen === "order") content = renderOrderPage(state);
+		else if (state.screen === "cart") content = renderCartPage(state);
 		else if (state.screen === "customize") content = renderCustomize(state);
 		else {
 			content = state.product ? renderProductPage(state.product, state) : renderStoreHome(state);
@@ -688,6 +750,10 @@
 		const safeContext = context || {};
 		const photos = selectStorePhotos(safeContext.albums || []);
 		const params = global.location && global.URLSearchParams ? new global.URLSearchParams(global.location.search) : null;
+		const checkout = readCheckoutParams(global.location ? global.location.search : "");
+		const screen = checkout.checkout === "success"
+			? "order"
+			: checkout.checkout === "cancelled" || (params && params.get("view") === "cart") ? "cart" : "page";
 		const url = safeContext.productSlug === undefined ? (params ? params.get("product") : "") : safeContext.productSlug;
 		const product = productForSlug(url);
 		let storage = null;
@@ -705,7 +771,16 @@
 			invalid: new Set(),
 			cart: readCart(storage, photos),
 			storage,
-			screen: params && params.get("view") === "cart" ? "cart" : "page",
+			screen,
+			checkoutNotice: checkout.checkout === "cancelled" ? "Checkout was cancelled. Your cart is saved." : "",
+			checkoutStarting: false,
+			checkoutMessage: "",
+			checkoutSessionId: checkout.sessionId,
+			orderStatus: checkout.checkout === "success" ? "loading" : "idle",
+			orderRequestStarted: false,
+			order: null,
+			orderError: "",
+			pickerSize: "",
 			pageNotFound: Boolean(url && !product),
 			selectedPhotoIds: new Set(),
 			pickerMode: "new",
@@ -715,7 +790,6 @@
 			cropDrag: null,
 			editPanelOpen: false,
 			previewLineId: "",
-			checkoutOpen: false,
 		};
 		return '<div class="shop-store">' + renderStoreContent(activeState) + '</div>';
 	}
@@ -730,11 +804,69 @@
 		if (element && element.focus) element.focus();
 	}
 
+	async function responseJson(response) {
+		try { return await response.json(); } catch { return null; }
+	}
+
+	async function startCheckout() {
+		if (!activeState || activeState.screen !== "cart" || activeState.checkoutStarting) return;
+		activeState.checkoutStarting = true;
+		activeState.checkoutMessage = "";
+		renderStore();
+		try {
+			const response = await global.fetch("/api/shop-checkout", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(checkoutRequest(activeState.cart)),
+			});
+			const body = await responseJson(response);
+			if (response.status === 200 && typeof body?.url === "string") {
+				global.location.assign(body.url);
+				return;
+			}
+			activeState.checkoutMessage = typeof body?.error === "string" && body.error.trim() ? body.error : CHECKOUT_ERROR;
+		} catch {
+			activeState.checkoutMessage = CHECKOUT_ERROR;
+		}
+		activeState.checkoutStarting = false;
+		renderStore();
+		focusShop("[data-shop-checkout]");
+	}
+
+	async function confirmOrder() {
+		if (!activeState || activeState.screen !== "order" || activeState.orderRequestStarted) return;
+		activeState.orderRequestStarted = true;
+		if (!activeState.checkoutSessionId) {
+			activeState.orderStatus = "failed";
+			activeState.orderError = ORDER_ERROR;
+			renderStore();
+			return;
+		}
+		try {
+			const response = await global.fetch("/api/shop-order?session_id=" + encodeURIComponent(activeState.checkoutSessionId));
+			const body = await responseJson(response);
+			if (response.status === 200 && body?.paid === true) {
+				activeState.order = body;
+				activeState.orderStatus = "confirmed";
+				activeState.cart = [];
+				saveCart();
+			} else {
+				activeState.orderStatus = "failed";
+				activeState.orderError = typeof body?.error === "string" && body.error.trim() ? body.error : ORDER_ERROR;
+			}
+		} catch {
+			activeState.orderStatus = "failed";
+			activeState.orderError = ORDER_ERROR;
+		}
+		renderStore();
+	}
+
 	function openPhotoPicker(product, selections, settings) {
 		if (!activeState || !product) return;
 		const options = settings || {};
 		activeState.product = product;
 		activeState.selections = resolveSelections(product, selections || activeState.selections);
+		activeState.pickerSize = options.size || activeState.selections.size;
 		activeState.pickerMode = options.mode || "new";
 		activeState.pickerReturnScreen = options.returnScreen || "page";
 		activeState.changeLineId = options.lineId || "";
@@ -863,8 +995,13 @@
 			if (line) line.photoId = ids[0];
 		} else if (activeState.pickerMode === "review") {
 			const oldLines = activeState.lines.slice();
-			activeState.lines = ids.map((photoId) => oldLines.find((line) => line.photoId === photoId) || ({ lineId: newLineId(), photoId, crop: { x: 0, y: 0 }, quantity: 1 }));
-		} else activeState.lines = ids.map((photoId) => ({ lineId: newLineId(), photoId, crop: { x: 0, y: 0 }, quantity: 1 }));
+			activeState.lines = ids.map((photoId) => {
+				const existing = oldLines.find((line) => line.photoId === photoId);
+				return existing
+					? Object.assign({}, existing, { selections: Object.assign({}, existing.selections || activeState.selections) })
+					: { lineId: newLineId(), photoId, selections: Object.assign({}, activeState.selections), crop: { x: 0, y: 0 }, quantity: 1 };
+			});
+		} else activeState.lines = ids.map((photoId) => ({ lineId: newLineId(), photoId, selections: Object.assign({}, activeState.selections), crop: { x: 0, y: 0 }, quantity: 1 }));
 		activeState.screen = "customize";
 		activeState.cropActiveLineId = "";
 		activeState.editPanelOpen = false;
@@ -887,19 +1024,24 @@
 
 	function addToCart() {
 		const product = activeState.product;
-		const items = activeState.lines.map((line) => ({
-			lineId: line.lineId,
-			productSlug: product.slug,
-			selections: Object.assign({}, activeState.selections),
-			photoId: line.photoId,
-			crop: clampCrop(line.crop),
-			quantity: Math.max(1, Math.floor(Number(line.quantity) || 1)),
-			unitPrice: priceFor(product, activeState.selections),
-		}));
+		const items = activeState.lines.map((line) => {
+			const selections = Object.assign({}, activeState.selections, line.selections || {});
+			return {
+				lineId: line.lineId,
+				productSlug: product.slug,
+				selections,
+				photoId: line.photoId,
+				crop: clampCrop(line.crop),
+				quantity: Math.max(1, Math.floor(Number(line.quantity) || 1)),
+				unitPrice: priceFor(product, selections),
+			};
+		});
 		activeState.cart = activeState.cart.concat(items);
 		saveCart();
 		activeState.screen = "cart";
-		activeState.checkoutOpen = false;
+		activeState.checkoutStarting = false;
+		activeState.checkoutMessage = "";
+		activeState.checkoutNotice = "";
 		try {
 			const url = new URL(global.location.href);
 			url.searchParams.delete("product");
@@ -1018,6 +1160,8 @@
 			if (name === "picker-close") { closePhotoPicker(); return; }
 			if (name === "picker-toggle") {
 				const id = action.dataset.photoId;
+				const photo = photoForId(activeState.photos, id);
+				if (!photoSupportsSize(photo, activeState.pickerSize)) return;
 				if (activeState.pickerMode === "replace") {
 					activeState.selectedPhotoIds = activeState.selectedPhotoIds.has(id) ? new Set() : new Set([id]);
 				} else if (activeState.selectedPhotoIds.has(id)) activeState.selectedPhotoIds.delete(id);
@@ -1026,7 +1170,11 @@
 			}
 			if (name === "picker-next") { finishPhotoSelection(); return; }
 			if (name === "customize-back") { openPhotoPicker(activeState.product, activeState.selections, { mode: "review", returnScreen: "customize" }); return; }
-			if (name === "change-photo") { openPhotoPicker(activeState.product, activeState.selections, { mode: "replace", returnScreen: "customize", lineId: action.dataset.lineId }); return; }
+			if (name === "change-photo") {
+				const line = activeState.lines.find((entry) => entry.lineId === action.dataset.lineId);
+				openPhotoPicker(activeState.product, activeState.selections, { mode: "replace", returnScreen: "customize", lineId: action.dataset.lineId, size: line && line.selections && line.selections.size });
+				return;
+			}
 			if (name === "crop-toggle") {
 				activeState.cropActiveLineId = activeState.cropActiveLineId === action.dataset.lineId ? "" : action.dataset.lineId;
 				renderStore();
@@ -1041,12 +1189,27 @@
 			if (name === "edit-product") { activeState.editPanelOpen = true; renderStore(); focusShop('[data-shop-action="close-edit-product"]'); return; }
 			if (name === "close-edit-product") { activeState.editPanelOpen = false; renderStore(); focusShop('[data-shop-action="edit-product"]'); return; }
 			if (name === "add-to-cart") { addToCart(); return; }
-			if (name === "checkout") { activeState.checkoutOpen = true; renderStore(); focusShop("[data-shop-checkout]"); return; }
+			if (name === "checkout") { startCheckout(); return; }
 		}
 		const optionButton = target.closest("[data-shop-option-group][data-shop-option-value]");
 		if (!optionButton || !activeState.product) return;
 		const groupKey = optionButton.dataset.shopOptionGroup;
-		activeState.selections[groupKey] = optionButton.dataset.shopOptionValue;
+		const value = optionButton.dataset.shopOptionValue;
+		if (activeState.screen === "customize" && groupKey === "size") {
+			const photos = activeState.lines.map((line) => photoForId(activeState.photos, line.photoId));
+			if (!photos.every((photo) => photoSupportsSize(photo, value))) return;
+			activeState.selections.size = value;
+			activeState.lines.forEach((line) => {
+				line.selections = Object.assign({}, activeState.selections, line.selections || {}, { size: value });
+			});
+		} else {
+			activeState.selections[groupKey] = value;
+			if (activeState.screen === "customize") {
+				activeState.lines.forEach((line) => {
+					line.selections = Object.assign({}, activeState.selections, line.selections || {}, { [groupKey]: value });
+				});
+			}
+		}
 		activeState.invalid.delete(groupKey);
 		if (activeState.screen === "customize") renderStore();
 		else updateProductPriceAndOptions();
@@ -1056,7 +1219,14 @@
 		const target = event.target;
 		if (!target || !target.closest) return;
 		const size = target.closest("[data-shop-size-select]");
-		if (size && activeState.screen === "customize") { activeState.selections.size = size.value; renderStore(); return; }
+		if (size && activeState.screen === "customize") {
+			const line = activeState.lines.find((entry) => entry.lineId === size.dataset.lineId);
+			const photo = line && photoForId(activeState.photos, line.photoId);
+			if (!line || !photoSupportsSize(photo, size.value)) return;
+			line.selections = Object.assign({}, activeState.selections, line.selections || {}, { size: size.value });
+			renderStore();
+			return;
+		}
 		const quantity = target.closest("[data-shop-quantity]");
 		if (quantity) changeQuantity(quantity.dataset.lineId, 0, quantity.value);
 	}
@@ -1085,12 +1255,14 @@
 				updateHero();
 			}, 6500);
 		}
+		if (activeState.screen === "order" && activeState.orderStatus === "loading") confirmOrder();
 	}
 
 	const api = {
 		get catalog() { return SHOP_CATALOG; },
 		cartStorageKey: CART_STORAGE_KEY,
 		cartSubtotal,
+		checkoutRequest,
 		clampCrop,
 		dimensionsFor,
 		fromPrice,
@@ -1098,7 +1270,9 @@
 		missingRequiredOptions,
 		openPhotoPicker,
 		parseCart,
+		photoSupportsSize,
 		priceFor,
+		readCheckoutParams,
 		renderMockup,
 		renderPage,
 		selectStorePhotos,
