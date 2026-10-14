@@ -36,10 +36,14 @@ The request is refused with HTTP 400 and a message the cart can show, and nothin
 - The request must carry an `Origin` equal to `SHOP_SITE_URL`, and a non-local origin must be https. A phone test over the tailnet therefore needs an https address (for example `tailscale serve`), not `http://100.87.15.27`.
 - The Stripe CLI paired with the sandbox can check a request shape without the secret key: `stripe post /v1/checkout/sessions -d …`, then expire the session.
 
-## After payment (slice 2, not built)
+## After payment (slice 2)
 
-- `POST /api/stripe-webhook` verifies the signature, fetches the session again, checks that it is paid and that the amount equals the recomputed total, then creates one Gelato order with `orderType: "draft"` and `orderReferenceId` equal to the Stripe session ID, so a repeated webhook creates nothing new. A draft is not printed and not charged.
-- Claire gets an order email through Resend; the customer gets Stripe's receipt.
+- `POST /api/stripe-webhook` verifies the signature with `STRIPE_WEBHOOK_SECRET` on the raw body, handles `checkout.session.completed` and `checkout.session.async_payment_succeeded` in test mode only, fetches the session again from Stripe, and ignores sessions this app did not create. An unpaid session is acknowledged and left alone.
+- For a paid session it rebuilds the cart from the metadata, checks that the recomputed total equals `amount_total`, and creates one Gelato order through `POST https://order.gelatoapis.com/v4/orders` with `orderType: "draft"`, `orderReferenceId` equal to the Stripe session ID, one item per line (product UID, cropped print file URL, quantity) and the shipping address, name, email and phone from the session. A draft is not printed and not charged.
+- **One order per payment.** Before creating, the webhook looks for the Gelato order ID on the session's metadata, then searches Gelato by `orderReferenceId` (`POST /v4/orders:search`). After creating, it writes the Gelato order ID to the session's metadata. A repeated or concurrent webhook therefore creates nothing new.
+- A Gelato or Stripe failure answers HTTP 500 so that Stripe retries. The customer's address and email are never written to logs or responses.
+- Claire gets an order email through Resend (`SHOP_ORDER_TO`, default `contact@clairethomas.art`): lines, total, the customer's name and city, and the Gelato order ID. The email is sent once per order and only when `RESEND_API_KEY` is set; a failed email does not fail the webhook. The customer gets Stripe's receipt.
+- On 2026-10-13 the Gelato account held no orders of any kind (`orders:search` returned none).
 - If the recomputed total differs from the paid amount (a price changed between cart and webhook), no order is created and Claire is told by email; a paid order must never be dropped silently.
 - Canvas wraps the image around the frame edge. The print file is cropped to the face size only, so check how Gelato fills the edges on the first draft order before canvas is sold.
 - Open decision for release: whether paid orders go to Gelato as real orders automatically, or Claire approves each draft in the Gelato dashboard.
