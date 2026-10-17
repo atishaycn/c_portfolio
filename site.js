@@ -732,11 +732,10 @@ const renderAbout = () => `
 	</section>
 `;
 
-// Packages and what's included are Claire's event pricing. The testimonials are still
-// sample content and stay hidden (showTestimonials) until real ones exist.
+// Packages and what's included are Claire's event pricing. Testimonials are real client quotes only.
 const bookingConfig = {
 	showPackages: true,
-	showTestimonials: false,
+	showTestimonials: true,
 	packages: [
 		{ name: "Standard Event", duration: "3 hrs", price: "$450", features: ["150+ digital images"] },
 		{ name: "Half Day Event", duration: "4 hrs", price: "$600", features: ["200+ digital images"] },
@@ -760,23 +759,11 @@ const bookingConfig = {
 	],
 	testimonials: [
 		{
-			quote: "Claire blended into the room and still caught every moment that mattered. Our team keeps asking where the photos came from.",
-			name: "Sample Client",
-			context: "Company launch, San Francisco",
-			// Photo shown beside the quote: an album and the photo's position in it (0 = first).
-			photo: { album: "protests", index: 4 },
-		},
-		{
-			quote: "Easygoing, fast, and incredibly thoughtful. The gallery arrived early and told the story of the whole day.",
-			name: "Sample Client",
-			context: "Community event, Oakland",
-			photo: { album: "protests", index: 9 },
-		},
-		{
-			quote: "She captured the energy of the march without ever getting in the way. These images are now part of our archive.",
-			name: "Sample Client",
-			context: "Advocacy organization",
-			photo: { album: "protests", index: 14 },
+			quote: "Claire went out of her way to preview the location and snap some mock pics beforehand, freezing the actual moments for us perfectly. The wild weather, our widest smiles, and San Francisco truly came alive.",
+			name: "",
+			context: "Special occasion, San Francisco",
+			// Photo shown beside the quote: an album and the photo's position in it (0 = first, the album's cover).
+			photo: { album: "special-occasion", index: 0 },
 		},
 	],
 };
@@ -829,7 +816,7 @@ const renderTestimonial = (item) => {
 			}
 			<div class="testimonial-body">
 				<blockquote>${escapeHtml(item.quote)}</blockquote>
-				<figcaption><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.context)}</span></figcaption>
+				${item.name || item.context ? `<figcaption>${item.name ? `<strong>${escapeHtml(item.name)}</strong>` : ""}${item.context ? `<span>${escapeHtml(item.context)}</span>` : ""}</figcaption>` : ""}
 			</div>
 		</figure>
 	`;
