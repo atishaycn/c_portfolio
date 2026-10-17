@@ -9,5 +9,7 @@
 !/*.js
 !/*.css
 !/*.JPG
+!/robots.txt
+!/sitemap.xml
 !/vercel.json
 !/package.json

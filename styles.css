@@ -1016,7 +1016,8 @@ body[data-page="protests"] .masonry-grid {
 
 .package-grid {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(0, 1fr);
 	gap: 28px;
 	align-items: stretch;
 	margin-top: 8px;
@@ -1514,6 +1515,7 @@ body[data-page="protests"] .masonry-grid {
 	}
 
 	.package-grid {
+		grid-auto-flow: row;
 		grid-template-columns: minmax(0, 520px);
 		justify-content: center;
 		gap: 36px;
