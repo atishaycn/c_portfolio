@@ -9,7 +9,7 @@ Last Updated: 2026-10-17. Researched by two Claude Haiku 5.5 children (high effo
 
 ## Graduation calendar and campus rules
 
-- Next: SJSU Dec 16–17, 2026 (tentative, sjsu.edu calendar); UC Berkeley Dec 19, 2026, 10 a.m., Haas Pavilion (commencement.berkeley.edu). Spring 2027: Berkeley May 15, SF State May 21 (Oracle Park), SJSU May 26–28, Stanford June 13. UCSF, USF, SCU, CCSF, CCA: not announced.
+- Next: SJSU Dec 16–17, 2026 (tentative, sjsu.edu calendar); USF Dec 18, 2026, St. Ignatius Church (myusf.usfca.edu/graduation/december-commencement-graduation-finale); UC Berkeley Dec 19, 2026, 10 a.m., Haas Pavilion (commencement.berkeley.edu). Spring 2027: Berkeley May 15, SF State May 21 (Oracle Park), SJSU May 26–28, Stanford June 13. UCSF, SCU, CCSF, CCA: not announced.
 - Grads book about 2–3 months ahead (photographer blogs, not Bay Area data): December grads now, spring grads March–April.
 - Berkeley: paid shoots on campus need a Campus Filming Program permit, about one month's lead time (film.berkeley.edu). Pro Pics shoots the ceremony and gives grads free photos. Official tag `#CalGrad`.
 - Stanford: professional portrait shoots on the Main Quad and Memorial Court are not allowed; other professional filming needs written approval and insurance.
