@@ -19,3 +19,10 @@ Last Updated: 2026-10-17. Researched by two Claude Haiku 5.5 children (high effo
 - Free: Google Business Profile as a service-area business (hide the address, up to 20 service areas, one profile per metro, verification required; support.google.com/business/answer/10514137); Yelp page; LinkedIn Service Page; Instagram campus tags.
 - Paid per lead: Thumbtack (no fee to join, lead prices unpublished, $20–75 per third-party estimates), Bark (credits; poor fit at $150/hr). r/bayarea bars paid promotion.
 - Outreach targets that run frequent SF events: Gray Area (grayarea.org), Creativity Explored, SF Chamber of Commerce events, UC Berkeley Journalism School events, ACLU NorCal, Luma SF calendar organizers, Meetup and Eventbrite SF organizers, coworking event hosts.
+
+## Permits and business setup (checked 2026-10-17)
+
+- UC Berkeley: commercial still photography on any campus property goes through the Campus Filming Program (film.berkeley.edu; contact Kyle Gibson, kyle.gibson@berkeley.edu, 510-495-5786), which issues a Film License Agreement and sets fees. Commercial shoots are fitted mainly into breaks (Winter Break Dec 2026–Jan 2027). The site does not say whether a small portrait session is exempt: ask the office.
+- SF parks, including the Palace of Fine Arts: Rec and Park treats any paid photography as commercial and issues the permit; no application fee, at least five business days' notice, weekends discouraged (sfrecpark.org/428/Film-Video-and-Photo; permits 415-831-5500).
+- San Francisco business registration is required for anyone doing business in the city, sole proprietors included; the fee scales with expected gross receipts, a first-year waiver exists, renewal is due each February (sf.gov/information/business-registration).
+- A California LLC owes the $800 annual franchise tax from its first year; the first-year waiver covered 2021–2023 formations only (secondary sources; confirm with the FTB). An LLC is not needed to take bookings.
