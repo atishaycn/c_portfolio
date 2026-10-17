@@ -4,6 +4,10 @@
 	"main": "worker/index.mjs",
 	"compatibility_date": "2026-10-14",
 	"compatibility_flags": ["nodejs_compat"],
+	"routes": [
+		{ "pattern": "clairethomas.art", "custom_domain": true },
+		{ "pattern": "www.clairethomas.art", "custom_domain": true },
+	],
 	"vars": {
 		"SHOP_OPEN_HOSTS": "clairethomas-site.phunnysunny.workers.dev",
 	},
