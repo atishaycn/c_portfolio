@@ -741,6 +741,12 @@ const bookingConfig = {
 		{ name: "Standard Event", duration: "3 hrs", price: "$450", features: ["150+ digital images"] },
 		{ name: "Half Day Event", duration: "4 hrs", price: "$600", features: ["200+ digital images"] },
 		{ name: "Full Day Event", duration: "8 hrs", price: "$1200", features: ["400+ digital images"] },
+		{
+			name: "Graduation Session",
+			duration: "1 hr",
+			price: "$250",
+			features: ["40+ digital images", "Up to 2 campus locations", "+$50 per extra graduate"],
+		},
 	],
 	// Applies to every package; shown under the package cards.
 	included: [
@@ -838,7 +844,7 @@ const renderTestimonials = () => `
 	</section>
 `;
 
-const bookingProjectTypes = ["Corporate", "Personal", "Special occasion", "Other"];
+const bookingProjectTypes = ["Corporate", "Personal", "Graduation", "Special occasion", "Other"];
 const bookingReferralSources = ["Google", "Instagram", "Referral", "Other"];
 
 const renderSelectOptions = (options, placeholder) =>
@@ -904,7 +910,7 @@ const renderBooking = () => {
 			<header class="page-title">
 				<h1>Booking</h1>
 				<p class="page-lead">Comprehensive, documentary-style coverage of key interactions and candid moments</p>
-				<p class="page-intro">Whether it’s a company event, birthday party, holiday party, reunion, personal event, or something else, I am passionate about capturing the authentic energy and highlights of your event.</p>
+				<p class="page-intro">Whether it’s a company event, graduation, birthday party, holiday party, reunion, personal event, or something else, I am passionate about capturing the authentic energy and highlights of your event.</p>
 			</header>
 			${showPackages ? renderPackages() : ""}
 			${showTestimonials ? renderTestimonials() : ""}

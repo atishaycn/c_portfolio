@@ -55,7 +55,7 @@ test("parseInquiry requires name, a usable contact, and a known referral", () =>
 });
 
 test("parseInquiry accepts every project type the form offers", () => {
-	for (const projectType of ["Corporate", "Personal", "Special occasion", "Other", ""]) {
+	for (const projectType of ["Corporate", "Personal", "Graduation", "Special occasion", "Other", ""]) {
 		assert.equal(parseInquiry({ ...valid, projectType }).ok, true, projectType || "(none)");
 	}
 });
