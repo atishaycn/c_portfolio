@@ -18,6 +18,12 @@
   - Description: Charter for clairethomas.art: goals, users, external services and accounts, where each concern lives, and settled product decisions.
   - Read If: Planning any work on the site, adding a service, or deciding where new work goes.
 
+### `research/` - Cited findings
+
+- `sf-bookings-market.md`
+  - Description: SF event and graduation photography prices, commencement dates, campus photo rules, and lead channels (2026-10-17).
+  - Read If: Pricing a package, planning marketing or outreach for bookings, or adding a graduation offer.
+
 ### `plans/` - Live work tracking
 
 - `cloudflare-migration.md`
