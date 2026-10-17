@@ -4,6 +4,9 @@
 	"main": "worker/index.mjs",
 	"compatibility_date": "2026-10-14",
 	"compatibility_flags": ["nodejs_compat"],
+	"vars": {
+		"SHOP_OPEN_HOSTS": "clairethomas-site.phunnysunny.workers.dev",
+	},
 	"assets": {
 		"directory": "./dist",
 		"binding": "ASSETS",

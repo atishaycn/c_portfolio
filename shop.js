@@ -104,6 +104,7 @@
 	};
 
 	let SHOP_CATALOG = [];
+	let storeClosed = false;
 
 	function sizeArea(size) {
 		const dimensions = sizeDimensions(size);
@@ -157,6 +158,7 @@
 	}
 
 	function setCatalog(data) {
+		storeClosed = Boolean(data && data.open === false);
 		const products = Array.isArray(data) ? data : data && data.products;
 		const mapped = Array.isArray(products) ? products.map(buildProduct) : [];
 		SHOP_CATALOG = mapped.length && mapped.every(Boolean) ? mapped : [];
@@ -742,6 +744,12 @@
 	let heroTimer = null;
 
 	function renderPage(context) {
+		if (storeClosed) {
+			activeState = null;
+			return '<section class="detail-page prints-page"><div class="prints-copy"><p class="prints-eyebrow">Shop</p><h2>Coming soon.</h2>' +
+				'<p>Prints of my photographs will be available soon.</p>' +
+				'<div class="prints-actions"><a href="mailto:contact@clairethomas.art?subject=Print%20Inquiry">Ask about a print</a></div></div></section>';
+		}
 		if (!SHOP_CATALOG.length) {
 			activeState = null;
 			return '<div class="shop-store"><section class="shop-page shop-unavailable"><div class="shop-shell"><h1>The print store is unavailable right now</h1>' +

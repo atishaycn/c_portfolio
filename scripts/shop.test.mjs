@@ -254,7 +254,11 @@ test("drops stored lines with missing photos and unknown option keys", () => {
 	assert.deepEqual(plain(shop.parseCart(JSON.stringify(invalid), [{ id: "known-photo" }])), []);
 });
 
-test("returns a print inquiry message when the catalog is empty", () => {
+test("shows Coming soon when the store is closed, and an inquiry message when the catalog is empty", () => {
+	shop.setCatalog({ open: false });
+	const closed = shop.renderPage({ albums: [] });
+	assert.match(closed, /Coming soon\./);
+	assert.match(closed, /mailto:contact@clairethomas\.art\?subject=Print%20Inquiry/);
 	shop.setCatalog({ products: [] });
 	const unavailable = shop.renderPage({ albums: [] });
 	assert.match(unavailable, /The print store is unavailable right now/);

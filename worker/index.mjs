@@ -35,6 +35,12 @@ const apiHeaders = {
 	"Referrer-Policy": "same-origin",
 };
 
+// The Shop is open only on the hosts in SHOP_OPEN_HOSTS (the workers.dev test address until release).
+// Elsewhere the catalog answers { open: false }, so the store page shows "Coming soon", and checkout does not exist.
+const closedShopRoutes = new Set(["/api/shop-checkout", "/api/shop-order"]);
+const shopOpen = (hostname, env) =>
+	String(env.SHOP_OPEN_HOSTS || "").split(",").map((host) => host.trim()).filter(Boolean).includes(hostname);
+
 const notFound = () => new Response(JSON.stringify({ error: "Not found" }), {
 	status: 404,
 	headers: { "Content-Type": "application/json; charset=utf-8", ...apiHeaders },
@@ -42,10 +48,19 @@ const notFound = () => new Response(JSON.stringify({ error: "Not found" }), {
 
 export default {
 	async fetch(request, env) {
-		const { pathname } = new URL(request.url);
+		const { hostname, pathname } = new URL(request.url);
 		// html_handling is "none" so /x.html is served as-is like Vercel; the root directory index is mapped here.
 		if (pathname === "/") return env.ASSETS.fetch(new URL("/index.html", request.url));
 		if (pathname !== "/api" && !pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
+
+		if (!shopOpen(hostname, env)) {
+			if (pathname === "/api/shop-catalog") {
+				return new Response(JSON.stringify({ open: false }), {
+					headers: { "Content-Type": "application/json; charset=utf-8", ...apiHeaders },
+				});
+			}
+			if (closedShopRoutes.has(pathname)) return notFound();
+		}
 
 		const handler = routes.get(pathname);
 		if (!handler) return notFound();
