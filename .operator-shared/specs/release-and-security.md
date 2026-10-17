@@ -2,16 +2,17 @@
 
 ## How code reaches production
 
-- Push to `main` → Vercel builds and releases clairethomas.art. This is the normal release path; it deploys the commit, not the local folder.
-- Pushing any other branch creates a login-protected Preview deployment. Production env vars (Cloudinary, admin) are not set for Preview by default, so preview galleries show the bundled fallback content (`content/portfolio.json`), not live albums. Judge layout on previews, not photos.
-- Rollback: `vercel rollback`, or promote the previous deployment in the Vercel dashboard.
+- Since 2026-10-17 clairethomas.art and `www` are served by the Cloudflare Worker `clairethomas-site` (custom domains; zone on Cloudflare DNS, nameservers `carioca`/`lennox`). Release: from a clean checkout of the release branch, `npm run build:cf && npx wrangler deploy` (token in the git-ignored `.env.cloudflare.local`). It uploads the built `dist/` from the allowlist, so a dirty checkout must never deploy. A push to `main` no longer releases anything.
+- The workers.dev address (`clairethomas-site.phunnysunny.workers.dev`) is the same Worker: the place to test, and the only host where the Shop is open (`SHOP_OPEN_HOSTS`).
+- Rollback: `npx wrangler rollback` to the previous Worker version.
+- Vercel project `c-portfolio` is kept connected until a day after the cutover as a fallback, then disconnected.
 
 ## Invariants
 
 - `.vercelignore` is an allowlist (`/*` then `!` the served paths). Anything new at the repo root is private by default. Never turn it into a denylist.
 - After any build or output change, confirm on the deployment that `/.admin-credentials.local.json`, `/.env`, `/node_modules/…` and backend source return 404.
 - `feature/client-intake` adds a build step that copies only public files into `public/`. When it merges, that becomes the production output contract and replaces the allowlist as the main guard; keep both until verified on production.
-- Secrets go to Vercel or Convex through their CLIs without printing values. Never paste a secret in chat.
+- Secrets go to the Worker (`wrangler secret put`/`bulk`) or Convex through their CLIs without printing values. The production `ADMIN_SESSION_SECRET` (new at the cutover) is in the worktree's git-ignored `.env.cloudflare-prod.local`. Never paste a secret in chat.
 
 ## Admin sign-in (email link, from the Cloudflare move)
 
@@ -19,7 +20,7 @@
 - The link's address comes from `ADMIN_SITE_URL` (set per deployment), never from the request's Host header; without it, links are sent only for localhost.
 - The link carries a signed token in the URL fragment (`/admin.html#login=…`), so mail scanners that prefetch links cannot use it; the page posts the token to the server, which sets the usual 7-day `ct_admin` session cookie. A token expires within about 30 minutes.
 - Sending is capped by a Resend idempotency key per 15-minute window, so at most one email per window however often the form is used; a second request in the window sends nothing and the first link still works.
-- The check costs well under Cloudflare Free's 10 ms CPU per request (scrypt took about 45 ms). It also retires the leaked password below; the session secret is still rotated at the cutover.
+- The check costs well under Cloudflare Free's 10 ms CPU per request (scrypt took about 45 ms). It also retires the leaked password below; the session secret was rotated at the cutover (2026-10-17).
 
 ## Exposure history (open)
 
