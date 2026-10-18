@@ -20,6 +20,9 @@
 - `booking-kit.md`
   - Description: Launch order for listings, booking windows, and paste-ready Thumbtack, Google, Instagram, DM and inquiry-reply copy for events and graduations.
   - Read If: Setting up a listing, writing marketing copy, or replying to an inquiry.
+- `grad-outreach-list.md`
+  - Description: Berkeley, USF and SF State student groups and class pages to message about graduation sessions, with each school's solicitation rules and the sending order.
+  - Read If: Doing graduation outreach or adding outreach targets.
 
 ### `research/` - Cited findings
 
