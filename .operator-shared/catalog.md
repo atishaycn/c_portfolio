@@ -32,6 +32,9 @@
 
 ### `plans/` - Live work tracking
 
+- `booking-leads.md`
+  - Description: Open photographer postings (Craigslist, LinkedIn, others) and SF events to pitch, with fit scores and scam flags (2026-10-17).
+  - Read If: Looking for paid shoots, replying to a posting, or planning outreach.
 - `cloudflare-migration.md`
   - Description: Plan and constraints for moving the whole site from Vercel to Cloudflare Workers Free: CPU limit, adapter, workers.dev testing, DNS and contact@ mail cutover.
   - Read If: Working on hosting, deploys, DNS, or the `infra/cloudflare` branch.
