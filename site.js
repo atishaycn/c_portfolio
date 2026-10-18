@@ -740,12 +740,6 @@ const bookingConfig = {
 		{ name: "Standard Event", duration: "3 hrs", price: "$450", features: ["150+ digital images"] },
 		{ name: "Half Day Event", duration: "4 hrs", price: "$600", features: ["200+ digital images"] },
 		{ name: "Full Day Event", duration: "8 hrs", price: "$1200", features: ["400+ digital images"] },
-		{
-			name: "Graduation Session",
-			duration: "1 hr",
-			price: "$250",
-			features: ["40+ digital images", "Up to 2 campus locations", "+$50 per extra graduate"],
-		},
 	],
 	// Applies to every package; shown under the package cards.
 	included: [

@@ -11,5 +11,5 @@
 
 ## Content rules
 
-- Package prices and the rate/travel notes come from Claire (2026-10-04) and live in `bookingConfig` in `site.js`. The Graduation Session ($250 for 1 hr, 40+ images, up to 2 campus locations, +$50 per extra graduate) was set by the user on 2026-10-17 (market basis: `research/sf-bookings-market.md`).
+- Package prices and the rate/travel notes come from Claire (2026-10-04) and live in `bookingConfig` in `site.js`. Booking offers only its three event packages (Standard Event, Half Day Event, Full Day Event); the user decided on 2026-10-17 that there is no graduation package. Graduation stays a project type and may be mentioned in copy.
 - Package cards sit in one row on desktop, however many there are, and stack in one column at 1000 px and below.
