@@ -20,7 +20,7 @@
 
 ## Delegation
 
-- Hands-on work goes to child tasks via T3 `delegate_task` with provider `codex`, model `gpt-6-luna`, `reasoningEffort: max`, `serviceTier: priority` (Fast). If Codex is unavailable, stop and ask the user.
+- Hands-on work goes to child agents on Claude Haiku 5.5 at high effort (Claude Code `Agent` tool, `model: haiku`, `effort: high`; user rule, 2026-10-18). GPT-6 Luna (T3 `delegate_task`, provider `codex`, model `gpt-6-luna`) only when the user turns it on.
 - One child per workstream and worktree; never two children on the same worktree. Each brief names the branch, worktree, brain docs to read, and the done check.
 - GPT-6 Luna needs babysitting. Keep briefs small and explicit, poll until done, and never trust its report: re-run `npm run check`, read the diff, and drive the real page. Reject work that skips the brief, invents results, touches other workstreams, or leaks secrets. Verify before reporting to the user.
 
