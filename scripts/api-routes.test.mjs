@@ -284,7 +284,7 @@ test(
 	},
 );
 
-xfail(
+test(
 	"a malformed percent-encoded session cookie is treated as signed out, not as a server error",
 	"parseCookies calls decodeURIComponent, which throws on a bad escape and surfaces as a 500",
 	async () => {

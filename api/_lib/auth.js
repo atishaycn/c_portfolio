@@ -15,6 +15,15 @@ const sign = (value) =>
 		.update(value)
 		.digest("base64url");
 
+// A malformed escape in a client-supplied cookie must not throw; the raw value then fails the signature check.
+const safeDecode = (value) => {
+	try {
+		return decodeURIComponent(value);
+	} catch {
+		return value;
+	}
+};
+
 const parseCookies = (request) =>
 	Object.fromEntries(
 		String(request.headers.cookie || "")
@@ -25,7 +34,7 @@ const parseCookies = (request) =>
 				const separator = part.indexOf("=");
 				return separator === -1
 					? [part, ""]
-					: [part.slice(0, separator), decodeURIComponent(part.slice(separator + 1))];
+					: [part.slice(0, separator), safeDecode(part.slice(separator + 1))];
 			}),
 	);
 
