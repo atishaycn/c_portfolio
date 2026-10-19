@@ -273,7 +273,7 @@ test("upload signature route refuses to sign without Cloudinary configuration", 
 	});
 });
 
-xfail(
+test(
 	"admin session still works when ADMIN_EMAIL is set with capitals",
 	"verifySession compares the session email with the raw ADMIN_EMAIL, while sign-in stores it lowercased",
 	async () => {

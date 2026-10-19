@@ -68,7 +68,7 @@ const verifySession = (request) => {
 		const session = JSON.parse(base64UrlDecode(payload));
 		if (
 			session.exp < Math.floor(Date.now() / 1000) ||
-			session.email !== process.env.ADMIN_EMAIL
+			session.email !== String(process.env.ADMIN_EMAIL || "").trim().toLowerCase()
 		) {
 			return null;
 		}
