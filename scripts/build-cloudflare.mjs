@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { cp, readFile, readdir, rm, mkdir, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,6 +48,11 @@ const headerRules = vercel.headers.map((rule) => [
 	...rule.headers.map((header) => `  ${header.key}: ${header.value}`),
 ].join("\n"));
 await writeFile(join(out, "_headers"), `${headerRules.join("\n\n")}\n`);
+
+// The build copies the working tree, so this is the commit under release only when the tree is clean.
+const sha = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
+if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error("git rev-parse HEAD did not return a 40-character commit SHA");
+await writeFile(join(out, "version.txt"), `${sha}\n`);
 
 const redirectRules = (vercel.redirects || []).map((rule) => `${rule.source} ${rule.destination} ${rule.permanent ? 308 : 302}`);
 if (redirectRules.length) await writeFile(join(out, "_redirects"), `${redirectRules.join("\n")}\n`);

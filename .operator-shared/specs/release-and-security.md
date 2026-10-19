@@ -4,6 +4,7 @@
 
 - Since 2026-10-17 clairethomas.art and `www` are served by the Cloudflare Worker `clairethomas-site` (custom domains; zone on Cloudflare DNS, nameservers `carioca`/`lennox`). Release: from a clean checkout of the release branch, `npm run build:cf && npx wrangler deploy` (token in the git-ignored `.env.cloudflare.local`). It uploads the built `dist/` from the allowlist, so a dirty checkout must never deploy. A push to `main` no longer releases anything.
 - The workers.dev address (`clairethomas-site.phunnysunny.workers.dev`) is the same Worker: the place to test, and the only host where the Shop is open (`SHOP_OPEN_HOSTS`).
+- `/version.txt` holds the release commit's full SHA, written by `scripts/build-cloudflare.mjs` (`no-store` in `vercel.json` headers). Check it after each release.
 - Rollback: `npx wrangler rollback` to the previous Worker version.
 - Vercel project `c-portfolio` is kept connected until a day after the cutover as a fallback, then disconnected.
 

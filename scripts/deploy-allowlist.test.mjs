@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -68,4 +69,13 @@ test("API responses are never cached and admin pages refuse framing and inline s
 	assert.match(admin["Content-Security-Policy"], /script-src 'self'(;|$)/);
 	assert.match(admin["Content-Security-Policy"], /frame-ancestors 'none'/);
 	assert.doesNotMatch(admin["Content-Security-Policy"], /unsafe-inline/);
+});
+
+test("version.txt is never cached, and the build writes it with the HEAD commit SHA", () => {
+	const config = JSON.parse(readFileSync(resolve(root, "vercel.json"), "utf8"));
+	const version = config.headers.find((entry) => entry.source === "/version.txt");
+	assert.equal(version?.headers.find((h) => h.key === "Cache-Control")?.value, "no-store");
+	execFileSync(process.execPath, [resolve(root, "scripts/build-cloudflare.mjs")], { cwd: root });
+	const head = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
+	assert.equal(readFileSync(resolve(root, "dist/version.txt"), "utf8"), `${head}\n`);
 });
