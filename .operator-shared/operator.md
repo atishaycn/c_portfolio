@@ -12,7 +12,8 @@
 
 ## Branches and worktrees
 
-- `main` is production. Vercel builds every push to `main` and releases it to clairethomas.art. Push site changes to `main` only after the user approves the release. Brain-only commits (`.operator-shared/`) may go to `main` at any time: `.vercelignore` keeps them out of the deploy.
+- clairethomas.art is served by the Cloudflare Worker `clairethomas-site`, deployed by hand from a clean `infra/cloudflare` worktree (`npm run build:cf`, then `wrangler deploy`; see `plans/cloudflare-migration.md`). `main` has no Worker config until that branch merges. Vercel still builds every push to `main` but serves only its own `vercel.app` address until it is disconnected.
+- Deploy the Worker, or push site changes to `main`, only after the user approves the release. Brain-only commits (`.operator-shared/`) may go to `main` at any time. Merge `main` into `infra/cloudflare` so a release carries fixes made on `main`.
 - One branch per workstream, cut from `main`, named `<area>/<slug>` (`ui/`, `drive/`, `shop/`, `feature/`, `admin/`). Parallel workstreams each get their own worktree at `~/Developer/c_portfolio-<slug>`; never run two agents in one worktree.
 - Never leave work uncommitted between sessions. Commit WIP on the workstream branch and push it, so GitHub holds every unfinished line of work.
 - After a branch merges into `main`, delete it locally and on GitHub, and remove its worktree. Rebase or merge `main` into long-lived branches before resuming them.
@@ -26,5 +27,5 @@
 
 ## Release safety
 
-- Never deploy with the Vercel CLI from a dirty or mixed checkout; it uploads the folder, not the commit. Release by pushing `main`, or deploy from a clean worktree. Keep `.vercelignore` an allowlist (see `specs/release-and-security.md`).
+- Never deploy (wrangler or the Vercel CLI) from a dirty or mixed checkout; both upload the folder, not the commit. Commit and push first, then deploy from that clean worktree. Keep `.vercelignore` an allowlist (see `specs/release-and-security.md`).
 - UI changes: check desktop and a 390px phone viewport, with no console errors, before calling them done.
