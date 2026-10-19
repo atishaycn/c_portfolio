@@ -57,6 +57,9 @@
 - `release-and-security.md`
   - Description: How code reaches production, the `.vercelignore` allowlist invariant, preview vs production environments, rollback, and the credential exposure history.
   - Read If: Deploying, changing build/output config, adding files at the repo root, or handling secrets.
+- `test-suite.md`
+  - Description: The one test command (`npm run check`), the offline and fake-fixture rules, the `// Regression: <hash>` convention and `[xfail]` markers, and the areas with no offline seam.
+  - Read If: Adding or changing tests, fixing a bug in the sync, API, CMS, or theme, or deciding whether something can be tested offline.
 - `cloudflare-runtime.md`
   - Description: Cloudflare Workers Free limits (CPU, subrequests) and the coding rules they impose: no Stripe SDK, unbound fetch, capped per-item calls; measured CPU per endpoint.
   - Read If: Writing or changing any `api/` function, adding an SDK or outgoing call, or a request fails with error 1102 or "Illegal invocation".
