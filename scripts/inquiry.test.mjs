@@ -102,15 +102,16 @@ test("rate limiter allows a burst then blocks until the window passes", () => {
 test("handler sends a valid inquiry through Resend", async () => {
 	const resend = fakeResend();
 	const res = response();
-	await handlerWith(resend)(request(valid), res);
+	const env = { RESEND_API_KEY: "re_test", INQUIRY_TO: "owner@example.test", INQUIRY_FROM: "Studio website <website@example.test>" };
+	await handlerWith(resend, env)(request(valid), res);
 	assert.equal(res.statusCode, 200);
 	assert.deepEqual(JSON.parse(res.body), { sent: true });
 	assert.equal(resend.calls.length, 1);
 	const { url, options, payload } = resend.calls[0];
 	assert.equal(url, "https://api.resend.com/emails");
 	assert.equal(options.headers.Authorization, "Bearer re_test");
-	assert.deepEqual(payload.to, ["contact@clairethomas.art"]);
-	assert.equal(payload.from, "Claire Thomas website <website@clairethomas.art>");
+	assert.deepEqual(payload.to, ["owner@example.test"]);
+	assert.equal(payload.from, "Studio website <website@example.test>");
 	assert.equal(payload.reply_to, "ada@example.com");
 });
 
