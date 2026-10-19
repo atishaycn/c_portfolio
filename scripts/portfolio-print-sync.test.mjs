@@ -23,6 +23,7 @@ const responseFor = (revision) => ({
 	json: async () => ({ revision, updatedAt: "2026-08-06T16:34:43.953Z", albums: [] }),
 });
 
+// Regression: e636137, d6e1052
 test("workflow continues only explicit retryable reconcile exits", () => {
 	const workflow = readFileSync(new URL("../.github/workflows/portfolio-shop-sync.yml", import.meta.url), "utf8");
 	assert.match(workflow, /GELATO_429_MAX_ATTEMPTS: "48"/);
@@ -79,6 +80,7 @@ test("marks a successful revision and skips only the same successful mode", asyn
 	}
 });
 
+// Regression: 70e4c2e
 test("reruns an unchanged CMS revision when the catalog sync contract changes", async () => {
 	const paths = tempPaths();
 	try {
@@ -104,6 +106,7 @@ test("reruns an unchanged CMS revision when the catalog sync contract changes", 
 	}
 });
 
+// Regression: 1463658
 test("executes strict audit before marking an execute sync successful", () => {
 	const calls = [];
 	runReconcile({
@@ -157,6 +160,7 @@ test("lock prevents overlapping sync runs", async () => {
 	}
 });
 
+// Regression: 0901e39
 test("stale lock is recovered after a crashed sync process", () => {
 	const paths = tempPaths();
 	try {

@@ -74,6 +74,7 @@ const response = ({ status, body, contentType = "text/html", retryAfter = null }
 	},
 });
 
+// Regression: ca478a0
 test("retries a non-JSON Gelato GET response and returns recovered JSON", async () => {
 	const responses = [
 		response({ status: 502, body: "<!DOCTYPE html><title>Bad gateway</title>" }),
@@ -91,6 +92,7 @@ test("retries a non-JSON Gelato GET response and returns recovered JSON", async 
 	assert.deepEqual(delays, [1000]);
 });
 
+// Regression: ca478a0
 test("marks exhausted non-JSON Gelato responses retryable without exposing HTML", async () => {
 	let calls = 0;
 	await assert.rejects(
@@ -110,6 +112,7 @@ test("marks exhausted non-JSON Gelato responses retryable without exposing HTML"
 	assert.equal(calls, 7);
 });
 
+// Regression: ca478a0
 test("defers a non-JSON successful Gelato POST without replaying it", async () => {
 	let calls = 0;
 	await assert.rejects(
@@ -125,6 +128,7 @@ test("defers a non-JSON successful Gelato POST without replaying it", async () =
 	assert.equal(calls, 1);
 });
 
+// Regression: e636137
 test("defers a JSON Gelato POST 5xx without replaying it", async () => {
 	let calls = 0;
 	await assert.rejects(
@@ -144,6 +148,7 @@ test("defers a JSON Gelato POST 5xx without replaying it", async () => {
 	assert.equal(calls, 1);
 });
 
+// Regression: e636137
 test("defers non-JSON and network-failed Gelato POSTs without replaying", async () => {
 	for (const failure of [
 		() => response({ status: 502, body: "<html>gateway</html>" }),
@@ -164,6 +169,7 @@ test("defers non-JSON and network-failed Gelato POSTs without replaying", async 
 	}
 });
 
+// Regression: ca478a0
 test("retries an empty successful Gelato GET response", async () => {
 	const responses = [
 		response({ status: 200, body: "" }),
@@ -178,6 +184,7 @@ test("retries an empty successful Gelato GET response", async () => {
 	);
 });
 
+// Regression: ca478a0
 test("defers an empty successful Gelato POST without replaying it", async () => {
 	let calls = 0;
 	await assert.rejects(
@@ -193,6 +200,7 @@ test("defers an empty successful Gelato POST without replaying it", async () => 
 	assert.equal(calls, 1);
 });
 
+// Regression: ca478a0
 test("keeps ordinary Gelato 4xx responses nonretryable", async () => {
 	await assert.rejects(
 		apiRequest("/stores/store-1/products/missing", {}, {
@@ -208,6 +216,7 @@ test("keeps ordinary Gelato 4xx responses nonretryable", async () => {
 	);
 });
 
+// Regression: c1995da
 test("deduplicates overlapping Gelato product pages by exact ID", () => {
 	assert.deepEqual(
 		mergeProductsById(
@@ -222,12 +231,14 @@ test("deduplicates overlapping Gelato product pages by exact ID", () => {
 	);
 });
 
+// Regression: 7bdb346
 test("waits for publishing products before requesting more Gelato products", () => {
 	const creates = [{ key: "photo-2:fine-art" }];
 	assert.deepEqual(reconcileCreateActions({ pending: [{ key: "photo-1:fine-art" }], creates }), []);
 	assert.deepEqual(reconcileCreateActions({ pending: [], creates }), creates);
 });
 
+// Regression: 1edce3e
 test("bounds each reconcile create batch", () => {
 	const creates = Array.from({ length: 30 }, (_, index) => ({ key: `photo-${index}:fine-art` }));
 	assert.deepEqual(reconcileCreateActions({ pending: [], creates }), creates);
@@ -257,6 +268,7 @@ test("bounds each reconcile create batch", () => {
 	}
 });
 
+// Regression: 1edce3e
 test("recovers only aged created products without Shopify mappings", () => {
 	const now = Date.parse("2026-08-07T18:00:00Z");
 	assert.equal(
@@ -282,6 +294,7 @@ test("recovers only aged created products without Shopify mappings", () => {
 	);
 });
 
+// Regression: 7bdb346
 test("drains pending products without creating more and requests a retryable continuation", async () => {
 	const key = "photo-1:fine-art";
 	const desired = { handle: "photo-1-fine-art-print", description: "Photo 1", tags: ["photo-id:photo-1"] };
@@ -343,6 +356,7 @@ test("drains pending products without creating more and requests a retryable con
 	assert.equal(repairs.length, 1);
 });
 
+// Regression: 1edce3e
 test("processes every create through sequential bounded publishing batches", async () => {
 	const variants = ["8x12", "12x18", "16x24"].map((size) =>
 		normalizeVariant({
@@ -419,6 +433,7 @@ test("processes every create through sequential bounded publishing batches", asy
 	assert.equal(Object.values(state.products).every((record) => record.mediaSynced === true), true);
 });
 
+// Regression: c1995da
 test("requires exactly one active managed product for every catalog key", () => {
 	const photos = [{ printId: "photo-1" }];
 	const cleanProducts = ["fine-art", "framed", "canvas"].map((medium) => ({
@@ -445,6 +460,7 @@ test("requires exactly one active managed product for every catalog key", () => 
 	assert.equal(broken.unmanagedProducts.length, 1);
 });
 
+// Regression: b236231
 test("uses Shopify status to ignore archived Gelato records on fresh runners", () => {
 	const products = [
 		{
@@ -479,6 +495,7 @@ test("uses Shopify status to ignore archived Gelato records on fresh runners", (
 	assert.equal(audit.activeExpectedProducts, 1);
 });
 
+// Regression: b236231
 test("Shopify active stale products still fail strict audit", () => {
 	const products = [
 		{
@@ -501,6 +518,7 @@ test("Shopify active stale products still fail strict audit", () => {
 	assert.equal(audit.staleProducts.map((product) => product.id).includes("stale"), true);
 });
 
+// Regression: b236231
 test("missing Shopify nodes are treated as inactive", () => {
 	const products = [
 		{
@@ -644,6 +662,7 @@ test("uses product-specific square sizes and Gelato wood frame labels", () => {
 	);
 });
 
+// Regression: 92ba45e, b236231
 test("reports managed products removed from the portfolio", () => {
 	const photos = [{ printId: "kept-photo" }];
 	const state = {
@@ -680,6 +699,7 @@ test("reports managed products removed from the portfolio", () => {
 	]);
 });
 
+// Regression: c1995da
 test("plans deletion of created drafts and regeneration of unresolved products", () => {
 	const photos = [{ printId: "photo-1" }, { printId: "photo-2" }];
 	const products = [
@@ -713,6 +733,7 @@ test("plans deletion of created drafts and regeneration of unresolved products",
 	assert.deepEqual(plan.unresolvedKeys.sort(), ["photo-1:canvas", "photo-2:canvas", "photo-2:fine-art"]);
 });
 
+// Regression: 000c4f9, 7ed4f62
 test("prefers an active product and treats a missing recorded product as recoverable", () => {
 	const photo = { printId: "photo-1", seriesLabel: "Photo", referenceLabel: "1" };
 	const products = [
@@ -804,6 +825,7 @@ test("does not match products by mutable title and blocks archive without Shopif
 	assert.equal(catalogVersionTag, "catalog-edge-to-edge-v1");
 });
 
+// Regression: 4da066f
 test("allows pending publishing products to wait for Shopify mappings", () => {
 	const photo = {
 		printId: "photo-1",
@@ -837,6 +859,7 @@ test("allows pending publishing products to wait for Shopify mappings", () => {
 	assert.equal(activeBeforeMapping.blocked.length, 0);
 });
 
+// Regression: 1edce3e
 test("reconcile deletes and recreates a stranded created product", () => {
 	const photo = {
 		printId: "photo-1",
@@ -861,6 +884,7 @@ test("reconcile deletes and recreates a stranded created product", () => {
 	assert.equal(plan.blocked.length, 0);
 });
 
+// Regression: e1638bd
 test("purges Gelato only after its mapped Shopify product is retired", async () => {
 	const photo = {
 		printId: "photo-1",
@@ -913,6 +937,7 @@ test("purges Gelato only after its mapped Shopify product is retired", async () 
 	assert.equal(result.purged, 1);
 });
 
+// Regression: 2797dae
 test("purges retired Gelato records with bounded concurrency", async () => {
 	const purges = Array.from({ length: 9 }, (_, index) => ({
 		key: `photo-${index}:fine-art`,
@@ -952,6 +977,7 @@ test("purges retired Gelato records with bounded concurrency", async () => {
 	assert.equal(result.purged, 9);
 });
 
+// Regression: 3719ecd
 test("recovers publishing errors by archiving their mapped Shopify product and recreating the stable key", () => {
 	const photo = {
 		printId: "the-natural-world-1",
@@ -1030,6 +1056,7 @@ const canonicalHandleFixture = () => {
 	};
 };
 
+// Regression: f47347d
 test("archives an exact managed orphan Draft before assigning its canonical handle", async () => {
 	const { product, desired, blocker } = canonicalHandleFixture();
 	const mutations = [];
@@ -1073,6 +1100,7 @@ test("archives an exact managed orphan Draft before assigning its canonical hand
 	]);
 });
 
+// Regression: c790d79
 test("archives an exact empty unbound active orphan before assigning its canonical handle", async () => {
 	const { product, desired, blocker } = canonicalHandleFixture();
 	const activeOrphan = {
@@ -1106,6 +1134,7 @@ test("archives an exact empty unbound active orphan before assigning its canonic
 	]);
 });
 
+// Regression: c790d79, f47347d
 test("refuses to mutate usable active or differently tagged canonical-handle blockers", async () => {
 	const { product, desired, blocker } = canonicalHandleFixture();
 	assert.deepEqual(managedIdentityTags(desired.tags), [
@@ -1160,6 +1189,7 @@ test("refuses to mutate usable active or differently tagged canonical-handle blo
 	}
 });
 
+// Regression: f47347d
 test("retries canonical assignment once after a handle-taken race", async () => {
 	const { product, desired, blocker } = canonicalHandleFixture();
 	let queryCount = 0;
@@ -1192,6 +1222,7 @@ test("retries canonical assignment once after a handle-taken race", async () => 
 	assert.equal(reconcileMutations, 2);
 });
 
+// Regression: f47347d
 test("canonical orphan recovery is restart-idempotent and never archives twice", async () => {
 	const { product, desired, blocker } = canonicalHandleFixture();
 	let handleOwner = blocker;
@@ -1209,6 +1240,7 @@ test("canonical orphan recovery is restart-idempotent and never archives twice",
 	assert.equal(archiveMutations, 1);
 });
 
+// Regression: e636137
 test("Gelato inventory discovery merges ascending and descending pagination", async () => {
 	const products = Array.from({ length: 201 }, (_, index) => ({ id: `product-${index + 1}` }));
 	const requests = [];
@@ -1230,6 +1262,7 @@ test("Gelato inventory discovery merges ascending and descending pagination", as
 	assert(requests.some((path) => path.includes("orderBy=updatedAt")));
 });
 
+// Regression: e636137
 test("Gelato inventory discovery defers while snapshot IDs are changing", async () => {
 	let requestCount = 0;
 	await assert.rejects(
@@ -1244,6 +1277,7 @@ test("Gelato inventory discovery defers while snapshot IDs are changing", async 
 	);
 });
 
+// Regression: e636137
 test("pre-create guard retries managed inventory omissions and rejects protected handles", async () => {
 	const { desired, blocker } = canonicalHandleFixture();
 	await assert.rejects(
@@ -1267,6 +1301,7 @@ test("pre-create guard retries managed inventory omissions and rejects protected
 	);
 });
 
+// Regression: e636137
 test("every create-from-template request is guarded before POST", async () => {
 	let postCount = 0;
 	await assert.rejects(
@@ -1305,6 +1340,7 @@ test("every create-from-template request is guarded before POST", async () => {
 	assert.equal(postCount, 0);
 });
 
+// Regression: e636137
 test("an ambiguous create reservation survives restart and suppresses a second POST", async () => {
 	const photo = {
 		printId: "photo-1",
@@ -1357,6 +1393,7 @@ test("an ambiguous create reservation survives restart and suppresses a second P
 	assert.equal(postCount, 1);
 });
 
+// Regression: e636137
 test("repair archives a mapped Shopify Draft before deleting its Gelato product", async () => {
 	const photo = {
 		printId: "photo-1",
@@ -1415,6 +1452,7 @@ test("repair archives a mapped Shopify Draft before deleting its Gelato product"
 	assert.equal(result.deletedCount, 1);
 });
 
+// Regression: d14334c, 5d3fe8e
 test("plans a deterministic full-bleed artwork media repair for every Shopify variant", () => {
 	const photo = {
 		printId: "the-natural-world-1",
@@ -1462,6 +1500,7 @@ test("plans a deterministic full-bleed artwork media repair for every Shopify va
 	assert.equal(productNeedsShopifyMediaRepair(repaired, photo), false);
 });
 
+// Regression: b5a3a4c
 test("recognizes direct Shopify media query results and keeps one ready artwork marker", () => {
 	const photo = {
 		printId: "photo-direct",
@@ -1500,6 +1539,7 @@ test("recognizes direct Shopify media query results and keeps one ready artwork 
 	assert.deepEqual(extraArtworkMediaIds(duplicateProduct, photo), [processing.id]);
 });
 
+// Regression: d14334c
 test("reconcile updates a metadata-clean active product when its artwork media is missing", () => {
 	const photo = {
 		printId: "photo-1",
@@ -1521,6 +1561,7 @@ test("reconcile updates a metadata-clean active product when its artwork media i
 	assert.deepEqual(plan.updates.map(({ key, photo: target }) => [key, target.printId]), [["photo-1:fine-art", "photo-1"]]);
 });
 
+// Regression: fdaa3af
 test("keeps Shopify products hidden until artwork repair succeeds", async () => {
 	const calls = [];
 	const updateProduct = async (_product, _desired, status, options = {}) => {
@@ -1543,6 +1584,7 @@ test("keeps Shopify products hidden until artwork repair succeeds", async () => 
 	]);
 });
 
+// Regression: 0fa657a
 test("reconciles and audits active products missing from the Online Store", () => {
 	const photo = {
 		printId: "photo-online-store",
@@ -1571,6 +1613,7 @@ test("reconciles and audits active products missing from the Online Store", () =
 	assert.deepEqual(audit.unpublishedProducts, [{ key: "photo-online-store:fine-art", productId: "gelato-online-store" }]);
 });
 
+// Regression: 0fa657a
 test("publishes an active Shopify product to the Online Store publication", async () => {
 	const calls = [];
 	await publishShopifyProductToOnlineStore(
@@ -1590,6 +1633,7 @@ test("publishes an active Shopify product to the Online Store publication", asyn
 	});
 });
 
+// Regression: 9799012
 test("quarantines each published Gelato product before waiting for the rest", async () => {
 	const state = { products: { first: { id: "gelato-first" }, second: { id: "gelato-second" } } };
 	const responses = new Map([
@@ -1638,6 +1682,7 @@ test("quarantines each published Gelato product before waiting for the rest", as
 	);
 });
 
+// Regression: fdaa3af
 test("resumes a repaired Shopify draft and republishes it", () => {
 	const photo = {
 		printId: "photo-draft",
@@ -1671,6 +1716,7 @@ test("resumes a repaired Shopify draft and republishes it", () => {
 	assert.equal(plan.blocked.length, 0);
 });
 
+// Regression: d14334c
 test("strict audit detects variants that can still fall back to Gelato mockups", () => {
 	const photo = {
 		printId: "photo-1",
@@ -1690,6 +1736,7 @@ test("strict audit detects variants that can still fall back to Gelato mockups",
 	assert.deepEqual(audit.mediaRepairKeys, ["photo-1:fine-art"]);
 });
 
+// Regression: d14334c
 test("retries HTTP 429 and GraphQL THROTTLED responses with bounded backoff", async () => {
 	const originalDomain = process.env.SHOPIFY_STORE_DOMAIN;
 	const originalToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
@@ -1725,6 +1772,7 @@ test("retries HTTP 429 and GraphQL THROTTLED responses with bounded backoff", as
 	assert.equal(shopifyRetryDelayMs(99), 5 * 60 * 1000);
 });
 
+// Regression: d6e1052, 9e62e8c
 test("bounds each Gelato 429 retry window and accepts a positive override", () => {
 	const original = process.env.GELATO_429_MAX_ATTEMPTS;
 	try {
@@ -1740,6 +1788,7 @@ test("bounds each Gelato 429 retry window and accepts a positive override", () =
 	}
 });
 
+// Regression: d6e700e
 test("polls Shopify media until the stable artwork marker is READY", async () => {
 	const photo = { printId: "photo-1" };
 	const processing = {
@@ -1763,6 +1812,7 @@ test("polls Shopify media until the stable artwork marker is READY", async () =>
 	assert.equal(sleeps, 1);
 });
 
+// Regression: cb03b2a
 test("classifies Shopify asynchronous timeouts as retryable reconcile failures", async () => {
 	const photo = { printId: "photo-1" };
 	const processing = {
@@ -1790,6 +1840,7 @@ test("classifies Shopify asynchronous timeouts as retryable reconcile failures",
 	}));
 });
 
+// Regression: 0be3405
 test("defers retryable media actions without blocking later products", async () => {
 	const deferred = new Map();
 	const visited = [];
@@ -1814,6 +1865,7 @@ test("defers retryable media actions without blocking later products", async () 
 	);
 });
 
+// Regression: d6e700e
 test("polls asynchronous Shopify reorder jobs to completion", async () => {
 	let fetches = 0;
 	let sleeps = 0;
@@ -1828,6 +1880,7 @@ test("polls asynchronous Shopify reorder jobs to completion", async () => {
 	assert.equal(sleeps, 1);
 });
 
+// Regression: d6e700e
 test("waits until every Shopify variant points at the artwork media", async () => {
 	const photo = { printId: "photo-1" };
 	const artworkMedia = { id: "artwork", alt: artworkMediaAltFor(photo), status: "READY" };

@@ -13,7 +13,7 @@ assert(mapStart >= 0 && mapEnd > mapStart && start >= 0 && end > start, "site.js
 const context = {
 	printShopConfig: {
 		shopUrl: "https://shop.clairethomas.art/collections/all",
-		email: "contact@clairethomas.art",
+		email: "owner@example.test",
 		productUrls: {
 			"the-natural-world-3":
 				"https://shop.clairethomas.art/products/the-natural-world-3-fine-art-print?variant=53830433439928",
@@ -26,6 +26,7 @@ vm.runInNewContext(
 );
 const api = context.__printLinkApi;
 
+// Regression: 92be3cc
 test("preserves explicit canonical product URL overrides", () => {
 	assert.equal(
 		api.printOrderUrl(
@@ -36,6 +37,7 @@ test("preserves explicit canonical product URL overrides", () => {
 	);
 });
 
+// Regression: 92be3cc
 test("matches stable catalog handles despite existing album label changes", () => {
 	assert.equal(
 		api.shopifyFineArtHandleFor(
@@ -60,6 +62,7 @@ test("matches stable catalog handles despite existing album label changes", () =
 	);
 });
 
+// Regression: 92be3cc
 test("resolves a renamed arbitrary CMS album and UUID photo ID directly", () => {
 	const album = { key: "wildlife", label: "Animal Portraits" };
 	const item = { id: "wildlife-550e8400-e29b-41d4-a716-446655440000" };
