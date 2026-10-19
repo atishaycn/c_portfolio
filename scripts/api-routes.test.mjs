@@ -273,6 +273,7 @@ test("upload signature route refuses to sign without Cloudinary configuration", 
 	});
 });
 
+// Regression: 3bf52d8
 test(
 	"admin session still works when ADMIN_EMAIL is set with capitals",
 	"verifySession compares the session email with the raw ADMIN_EMAIL, while sign-in stores it lowercased",
@@ -284,6 +285,7 @@ test(
 	},
 );
 
+// Regression: e03fc75
 test(
 	"a malformed percent-encoded session cookie is treated as signed out, not as a server error",
 	"parseCookies calls decodeURIComponent, which throws on a bad escape and surfaces as a 500",
