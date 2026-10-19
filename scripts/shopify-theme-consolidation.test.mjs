@@ -54,6 +54,7 @@ const loadApi = (cards = [], mediaContainers = [], printProduct = false) => {
 	return window.__ctTestApi;
 };
 
+// Regression: c5a896c
 test("normalizes numeric Shopify duplicate suffixes without losing numeric artwork IDs", () => {
 	const api = loadApi();
 
@@ -64,6 +65,7 @@ test("normalizes numeric Shopify duplicate suffixes without losing numeric artwo
 	assert.equal(api.baseHandleFor("artist-2-fine-art-print"), "artist-2");
 });
 
+// Regression: c5a896c, 6329ab6
 test("prefers stable artwork tags and supports arbitrary renamed album handles", () => {
 	const api = loadApi();
 	const card = {
@@ -83,6 +85,7 @@ test("prefers stable artwork tags and supports arbitrary renamed album handles",
 	assert.equal(api.artworkKeyFor({ dataset: {}, getAttribute: () => null, querySelector: () => null }, "renamed-album-17-fine-art-print-3"), "handle:renamed-album-17");
 });
 
+// Regression: c5a896c, d6e700e
 test("renders exactly one Fine Art card per artwork within a Horizon scope", () => {
 	const scope = {};
 	const makeCard = (href, paginatedListing = false) => {
@@ -123,6 +126,7 @@ test("renders exactly one Fine Art card per artwork within a Horizon scope", () 
 	assert.equal(cards.filter((card) => card.classList.has("ct-print-card")).length, 1);
 });
 
+// Regression: 6329ab6
 test("consolidates divergent format handles by the shared stable photo tag", () => {
 	const scope = {};
 	const makeCard = (href) => {
@@ -154,6 +158,7 @@ test("consolidates divergent format handles by the shared stable photo tag", () 
 	assert.equal(cards[0].classList.has("ct-print-card"), true);
 });
 
+// Regression: e8d2175, b4f6f30
 test("hides non-Fine-Art cards across paginated product and resource listings", () => {
 	const scope = {};
 	const makeCard = (href, itemClass = "") => {
@@ -185,6 +190,7 @@ test("hides non-Fine-Art cards across paginated product and resource listings", 
 	assert.equal(predictiveCanvas.classList.has("ct-print-card"), true);
 });
 
+// Regression: d6e700e
 test("keeps only stable-marker artwork media in the PDP gallery", () => {
 	const makeMedia = (alt) => ({
 		classList: createClassList(["product-media-container--image"]),
@@ -201,6 +207,7 @@ test("keeps only stable-marker artwork media in the PDP gallery", () => {
 	assert.equal(mockup.classList.has("ct-non-artwork-media"), true);
 });
 
+// Regression: ce7d096
 test("keeps Gelato media visible until stable-marker artwork exists", () => {
 	const mockup = {
 		classList: createClassList(["product-media-container--image"]),
@@ -213,6 +220,7 @@ test("keeps Gelato media visible until stable-marker artwork exists", () => {
 	assert.equal(mockup.classList.has("ct-non-artwork-media"), false);
 });
 
+// Regression: c5a896c
 test("targets Horizon media primitives and leaves zoom-dialog sizing to Horizon", () => {
 	assert.match(liquid, /product-card, product-component\.resource-card__wrapper, \.resource-card__wrapper/);
 	assert.match(liquid, /\.product-media-container--image[^{}]*\.product-media__image/);

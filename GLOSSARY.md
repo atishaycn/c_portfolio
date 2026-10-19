@@ -63,7 +63,7 @@ A booking form submission that is emailed to Claire. It holds the visitor's name
 _Avoid_: Contact form, enquiry, lead
 
 **Project type**:
-The kind of shoot an inquiry is for: Corporate, Personal, Special occasion or Other.
+The kind of shoot an inquiry is for: Corporate, Personal, Graduation, Special occasion or Other.
 
 ### Shop
 

@@ -20,6 +20,9 @@
 - `booking-kit.md`
   - Description: Launch order for listings, booking windows, and paste-ready Thumbtack, Google, Instagram, DM and inquiry-reply copy for events and graduations.
   - Read If: Setting up a listing, writing marketing copy, or replying to an inquiry.
+- `grad-outreach-list.md`
+  - Description: Berkeley, USF and SF State student groups and class pages to message about graduation sessions, with each school's solicitation rules and the sending order.
+  - Read If: Doing graduation outreach or adding outreach targets.
 
 ### `research/` - Cited findings
 
@@ -29,6 +32,9 @@
 
 ### `plans/` - Live work tracking
 
+- `booking-leads.md`
+  - Description: Open photographer postings (Craigslist, LinkedIn, others) and SF events to pitch, with fit scores and scam flags (2026-10-17).
+  - Read If: Looking for paid shoots, replying to a posting, or planning outreach.
 - `cloudflare-migration.md`
   - Description: Plan and constraints for moving the whole site from Vercel to Cloudflare Workers Free: CPU limit, adapter, workers.dev testing, DNS and contact@ mail cutover.
   - Read If: Working on hosting, deploys, DNS, or the `infra/cloudflare` branch.
@@ -51,6 +57,9 @@
 - `release-and-security.md`
   - Description: How code reaches production, the `.vercelignore` allowlist invariant, preview vs production environments, rollback, and the credential exposure history.
   - Read If: Deploying, changing build/output config, adding files at the repo root, or handling secrets.
+- `test-suite.md`
+  - Description: The one test command (`npm run check`), the offline and fake-fixture rules, the `// Regression: <hash>` convention and `[xfail]` markers, and the areas with no offline seam.
+  - Read If: Adding or changing tests, fixing a bug in the sync, API, CMS, or theme, or deciding whether something can be tested offline.
 - `cloudflare-runtime.md`
   - Description: Cloudflare Workers Free limits (CPU, subrequests) and the coding rules they impose: no Stripe SDK, unbound fetch, capped per-item calls; measured CPU per endpoint.
   - Read If: Writing or changing any `api/` function, adding an SDK or outgoing call, or a request fails with error 1102 or "Illegal invocation".

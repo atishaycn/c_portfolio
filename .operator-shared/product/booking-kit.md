@@ -1,6 +1,6 @@
 # SF booking kit: listings and paste-ready copy
 
-Marketing copy for event and graduation bookings, from the user's booking kit (2026-10-17), with the graduation copy updated to match the live package (`specs/booking-inquiry.md`). Market facts and sources: `research/sf-bookings-market.md`.
+Marketing drafts for event and graduation bookings (2026-10-17). The user removed the graduation package from Booking on 2026-10-17 (`specs/booking-inquiry.md`); confirm a current quote before using the graduation prices below. Market facts and sources: `research/sf-bookings-market.md`.
 
 ## Launch order
 
@@ -31,7 +31,7 @@ Marketing copy for event and graduation bookings, from the user's booking kit (2
 
 Claire Thomas is a San Francisco event and graduation photographer known for candid, documentary-style coverage. Services: corporate events, holiday parties, birthday parties, reunions, proposals, courthouse weddings, and graduation portrait sessions. Packages from $450 (3 hours, 150+ images) to $1,200 (full day, 400+ images); grad sessions from $250. Sneak peeks in 48 hours, full gallery in 2 weeks. Serving San Francisco and the Bay Area.
 
-### Grad package page copy (for clairethomas.art/booking)
+### Retired grad package page copy (removed from Booking)
 
 **Graduation Sessions** — You did the work; let's make it look like it. Candid cap-and-gown portraits on your campus or at a classic SF spot — Palace of Fine Arts, the Painted Ladies, Oracle Park. One hour, 40+ edited images, up to two locations. $250, plus $50 for each extra graduate. December grads: book by early December — SJSU walks Dec 16–17, USF Dec 18, Berkeley Dec 19.
 
