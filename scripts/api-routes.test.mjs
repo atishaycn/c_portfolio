@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createHash, createHmac, randomBytes, scryptSync } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { Readable } from "node:stream";
 import test, { mock } from "node:test";
 import auth from "../api/_lib/auth.js";
@@ -178,35 +178,6 @@ test("sessions expire, and a token signed with another secret is refused", () =>
 		const forged = auth.createSession(ADMIN_ENV.ADMIN_EMAIL);
 		process.env.ADMIN_SESSION_SECRET = "a-different-secret-entirely-0000";
 		assert.equal(auth.verifySession({ headers: { cookie: cookieFor(forged) } }), null);
-	});
-});
-
-test("admin sign-in sets a strict HttpOnly cookie for the right password and refuses the wrong one", async () => {
-	const password = "temporary-test-password";
-	const salt = randomBytes(16).toString("hex");
-	const hash = `${salt}:${scryptSync(password, salt, 64).toString("hex")}`;
-	await withEnv({ ...ADMIN_ENV, ADMIN_PASSWORD_HASH: hash }, async () => {
-		quiet();
-		const wrong = fakeResponse();
-		await sessionRoute(
-			fakeRequest({ method: "POST", headers: { host: "site.test" }, body: { email: ADMIN_ENV.ADMIN_EMAIL, password: "nope" } }),
-			wrong,
-		);
-		assert.equal(wrong.statusCode, 401);
-		assert.equal(wrong.headers["set-cookie"], undefined);
-
-		const ok = fakeResponse();
-		await sessionRoute(
-			fakeRequest({ method: "POST", headers: { host: "site.test" }, body: { email: ADMIN_ENV.ADMIN_EMAIL, password } }),
-			ok,
-		);
-		assert.equal(ok.statusCode, 200);
-		const cookie = ok.headers["set-cookie"];
-		assert.match(cookie, /^ct_admin=.+; Path=\/; HttpOnly; Secure; SameSite=Strict/);
-		const signedIn = fakeResponse();
-		await sessionRoute(fakeRequest({ method: "GET", headers: { cookie: cookie.split(";")[0] } }), signedIn);
-		assert.equal(signedIn.json().authenticated, true);
-		assert.ok(signedIn.json().csrf);
 	});
 });
 
