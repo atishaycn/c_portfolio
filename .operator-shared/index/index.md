@@ -47,7 +47,7 @@ read_if: Any code work on the portfolio site; start here before searching.
 
 ### `scripts/` — Tests and one-off operations
 
-- `*.test.mjs` — Node tests for CMS, inquiry, trash, print links, shop sync, Gelato (`gelato-requests` for request retries), Shopify theme, API routes (`api-routes`), deploy allowlist (`deploy-allowlist`); see `specs/test-suite.md`
+- `*.test.mjs` — Node tests for CMS, inquiry, trash, print links, Portfolio menu (`portfolio-menu`), shop sync, Gelato (`gelato-requests` for request retries), Shopify theme, API routes (`api-routes`), deploy allowlist (`deploy-allowlist`); see `specs/test-suite.md`
 - `create-admin-credentials.mjs`, `configure-vercel-admin-env.mjs` — Generate admin credentials; push them to Vercel production (state-changing)
 - `seed-portfolio-content.mjs`, `export-portfolio-content.mjs` — Seed the CMS asset (empty clouds only); export bundled content
 - `portfolio-print-sync.mjs`, `gelato-products.mjs`, `capture-shopify-credential.mjs` — Print shop sync tooling
