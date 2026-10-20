@@ -711,6 +711,31 @@ body[data-page="protests"] .masonry-grid {
 		color 160ms ease;
 }
 
+.home-dropdown-menu a {
+	text-transform: capitalize;
+}
+
+.home-dropdown-menu a.preserve-case {
+	text-transform: none;
+}
+
+.home-dropdown-group-label {
+	display: block;
+	padding: 12px 26px 2px;
+	color: var(--brand-brown);
+	font-size: 0.8rem;
+	letter-spacing: 0.08em;
+	text-align: center;
+	text-transform: capitalize;
+	opacity: 0.6;
+}
+
+.home-dropdown-group ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
 .home-dropdown-menu a[aria-current="page"] {
 	color: #5b4bc4;
 }

@@ -15,7 +15,7 @@ A named set of photos shown on one page of the site.
 _Avoid_: Gallery, series
 
 **Section**:
-One of the three top-level albums in the Portfolio menu: Events, Nature and Street. Each has a section page that opens with a cover photo.
+A top-level album with photos, shown in the Portfolio menu. Events, Nature and Street keep their own addresses; any other top-level album opens on a gallery page. Each has a section page that opens with a cover photo.
 _Avoid_: Category (for portfolio albums)
 
 **Child album**:
@@ -23,7 +23,7 @@ An album nested under a section, such as Special occasions under Events. It show
 _Avoid_: Sub-gallery, nested album
 
 **Group**:
-A container that holds albums in the admin's Structure view. The admin labels it "Section —".
+A container that holds albums in the admin's Structure view. The admin labels it "Section —". In the Portfolio menu, a group with photo albums shows as a heading over them.
 _Avoid_: Folder
 
 **Cover photo**:

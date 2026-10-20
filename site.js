@@ -47,11 +47,12 @@ const homeConfig = {
 	slideshowAlbumKey: "slideshow",
 	slideshowFallbackAlbumKey: "protests",
 	slideIntervalMs: 5000,
-	portfolioLinks: [
-		{ label: "Events", path: "./events.html", key: "protests" },
-		{ label: "Nature", path: "./nature.html", key: "the-natural-world" },
-		{ label: "Street", path: "./street.html", key: "shapes-and-shadows" },
-	],
+	// The three original sections keep their addresses and labels; other albums come from the Content.
+	portfolioSections: {
+		protests: { label: "Events", path: "./events.html" },
+		"the-natural-world": { label: "Nature", path: "./nature.html" },
+		"shapes-and-shadows": { label: "Street", path: "./street.html" },
+	},
 	bookingUrl: "./booking.html",
 	inquiryEmail: "contact@clairethomas.art",
 };
@@ -496,8 +497,11 @@ let galleryPages = [
 	},
 ];
 
+let portfolioContent = null;
+
 const applyCmsContent = (content) => {
 	if (!content || !Array.isArray(content.albums) || !content.albums.length) return;
+	portfolioContent = content;
 	const albums = content.albums
 		.map((album) => ({
 			...album,
@@ -583,8 +587,43 @@ const lightboxImageSizes = "100vw";
 
 const currentPageKey = document.body.dataset.page || "the-natural-world";
 
+// The Portfolio dropdown in admin order: top-level albums and groups. Only albums with photos
+// show; the slideshow, child albums and empty nodes are left out. With no Content, the three
+// original sections stand in.
+const buildPortfolioMenu = (content, sections, slideshowKey) => {
+	if (!content) {
+		return Object.entries(sections).map(([key, section]) => ({
+			type: "link",
+			key,
+			label: section.label,
+			path: section.path,
+			preserveCase: false,
+		}));
+	}
+	const byOrder = (nodes) => [...nodes].sort((left, right) => left.order - right.order);
+	const albums = content.albums || [];
+	const groups = content.groups || [];
+	const hasPhotos = (album) => album.key !== slideshowKey && (album.items || []).length > 0;
+	const linkFor = (album) => ({
+		type: "link",
+		key: album.key,
+		label: sections[album.key]?.label || album.label,
+		path: sections[album.key]?.path || `./gallery.html?album=${encodeURIComponent(album.key)}`,
+		preserveCase: Boolean(album.preserveCase),
+	});
+	const roots = [
+		...albums.filter((album) => !album.parentId).map((node) => ({ node, isGroup: false })),
+		...groups.filter((group) => !group.parentId).map((node) => ({ node, isGroup: true })),
+	].sort((left, right) => left.node.order - right.node.order);
+	return roots.flatMap(({ node, isGroup }) => {
+		if (!isGroup) return hasPhotos(node) ? [linkFor(node)] : [];
+		const links = byOrder(albums.filter((album) => album.parentId === node.id && hasPhotos(album))).map(linkFor);
+		return links.length ? [{ type: "group", label: node.label, links }] : [];
+	});
+};
+
 const galleryTitleFor = (page) =>
-	homeConfig.portfolioLinks.find((link) => link.key === page.key)?.label || navLabelOverrides[page.key] || page.label;
+	homeConfig.portfolioSections[page.key]?.label || navLabelOverrides[page.key] || page.label;
 
 // Albums nested under a portfolio section in the CMS (e.g. Special occasions under
 // Events) are reached from that section's switcher rather than the Portfolio menu.
@@ -599,7 +638,7 @@ const sectionFamilyFor = (page) => {
 };
 
 const albumPathFor = (page) =>
-	homeConfig.portfolioLinks.find((link) => link.key === page.key)?.path || `./gallery.html?album=${encodeURIComponent(page.key)}`;
+	homeConfig.portfolioSections[page.key]?.path || `./gallery.html?album=${encodeURIComponent(page.key)}`;
 
 const renderAlbumSwitcher = (page) => {
 	const family = sectionFamilyFor(page);
@@ -998,8 +1037,22 @@ const footerLinks = [
 ];
 
 const currentSectionKey = sectionRootFor(galleryPages.find((page) => page.key === currentPageKey))?.key || currentPageKey;
-const isPortfolioPage = homeConfig.portfolioLinks.some((link) => link.key === currentSectionKey);
+const portfolioMenu = buildPortfolioMenu(portfolioContent, homeConfig.portfolioSections, homeConfig.slideshowAlbumKey);
+const portfolioMenuLinks = portfolioMenu.flatMap((entry) => (entry.type === "group" ? entry.links : [entry]));
+const isPortfolioPage = portfolioMenuLinks.some((link) => link.key === currentSectionKey);
 const currentAttribute = (isCurrent) => (isCurrent ? 'aria-current="page"' : "");
+
+const renderPortfolioLink = (link) =>
+	`<a href="${link.path}" class="${link.preserveCase ? "preserve-case" : ""}" ${currentAttribute(link.key === currentSectionKey)}>${escapeHtml(link.label)}</a>`;
+
+const renderPortfolioMenuItems = () =>
+	portfolioMenu
+		.map((entry) =>
+			entry.type === "group"
+				? `<li class="home-dropdown-group"><span class="home-dropdown-group-label">${escapeHtml(entry.label)}</span><ul>${entry.links.map((link) => `<li>${renderPortfolioLink(link)}</li>`).join("")}</ul></li>`
+				: `<li>${renderPortfolioLink(entry)}</li>`,
+		)
+		.join("");
 
 const renderSiteHeader = () => `
 	<header class="home-header">
@@ -1010,9 +1063,7 @@ const renderSiteHeader = () => `
 					Portfolio <span class="home-dropdown-caret" aria-hidden="true"></span>
 				</button>
 				<ul class="home-dropdown-menu" id="home-portfolio-menu">
-					${homeConfig.portfolioLinks
-						.map((link) => `<li><a href="${link.path}" ${currentAttribute(link.key === currentSectionKey)}>${escapeHtml(link.label)}</a></li>`)
-						.join("")}
+					${renderPortfolioMenuItems()}
 				</ul>
 			</div>
 		</nav>
