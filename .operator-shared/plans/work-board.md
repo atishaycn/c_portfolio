@@ -66,6 +66,7 @@ The fork thread that did this work handed it back to the CEO thread, which owns 
 
 ## Loose ends (no branch yet)
 
+- Admin albums missing from the menu (found 2026-10-20): Claire added a top-level `portraits` album (17 photos) and an empty `place` group in admin on 10-20; the Portfolio menu is the fixed `homeConfig.portfolioLinks` list in `site.js` (Events, Nature, Street, per `specs/site-design.md`), so neither shows. Child albums (Special occasions) already show as tabs. Proposal: build the menu from the CMS top-level albums by `order`, skipping `slideshow` and empty ones. Waits on the user.
 1. Rotate the admin password and session secret; delete the three deployments that served the credentials file (`specs/release-and-security.md`). Needs user go-ahead.
 2. Send one real test inquiry from the live Booking page and confirm it arrives at `contact@` with a working Reply-To.
 3. Booking testimonials: waiting on real quotes and photos from Claire.
