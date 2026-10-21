@@ -38,6 +38,13 @@ const parseCookies = (request) =>
 
 const loginWindowIndex = (now = Date.now()) => Math.floor(now / LOGIN_WINDOW_MS);
 
+// ADMIN_EMAIL is a comma-separated list. Entries are trimmed and lowercased so every comparison uses one form.
+const adminEmails = () =>
+	String(process.env.ADMIN_EMAIL || "")
+		.split(",")
+		.map((email) => email.trim().toLowerCase())
+		.filter(Boolean);
+
 // `now` is epoch milliseconds. The link expires at the end of the window after the current one,
 // so it lives 15 to 30 minutes.
 const createLoginToken = (email, now = Date.now()) => {
@@ -62,13 +69,11 @@ const verifyLoginToken = (token, now = Date.now()) => {
 	if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
 	try {
 		const login = JSON.parse(base64UrlDecode(payload));
-		const adminEmail = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 		if (
 			login.purpose !== LOGIN_PURPOSE ||
 			typeof login.exp !== "number" ||
 			login.exp <= Math.floor(now / 1000) ||
-			!adminEmail ||
-			String(login.email || "").toLowerCase() !== adminEmail
+			!adminEmails().includes(String(login.email || "").toLowerCase())
 		) {
 			return null;
 		}
@@ -110,7 +115,7 @@ const verifySession = (request) => {
 		if (
 			session.purpose === LOGIN_PURPOSE ||
 			session.exp < Math.floor(Date.now() / 1000) ||
-			session.email !== String(process.env.ADMIN_EMAIL || "").trim().toLowerCase()
+			!adminEmails().includes(session.email)
 		) {
 			return null;
 		}
@@ -146,6 +151,7 @@ const clearSessionCookie = () =>
 	`${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`;
 
 module.exports = {
+	adminEmails,
 	clearSessionCookie,
 	createLoginToken,
 	createSession,

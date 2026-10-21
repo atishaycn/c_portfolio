@@ -1,4 +1,5 @@
 const {
+	adminEmails,
 	clearSessionCookie,
 	createLoginToken,
 	createSession,
@@ -49,9 +50,8 @@ const linkOrigin = (local, host) => {
 
 // Every email gets the same answer, so the response never shows whether it is the admin's.
 const requestLink = async ({ request, response, body, fetchImpl, now }) => {
-	const adminEmail = String(process.env.ADMIN_EMAIL || "").trim();
 	const email = String(body.email || "").trim().toLowerCase();
-	if (!adminEmail || email !== adminEmail.toLowerCase()) return json(response, 200, { sent: true });
+	if (!adminEmails().includes(email)) return json(response, 200, { sent: true });
 
 	const host = requestHost(request);
 	const local = LOCAL_HOST.test(host);
@@ -60,7 +60,7 @@ const requestLink = async ({ request, response, body, fetchImpl, now }) => {
 		console.error("Admin sign-in link not sent: ADMIN_SITE_URL is missing or invalid");
 		return json(response, 200, { sent: true });
 	}
-	const link = `${origin}/admin.html#login=${createLoginToken(adminEmail, now)}`;
+	const link = `${origin}/admin.html#login=${createLoginToken(email, now)}`;
 	const apiKey = process.env.RESEND_API_KEY;
 	if (!apiKey) {
 		if (local) return json(response, 200, { sent: true, devLink: link });
@@ -71,9 +71,9 @@ const requestLink = async ({ request, response, body, fetchImpl, now }) => {
 		await sendWithResend({
 			apiKey,
 			from: process.env.INQUIRY_FROM || FROM,
-			to: adminEmail,
+			to: email,
 			email: loginEmail(link),
-			fetchImpl: withIdempotencyKey(fetchImpl, `admin-login/${loginWindowIndex(now)}`),
+			fetchImpl: withIdempotencyKey(fetchImpl, `admin-login/${email}/${loginWindowIndex(now)}`),
 		});
 	} catch (error) {
 		console.error("Admin sign-in link send failed:", error.message);
@@ -86,7 +86,7 @@ const redeemLink = (response, token, now) => {
 	if (!login) {
 		return json(response, 401, { error: "This sign-in link is invalid or has expired. Ask for a new one." });
 	}
-	const sessionToken = createSession(String(process.env.ADMIN_EMAIL).trim());
+	const sessionToken = createSession(String(login.email).toLowerCase());
 	response.setHeader("Set-Cookie", sessionCookie(sessionToken));
 	const session = verifySession({
 		headers: { cookie: `ct_admin=${encodeURIComponent(sessionToken)}` },

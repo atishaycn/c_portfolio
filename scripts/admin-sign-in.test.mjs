@@ -133,7 +133,7 @@ test("request-link emails the admin one link keyed by the 15-minute window", () 
 		assert.equal(resend.calls.length, 1);
 		const [{ url, options, payload }] = resend.calls;
 		assert.equal(url, "https://api.resend.com/emails");
-		assert.equal(options.headers["Idempotency-Key"], `admin-login/${auth.loginWindowIndex(NOW)}`);
+		assert.equal(options.headers["Idempotency-Key"], `admin-login/${ADMIN}/${auth.loginWindowIndex(NOW)}`);
 		assert.deepEqual(payload.to, [ADMIN]);
 		assert.equal(payload.subject, "Your Claire Thomas admin sign-in link");
 		assert.match(payload.text, /It expires in about 30 minutes\. If you did not ask for it, ignore this email\./);
@@ -248,4 +248,60 @@ test("request-link sends nothing off localhost when ADMIN_SITE_URL is missing", 
 		const result = await call(handler, { body: { action: "request-link", email: ADMIN } });
 		assert.deepEqual(result.json, { sent: true });
 		assert.equal(resend.calls.length, 0);
+	}));
+
+const LIST_ENV = { ...baseEnv, ADMIN_EMAIL: "Admin@Example.test, second@example.test" };
+
+test("request-link sends one link to the listed admin who asked for it", () =>
+	withEnv(LIST_ENV, async () => {
+		const resend = fakeResend();
+		const handler = createHandler({ fetchImpl: resend.fetchImpl, now: () => NOW });
+		const result = await call(handler, { body: { action: "request-link", email: "second@example.test" } });
+		assert.deepEqual(result.json, { sent: true });
+		assert.equal(resend.calls.length, 1);
+		const [{ payload }] = resend.calls;
+		assert.deepEqual(payload.to, ["second@example.test"]);
+		assert.equal(auth.verifyLoginToken(linkFrom(payload.text), NOW).email, "second@example.test");
+	}));
+
+test("request-link for an address not in the list sends nothing and answers the same", () =>
+	withEnv(LIST_ENV, async () => {
+		const resend = fakeResend();
+		const handler = createHandler({ fetchImpl: resend.fetchImpl, now: () => NOW });
+		const result = await call(handler, { body: { action: "request-link", email: "stranger@example.test" } });
+		assert.deepEqual(result.json, { sent: true });
+		assert.equal(resend.calls.length, 0);
+	}));
+
+test("redeem signs in a second listed admin under their own address", () =>
+	withEnv(LIST_ENV, async () => {
+		const handler = createHandler({ now: () => NOW });
+		const token = auth.createLoginToken("second@example.test", NOW);
+		const result = await call(handler, { body: { action: "redeem", token } });
+		assert.equal(result.status, 200);
+		assert.equal(result.json.email, "second@example.test");
+		const cookie = result.headers["set-cookie"].split(";")[0];
+		assert.equal(auth.requireSession({ method: "GET", headers: { cookie } }).email, "second@example.test");
+	}));
+
+test("a session for an address removed from ADMIN_EMAIL is rejected", () =>
+	withEnv(LIST_ENV, async () => {
+		const cookie = `ct_admin=${encodeURIComponent(auth.createSession("second@example.test"))}`;
+		assert.equal(auth.verifySession({ headers: { cookie } }).email, "second@example.test");
+		await withEnv({ ...LIST_ENV, ADMIN_EMAIL: "Admin@Example.test" }, async () => {
+			assert.equal(auth.verifySession({ headers: { cookie } }), null);
+		});
+	}));
+
+test("each listed admin gets their own Resend idempotency key in the same window", () =>
+	withEnv(LIST_ENV, async () => {
+		const resend = fakeResend();
+		const handler = createHandler({ fetchImpl: resend.fetchImpl, now: () => NOW });
+		await call(handler, { body: { action: "request-link", email: "Admin@Example.test" } });
+		await call(handler, { body: { action: "request-link", email: "second@example.test" } });
+		assert.equal(resend.calls.length, 2);
+		const [first, second] = resend.calls.map((call) => call.options.headers["Idempotency-Key"]);
+		assert.notEqual(first, second);
+		assert.equal(first, `admin-login/admin@example.test/${auth.loginWindowIndex(NOW)}`);
+		assert.equal(second, `admin-login/second@example.test/${auth.loginWindowIndex(NOW)}`);
 	}));
