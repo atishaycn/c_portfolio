@@ -1044,7 +1044,7 @@ body[data-page="protests"] .masonry-grid {
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	padding: 36px 32px 32px;
+	padding: 32px;
 	border: 1px solid var(--hairline);
 	background: #fff;
 }
@@ -1089,7 +1089,8 @@ body[data-page="protests"] .masonry-grid {
 }
 
 .package-price {
-	margin: 16px 0 6px;
+	margin: 20px 0 0;
+	line-height: 1;
 	font-size: 42px;
 	font-weight: 700;
 	letter-spacing: -0.02em;
@@ -1107,8 +1108,8 @@ body[data-page="protests"] .masonry-grid {
 	display: grid;
 	align-content: start;
 	gap: 10px;
-	margin: 0 0 30px;
-	padding: 22px 0 0;
+	margin: 24px 0 0;
+	padding: 20px 0 0;
 	border-top: 1px solid var(--hairline);
 	list-style: none;
 	color: var(--ink-soft);
@@ -1117,16 +1118,16 @@ body[data-page="protests"] .masonry-grid {
 
 .package-card li {
 	position: relative;
-	padding-left: 22px;
+	padding-left: 16px;
 }
 
 .package-card li::before {
 	content: "";
 	position: absolute;
-	top: 0.45em;
+	top: 0.5em;
 	left: 0;
-	width: 8px;
-	height: 8px;
+	width: 6px;
+	height: 6px;
 	border-radius: 50%;
 	background: var(--brand-gradient);
 }
@@ -1137,9 +1138,13 @@ body[data-page="protests"] .masonry-grid {
 	align-self: stretch;
 }
 
-/* Keeps the Inquire buttons level when a card has no feature list. */
+/* Keeps the Inquire buttons level when a card has no feature list; the 28px is the gap above the button. */
 .package-card > a {
 	margin-top: auto;
+}
+
+.package-card > :nth-last-child(2) {
+	margin-bottom: 28px;
 }
 
 .outline-button {

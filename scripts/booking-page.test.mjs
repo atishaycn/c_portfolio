@@ -111,10 +111,10 @@ test("every package has an Inquire link that fills the form", () => {
 	assert.equal(html.match(/data-package="/g).length, allPackages.length);
 });
 
-test("Headshots renders no feature list in its card and Grad shoot lists its features", () => {
-	const headshots = html.split("<article").find((chunk) => chunk.includes(">Headshots</h3>"));
-	assert(headshots, "Headshots card must render");
-	assert.equal(headshots.includes("<ul"), false);
+test("Headshots lists 20+ digital images and Grad shoot lists outfits and locations on one line", () => {
+	const card = (name) => html.split("<article").find((chunk) => chunk.includes(`>${name}</h3>`));
+	assert.match(card("Headshots"), /<li>20\+ digital images<\/li>/);
+	assert.match(card("Grad shoot"), /<ul><li>2 outfits, 2 locations<\/li><\/ul>/);
 });
 
 test("there are two testimonials and the second points at special-occasion index 14", () => {
