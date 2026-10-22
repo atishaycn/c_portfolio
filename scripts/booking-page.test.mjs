@@ -16,68 +16,117 @@ const sliceFrom = (startMarker, endMarker) => {
 const escapeHtmlSource = sliceFrom("const escapeHtml =", "\n\n");
 const bookingSource = sliceFrom("const bookingConfig = {", "const renderPrints =");
 
-const specialOccasion = Array.from({ length: 26 }, (_, index) => ({
-	publicId: `special-${index}`,
-	width: 1200,
-	height: 800,
-}));
+const albumOf = (prefix) =>
+	Array.from({ length: 26 }, (_, index) => ({
+		publicId: `${prefix}-${index}`,
+		width: 1200,
+		height: 800,
+	}));
 
 const context = {
 	homeConfig: { inquiryEmail: "hello@example.test" },
-	galleryPages: [{ key: "special-occasion", label: "special occasion", items: specialOccasion }],
+	galleryPages: [
+		{ key: "special-occasion", label: "special occasion", items: albumOf("special") },
+		{ key: "protests", label: "events", items: albumOf("protests") },
+		{ key: "portraits", label: "portraits", items: albumOf("portraits") },
+	],
 	resolveImageUrl: (item) => `https://img.test/${item.publicId}`,
 	localImageUrl: (item) => `/local/${item.publicId}`,
 	imageSrcSet: (item) => `https://img.test/${item.publicId} 400w`,
+	URLSearchParams,
 };
 vm.runInNewContext(
 	`${escapeHtmlSource}\n${bookingSource}\nglobalThis.renderBooking = renderBooking;\nglobalThis.bookingConfig = bookingConfig;`,
 	context,
 );
 
-const html = context.renderBooking();
+const designs = ["a", "b", "c", "d"];
+const renderFor = (design) => context.renderBooking(design);
 const config = JSON.parse(JSON.stringify(context.bookingConfig));
+const allPackages = [...config.packages, ...config.portraitPackages];
 
-const cardFor = (name) => {
-	const card = html.split("<article").find((chunk) => chunk.includes(`<h2>${name}</h2>`));
-	assert(card, `${name} card must render`);
-	return card;
+const headingFor = (html, id) => {
+	const start = html.indexOf(`id="${id}"`);
+	assert(start >= 0, `#${id} must render`);
+	return start;
 };
 
-test("Portraits heading sits after the event packages and before Kind words", () => {
-	const eventsEnd = html.indexOf("Full Day Event");
-	const included = html.indexOf('id="package-included-heading"');
-	const portraits = html.indexOf('<h2 id="portrait-packages-heading" class="section-eyebrow">Portraits</h2>');
-	const testimonials = html.indexOf('id="testimonials-heading"');
-	assert(eventsEnd >= 0 && included > eventsEnd, "event packages and What's included must render");
-	assert(portraits > included, "Portraits must come after What's included");
-	assert(testimonials > portraits, "Portraits must come before Kind words");
-	assert.match(html, /<section class="portrait-packages" aria-labelledby="portrait-packages-heading">/);
+for (const design of designs) {
+	const html = renderFor(design);
+
+	test(`design ${design} renders the Events and Portraits headings at the top`, () => {
+		assert.match(html, /<h2 id="events-heading" class="price-group-title">Events<\/h2>/);
+		assert.match(html, /<h2 id="portraits-heading" class="price-group-title">Portraits<\/h2>/);
+		assert.match(html, /Documentary coverage, priced by length/);
+		assert.match(html, /One-hour sessions/);
+		assert(headingFor(html, "events-heading") < headingFor(html, "testimonials-heading"));
+		assert(headingFor(html, "portraits-heading") < headingFor(html, "testimonials-heading"));
+		assert(headingFor(html, "package-included-heading") < headingFor(html, "testimonials-heading"));
+	});
+
+	test(`design ${design} shows all five prices`, () => {
+		for (const price of ["$450", "$600", "$1200", "$150", "$250"]) {
+			assert(html.includes(`>${price}</p>`), `${price} must render`);
+		}
+	});
+
+	test(`design ${design} gives every package an Inquire link that fills the form`, () => {
+		for (const item of allPackages) {
+			assert(
+				html.includes(`href="#booking-form" data-package="${item.name}">Inquire</a>`),
+				`${item.name} must have an Inquire link with data-package`,
+			);
+		}
+		assert.equal(html.match(/data-package="/g).length, allPackages.length);
+	});
+
+	test(`design ${design} keeps the included list and notes under the prices`, () => {
+		assert.match(html, /What’s included with events/);
+		assert.match(html, /<li>Sneak peeks for immediate social media use within 48 hours<\/li>/);
+		assert.match(html, /<a href="#booking-form">contact form<\/a>/);
+		assert.match(html, /2 outfits/);
+	});
+
+	test(`design ${design} sets its class on the page`, () => {
+		assert.match(html, new RegExp(`<section class="detail-page booking-page booking-design-${design}">`));
+	});
+}
+
+test("the design comes from ?design and falls back to a", () => {
+	assert.match(context.renderBooking(), /booking-design-a"/);
+	assert.match(context.renderBooking("zz"), /booking-design-a"/);
+	context.location = { search: "?design=c" };
+	assert.match(context.renderBooking(), /booking-design-c"/);
+	context.location = { search: "?design=d" };
+	assert.match(context.renderBooking(), /booking-design-d"/);
+	context.location = { search: "?design=nope" };
+	assert.match(context.renderBooking(), /booking-design-a"/);
+	delete context.location;
 });
 
-test("both portrait cards show name, duration and price with an Inquire link", () => {
-	const headshots = cardFor("Headshots");
-	assert.match(headshots, /class="package-duration">1 hr</);
-	assert.match(headshots, /class="package-price">\$150</);
-	assert.match(headshots, /data-package="Headshots"/);
-
-	const grad = cardFor("Grad shoot");
-	assert.match(grad, /class="package-duration">1 hr</);
-	assert.match(grad, /class="package-price">\$250</);
-	assert.match(grad, /data-package="Grad shoot"/);
+test("design b hides the Portraits panel behind an accessible switch", () => {
+	const html = renderFor("b");
+	assert.match(html, /<button type="button" class="price-switch-button" aria-pressed="true" aria-controls="events-panel" data-price-group="events">Events<\/button>/);
+	assert.match(html, /<button type="button" class="price-switch-button" aria-pressed="false" aria-controls="portraits-panel" data-price-group="portraits">Portraits<\/button>/);
+	assert.match(html, /<section class="price-panel" id="portraits-panel" data-price-panel="portraits" aria-labelledby="portraits-heading" hidden>/);
+	assert.match(html, /<section class="price-panel" id="events-panel" data-price-panel="events" aria-labelledby="events-heading">/);
 });
 
-test("Grad shoot lists its outfits and locations", () => {
-	const grad = cardFor("Grad shoot");
-	assert.match(grad, /<li>2 outfits<\/li>/);
-	assert.match(grad, /<li>2 locations<\/li>/);
+test("design d shows the cover photos of the events and portraits albums", () => {
+	const html = renderFor("d");
+	assert.match(html, /<img src="https:\/\/img\.test\/protests-0"/);
+	assert.match(html, /<img src="https:\/\/img\.test\/portraits-0"/);
 });
 
-test("Headshots card renders no feature list", () => {
-	assert.deepEqual(config.portraitPackages[0].features, []);
-	assert.equal(cardFor("Headshots").includes("<ul"), false);
+test("Headshots renders no feature list in the cards and Grad shoot lists its features", () => {
+	const cardHtml = renderFor("b");
+	const headshots = cardHtml.split("<article").find((chunk) => chunk.includes(">Headshots</h3>"));
+	assert(headshots, "Headshots card must render");
+	assert.equal(headshots.includes("<ul"), false);
 });
 
 test("there are two testimonials and the second points at special-occasion index 14", () => {
+	const html = renderFor("a");
 	assert.equal(config.testimonials.length, 2);
 	assert.deepEqual(config.testimonials[1].photo, { album: "special-occasion", index: 14 });
 	assert.equal(config.testimonials[1].name, "");

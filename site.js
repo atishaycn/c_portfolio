@@ -812,40 +812,145 @@ const bookingConfig = {
 	],
 };
 
-const renderPackageCard = (item) => `
-	<article class="package-card ${item.featured ? "is-featured" : ""}">
-		${item.featured ? `<p class="package-badge">Most booked</p>` : ""}
-		<h2>${escapeHtml(item.name)}</h2>
-		${item.duration ? `<p class="package-duration">${escapeHtml(item.duration)}</p>` : ""}
+// Booking price layouts. Every design renders Events and Portraits at the top of the page;
+// ?design=a|b|c|d picks one (bookingDesignFromQuery).
+const bookingDesigns = ["a", "b", "c", "d"];
+const eventsGroup = { key: "events", heading: "Events", lead: "Documentary coverage, priced by length" };
+const portraitsGroup = { key: "portraits", heading: "Portraits", lead: "One-hour sessions" };
+
+const bookingDesignFromQuery = () => {
+	const value = typeof location === "undefined" ? null : new URLSearchParams(location.search).get("design");
+	return bookingDesigns.includes(value) ? value : "a";
+};
+
+const priceGroupHead = (group) => `
+	<header class="price-group-head">
+		<h2 id="${group.key}-heading" class="price-group-title">${group.heading}</h2>
+		<p class="price-group-lead">${group.lead}</p>
+	</header>
+`;
+
+const priceMeta = (item) => [item.duration, ...item.features].filter(Boolean).map(escapeHtml).join(" · ");
+
+const inquireLink = (item, className) =>
+	`<a class="${className}" href="#booking-form" data-package="${escapeHtml(item.name)}">Inquire</a>`;
+
+const renderPriceCard = (item) => `
+	<article class="package-card">
+		<h3 class="package-name">${escapeHtml(item.name)}</h3>
+		<p class="package-duration">${escapeHtml(item.duration)}</p>
 		<p class="package-price">${escapeHtml(item.price)}</p>
-		${item.summary ? `<p class="package-summary">${escapeHtml(item.summary)}</p>` : ""}
 		${item.features.length ? `<ul>${item.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("")}</ul>` : ""}
-		<a class="${item.featured ? "brand-button" : "outline-button"}" href="#booking-form" data-package="${escapeHtml(item.name)}">Inquire</a>
+		${inquireLink(item, "outline-button")}
 	</article>
 `;
 
-const renderPortraitPackages = () => `
-	<section class="portrait-packages" aria-labelledby="portrait-packages-heading">
-		<h2 id="portrait-packages-heading" class="section-eyebrow">Portraits</h2>
-		<div class="package-grid portrait-package-grid">
-			${bookingConfig.portraitPackages.map(renderPackageCard).join("")}
+const renderPriceRow = (item) => `
+	<li class="price-row">
+		<div class="price-row-text">
+			<h3 class="price-row-name">${escapeHtml(item.name)}</h3>
+			<p class="price-row-meta">${priceMeta(item)}</p>
 		</div>
+		<p class="price-row-price">${escapeHtml(item.price)}</p>
+		${inquireLink(item, "outline-button price-row-inquire")}
+	</li>
+`;
+
+const renderPriceRows = (items) => `<ul class="price-rows">${items.map(renderPriceRow).join("")}</ul>`;
+
+const renderMenuItem = (item) => `
+	<li class="price-menu-item">
+		<div class="price-menu-line">
+			<h3 class="price-menu-name">${escapeHtml(item.name)}</h3>
+			<span class="price-menu-leader" aria-hidden="true"></span>
+			<p class="price-menu-price">${escapeHtml(item.price)}</p>
+		</div>
+		<div class="price-menu-meta">
+			<p>${priceMeta(item)}</p>
+			${inquireLink(item, "price-menu-inquire")}
+		</div>
+	</li>
+`;
+
+const renderPanelPhoto = (albumKey, alt) => {
+	const photo = testimonialPhoto({ album: albumKey, index: 0 });
+	if (!photo) return "";
+	return `<figure class="price-photo"><img src="${resolveImageUrl(photo, { width: 900 })}" srcset="${imageSrcSet(photo, [400, 800, 1200])}" sizes="(max-width: 820px) 100vw, 50vw" data-local-src="${localImageUrl(photo)}" alt="${escapeHtml(alt)}" width="${photo.width}" height="${photo.height}" loading="lazy" decoding="async" /></figure>`;
+};
+
+const renderWhatsIncluded = () =>
+	bookingConfig.included?.length || bookingConfig.notes?.length
+		? `<section class="package-included" aria-labelledby="package-included-heading">
+			<h2 id="package-included-heading" class="section-eyebrow">What’s included with events</h2>
+			${bookingConfig.included?.length ? `<ul class="package-included-list">${bookingConfig.included.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>` : ""}
+			${bookingConfig.notes?.length ? `<div class="package-notes">${bookingConfig.notes.map((line) => `<p>${escapeHtml(line).replace(/\{(.+?)\}/g, '<a href="#booking-form">$1</a>')}</p>`).join("")}</div>` : ""}
+		</section>`
+		: "";
+
+// a: two equal columns, each a list of compact price rows.
+const renderPricesA = () => `
+	<div class="price-columns">
+		<section class="price-column" aria-labelledby="events-heading">
+			${priceGroupHead(eventsGroup)}
+			${renderPriceRows(bookingConfig.packages)}
+		</section>
+		<section class="price-column" aria-labelledby="portraits-heading">
+			${priceGroupHead(portraitsGroup)}
+			${renderPriceRows(bookingConfig.portraitPackages)}
+		</section>
+	</div>
+	${renderWhatsIncluded()}
+`;
+
+// b: one switch; the panel for the other group is hidden.
+const renderPricesB = () => `
+	<div class="price-switch" role="group" aria-label="Choose which prices to show">
+		<button type="button" class="price-switch-button" aria-pressed="true" aria-controls="events-panel" data-price-group="events">Events</button>
+		<button type="button" class="price-switch-button" aria-pressed="false" aria-controls="portraits-panel" data-price-group="portraits">Portraits</button>
+	</div>
+	<section class="price-panel" id="events-panel" data-price-panel="events" aria-labelledby="events-heading">
+		${priceGroupHead(eventsGroup)}
+		<div class="price-cards">${bookingConfig.packages.map(renderPriceCard).join("")}</div>
+	</section>
+	<section class="price-panel" id="portraits-panel" data-price-panel="portraits" aria-labelledby="portraits-heading" hidden>
+		${priceGroupHead(portraitsGroup)}
+		<div class="price-cards">${bookingConfig.portraitPackages.map(renderPriceCard).join("")}</div>
+	</section>
+	${renderWhatsIncluded()}
+`;
+
+// c: two full-width bands; Events keeps the cards, Portraits uses horizontal rows on cream.
+const renderPricesC = () => `
+	<section class="price-band price-band-events" aria-labelledby="events-heading">
+		${priceGroupHead(eventsGroup)}
+		<div class="price-cards">${bookingConfig.packages.map(renderPriceCard).join("")}</div>
+		${renderWhatsIncluded()}
+	</section>
+	<section class="price-band price-band-portraits" aria-labelledby="portraits-heading">
+		${priceGroupHead(portraitsGroup)}
+		${renderPriceRows(bookingConfig.portraitPackages)}
 	</section>
 `;
 
-const renderPackages = () => `
-	<div class="package-grid">
-		${bookingConfig.packages.map(renderPackageCard).join("")}
+// d: two equal panels, each with a photo and a menu-style price list.
+const renderPricesD = () => `
+	<div class="price-panels">
+		<section class="price-panel" aria-labelledby="events-heading">
+			${renderPanelPhoto("protests", "Event photograph by Claire Thomas")}
+			<div class="price-panel-body">
+				${priceGroupHead(eventsGroup)}
+				<ul class="price-menu">${bookingConfig.packages.map(renderMenuItem).join("")}</ul>
+			</div>
+		</section>
+		<section class="price-panel" aria-labelledby="portraits-heading">
+			${renderPanelPhoto("portraits", "Portrait photograph by Claire Thomas")}
+			<div class="price-panel-body">
+				${priceGroupHead(portraitsGroup)}
+				<ul class="price-menu">${bookingConfig.portraitPackages.map(renderMenuItem).join("")}</ul>
+			</div>
+		</section>
 	</div>
-	${
-		bookingConfig.included?.length || bookingConfig.notes?.length
-			? `<section class="package-included" aria-labelledby="package-included-heading">
-				<h2 id="package-included-heading" class="section-eyebrow">What’s included</h2>
-				${bookingConfig.included?.length ? `<ul class="package-included-list">${bookingConfig.included.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>` : ""}
-				${bookingConfig.notes?.length ? `<div class="package-notes">${bookingConfig.notes.map((line) => `<p>${escapeHtml(line).replace(/\{(.+?)\}/g, '<a href="#booking-form">$1</a>')}</p>`).join("")}</div>` : ""}
-			</section>`
-			: ""
-	}
+	${renderWhatsIncluded()}
 `;
 
 const testimonialPhoto = (photo) => {
@@ -941,17 +1046,18 @@ const renderBookingForm = () => `
 	</section>
 `;
 
-const renderBooking = () => {
+const renderBooking = (design = bookingDesignFromQuery()) => {
 	const { showPackages, showTestimonials } = bookingConfig;
+	const layout = bookingDesigns.includes(design) ? design : "a";
+	const renderPrices = { a: renderPricesA, b: renderPricesB, c: renderPricesC, d: renderPricesD }[layout];
 	return `
-		<section class="detail-page booking-page">
+		<section class="detail-page booking-page booking-design-${layout}">
 			<header class="page-title">
 				<h1>Booking</h1>
 				<p class="page-lead">Comprehensive, documentary-style coverage of key interactions and candid moments</p>
 				<p class="page-intro">Whether it’s a company event, graduation, birthday party, holiday party, reunion, personal event, or something else, I am passionate about capturing the authentic energy and highlights of your event.</p>
 			</header>
-			${showPackages ? renderPackages() : ""}
-			${showPackages && bookingConfig.portraitPackages?.length ? renderPortraitPackages() : ""}
+			${showPackages ? renderPrices() : ""}
 			${showTestimonials ? renderTestimonials() : ""}
 			${renderBookingForm()}
 		</section>
@@ -1519,6 +1625,20 @@ const setupAutoHideHeader = () => {
 // An email address or a phone number with at least seven digits.
 const looksLikeContact = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.replace(/\D/g, "").length >= 7;
 
+// Option b only: the Events | Portraits buttons show one price panel at a time.
+const setupPriceSwitch = () => {
+	const buttons = [...document.querySelectorAll("[data-price-group]")];
+	buttons.forEach((button) => {
+		button.addEventListener("click", () => {
+			const group = button.dataset.priceGroup;
+			buttons.forEach((other) => other.setAttribute("aria-pressed", String(other === button)));
+			document.querySelectorAll("[data-price-panel]").forEach((panel) => {
+				panel.hidden = panel.dataset.pricePanel !== group;
+			});
+		});
+	});
+};
+
 const setupBookingForm = () => {
 	const form = document.getElementById("booking-form");
 	if (!(form instanceof HTMLFormElement)) return;
@@ -1651,6 +1771,7 @@ const setupSectionReveal = () => {
 };
 
 setupHomeDropdown();
+setupPriceSwitch();
 setupBookingForm();
 
 const isSectionPage = Boolean(document.querySelector(".section-page"));

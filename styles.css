@@ -1040,15 +1040,6 @@ body[data-page="protests"] .masonry-grid {
 	margin: 0 auto;
 }
 
-.package-grid {
-	display: grid;
-	grid-auto-flow: column;
-	grid-auto-columns: minmax(0, 1fr);
-	gap: 28px;
-	align-items: stretch;
-	margin-top: 8px;
-}
-
 .package-card {
 	position: relative;
 	display: flex;
@@ -1082,7 +1073,7 @@ body[data-page="protests"] .masonry-grid {
 	transform: translate(-50%, -50%);
 }
 
-.package-card h2 {
+.package-card h3 {
 	margin: 0;
 	font-size: 13px;
 	font-weight: 600;
@@ -1149,17 +1140,6 @@ body[data-page="protests"] .masonry-grid {
 /* Keeps the Inquire buttons level when a card has no feature list. */
 .package-card > a {
 	margin-top: auto;
-}
-
-/* Two cards at the width of one event card, centred, so no third column is left empty. */
-.portrait-packages {
-	margin: 72px auto 0;
-	text-align: center;
-}
-
-.portrait-package-grid {
-	max-width: 780px;
-	margin: 0 auto;
 }
 
 .outline-button {
@@ -1392,6 +1372,328 @@ body[data-page="protests"] .masonry-grid {
 	color: #c0392b;
 }
 
+/* Booking price layouts (drafts behind ?design=a|b|c|d). Shared parts first, then one block per design. */
+.price-group-head {
+	margin-bottom: 24px;
+}
+
+.price-group-title {
+	margin: 0;
+	color: var(--brand-brown);
+	font-family: Georgia, "Times New Roman", serif;
+	font-size: 30px;
+	font-weight: 400;
+	line-height: 1.2;
+}
+
+.price-group-lead {
+	margin: 8px 0 0;
+	color: var(--ink-soft);
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.price-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 360px));
+	justify-content: center;
+	gap: 28px;
+}
+
+.price-rows {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.price-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto auto;
+	align-items: center;
+	gap: 8px 20px;
+	padding: 18px 0;
+	border-top: 1px solid var(--hairline);
+}
+
+.price-row-name,
+.price-menu-name {
+	margin: 0;
+	color: var(--brand-brown);
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.price-row-meta,
+.price-menu-meta p {
+	margin: 4px 0 0;
+	color: var(--ink-soft);
+	font-size: 13px;
+	letter-spacing: 0.04em;
+}
+
+.price-row-price,
+.price-menu-price {
+	margin: 0;
+	color: var(--brand-brown);
+	font-size: 24px;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+.price-row .outline-button,
+.price-menu-inquire {
+	min-height: 38px;
+	padding: 8px 16px;
+	font-size: 11px;
+}
+
+.price-row-inquire {
+	align-self: center;
+}
+
+.price-menu-inquire {
+	color: #5b4bc4;
+	font-weight: 600;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	border-bottom: 2px solid transparent;
+	border-image: var(--brand-gradient) 1;
+}
+
+.price-menu-line {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+	margin: 0;
+}
+
+.price-menu-leader {
+	flex: 1;
+	min-width: 24px;
+	border-bottom: 1px dotted var(--hairline);
+	transform: translateY(-5px);
+}
+
+.price-menu-meta {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.price-menu-meta p {
+	margin: 0;
+}
+
+/* a: two equal columns with a hairline between them. */
+.booking-design-a .price-columns {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.booking-design-a .price-column {
+	padding: 0 48px;
+}
+
+.booking-design-a .price-column:first-child {
+	padding-left: 0;
+}
+
+.booking-design-a .price-column:last-child {
+	padding-right: 0;
+}
+
+.booking-design-a .price-column + .price-column {
+	border-left: 1px solid var(--hairline);
+}
+
+.booking-design-a .price-rows {
+	border-bottom: 1px solid var(--hairline);
+}
+
+/* b: equal two-part switch above one panel. */
+.booking-design-b .price-switch {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	max-width: 520px;
+	margin: 0 auto 48px;
+	border: 1px solid #5b4bc4;
+}
+
+.booking-design-b .price-switch-button {
+	min-height: 56px;
+	padding: 0 24px;
+	border: 0;
+	color: #5b4bc4;
+	background: #fff;
+	font-family: Georgia, "Times New Roman", serif;
+	font-size: 22px;
+	cursor: pointer;
+}
+
+.booking-design-b .price-switch-button + .price-switch-button {
+	border-left: 1px solid #5b4bc4;
+}
+
+.booking-design-b .price-switch-button[aria-pressed="true"] {
+	color: #fff;
+	background: var(--brand-gradient);
+}
+
+.booking-design-b .price-switch-button:focus-visible {
+	outline: 2px solid #5b4bc4;
+	outline-offset: 2px;
+}
+
+.booking-design-b .price-panel[hidden] {
+	display: none;
+}
+
+.booking-design-b .price-panel .price-group-head {
+	text-align: center;
+}
+
+/* c: full-width bands. The box-shadow paints past the page edge; clip-path keeps it from adding scroll width. */
+.booking-design-c .price-band {
+	--band-bg: #fff;
+	padding: 72px 0;
+	background: var(--band-bg);
+	box-shadow: 0 0 0 100vmax var(--band-bg);
+	clip-path: inset(0 -100vmax);
+}
+
+.booking-design-c .price-band-portraits {
+	--band-bg: var(--cream);
+}
+
+.booking-design-c .price-band-events .price-group-head,
+.booking-design-c .price-band-portraits .price-group-head {
+	text-align: center;
+}
+
+.booking-design-c .price-band-events .price-cards {
+	max-width: 1180px;
+	margin: 0 auto;
+}
+
+.booking-design-c .price-band-portraits .price-rows {
+	display: grid;
+	gap: 14px;
+	max-width: 760px;
+	margin: 0 auto;
+	border-bottom: 0;
+}
+
+.booking-design-c .price-band-portraits .price-row {
+	grid-template-columns: minmax(0, 1fr) auto auto;
+	padding: 22px 26px;
+	border: 1px solid var(--hairline);
+	background: #fff;
+}
+
+/* d: two equal photo-topped panels with menu-style price lists. */
+.booking-design-d .price-panels {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 40px;
+}
+
+.booking-design-d .price-panel {
+	display: flex;
+	flex-direction: column;
+	border: 1px solid var(--hairline);
+	background: #fff;
+}
+
+.booking-design-d .price-photo {
+	margin: 0;
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	background: var(--cream);
+}
+
+.booking-design-d .price-photo img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.booking-design-d .price-panel-body {
+	padding: 32px 36px 36px;
+}
+
+.booking-design-d .price-menu {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.booking-design-d .price-menu-item {
+	padding: 18px 0;
+	border-top: 1px solid var(--hairline);
+}
+
+@media (max-width: 1000px) {
+	.booking-design-d .price-panels {
+		gap: 32px;
+	}
+}
+
+@media (max-width: 820px) {
+	.booking-design-a .price-columns {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.booking-design-a .price-column,
+	.booking-design-a .price-column:first-child,
+	.booking-design-a .price-column:last-child {
+		padding: 0;
+	}
+
+	.booking-design-a .price-column + .price-column {
+		margin-top: 56px;
+		padding-top: 56px;
+		border-top: 1px solid var(--hairline);
+		border-left: 0;
+	}
+
+	.booking-design-b .price-switch {
+		margin-bottom: 36px;
+	}
+
+	.booking-design-c .price-band {
+		padding: 56px 0;
+	}
+
+	.booking-design-c .price-band-portraits .price-row {
+		grid-template-columns: minmax(0, 1fr) auto;
+		padding: 20px;
+	}
+
+	.booking-design-c .price-band-portraits .price-row-inquire {
+		grid-column: 1 / -1;
+		justify-self: start;
+	}
+
+	.booking-design-d .price-panels {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.booking-design-d .price-panel-body {
+		padding: 26px 22px 28px;
+	}
+
+	.price-row {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.price-row-inquire {
+		grid-column: 1 / -1;
+		justify-self: start;
+	}
+}
+
 /* Contact form at the bottom of the booking page. */
 .booking-form-section {
 	display: grid;
@@ -1556,12 +1858,6 @@ body[data-page="protests"] .masonry-grid {
 		inset: 12px -12px -12px 12px;
 	}
 
-	.package-grid {
-		grid-auto-flow: row;
-		grid-template-columns: minmax(0, 520px);
-		justify-content: center;
-		gap: 36px;
-	}
 }
 
 @media (max-width: 820px) {
