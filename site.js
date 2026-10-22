@@ -807,8 +807,8 @@ const bookingConfig = {
 	],
 	// Portrait sessions are priced separately from the event packages; shown below them.
 	portraitPackages: [
-		{ name: "Headshots", duration: "1 hr", price: "$150", features: ["20+ digital images"] },
-		{ name: "Grad shoot", duration: "1 hr", price: "$250", features: ["2 outfits, 2 locations"] },
+		{ name: "Headshots", duration: "1 hr", price: "$150", features: ["20 digital images"] },
+		{ name: "Grad shoot", duration: "1 hr", price: "$250", features: ["20 digital images, 2 outfits, 2 locations"] },
 	],
 };
 
