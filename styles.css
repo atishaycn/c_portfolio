@@ -1120,22 +1120,6 @@ body[data-page="protests"] .masonry-grid {
 	align-self: stretch;
 }
 
-/* Keeps the Inquire buttons level when a card has no feature list. */
-.package-card > a {
-	margin-top: auto;
-}
-
-/* Two cards at the width of one event card, centred, so no third column is left empty. */
-.portrait-packages {
-	margin: 72px auto 0;
-	text-align: center;
-}
-
-.portrait-package-grid {
-	max-width: 780px;
-	margin: 0 auto;
-}
-
 .outline-button {
 	display: inline-flex;
 	align-items: center;

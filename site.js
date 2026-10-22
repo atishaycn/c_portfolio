@@ -765,44 +765,26 @@ const bookingConfig = {
 			// Photo shown beside the quote: an album and the photo's position in it (0 = first, the album's cover).
 			photo: { album: "special-occasion", index: 0 },
 		},
-		{
-			quote: "Claire did such an amazing job capturing the little authentic moments throughout the day. I'm not too comfortable being in front of a camera, but I truly felt safe around Claire. If you're looking for a relaxed, elopement-style day, Claire is the perfect match! I found her through a referral, and within the day we were able to chat about my vision. I initially did not plan to have a photographer, but I'm so glad I found Claire. I'll cherish her photos for years to come! She was also incredibly professional and agile throughout the day.",
-			name: "",
-			context: "Special occasion",
-			photo: { album: "special-occasion", index: 14 },
-		},
-	],
-	// Portrait sessions are priced separately from the event packages; shown below them.
-	portraitPackages: [
-		{ name: "Headshots", duration: "1 hr", price: "$150", features: [] },
-		{ name: "Grad shoot", duration: "1 hr", price: "$250", features: ["2 outfits", "2 locations"] },
 	],
 };
 
-const renderPackageCard = (item) => `
-	<article class="package-card ${item.featured ? "is-featured" : ""}">
-		${item.featured ? `<p class="package-badge">Most booked</p>` : ""}
-		<h2>${escapeHtml(item.name)}</h2>
-		${item.duration ? `<p class="package-duration">${escapeHtml(item.duration)}</p>` : ""}
-		<p class="package-price">${escapeHtml(item.price)}</p>
-		${item.summary ? `<p class="package-summary">${escapeHtml(item.summary)}</p>` : ""}
-		${item.features.length ? `<ul>${item.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("")}</ul>` : ""}
-		<a class="${item.featured ? "brand-button" : "outline-button"}" href="#booking-form" data-package="${escapeHtml(item.name)}">Inquire</a>
-	</article>
-`;
-
-const renderPortraitPackages = () => `
-	<section class="portrait-packages" aria-labelledby="portrait-packages-heading">
-		<h2 id="portrait-packages-heading" class="section-eyebrow">Portraits</h2>
-		<div class="package-grid portrait-package-grid">
-			${bookingConfig.portraitPackages.map(renderPackageCard).join("")}
-		</div>
-	</section>
-`;
-
 const renderPackages = () => `
 	<div class="package-grid">
-		${bookingConfig.packages.map(renderPackageCard).join("")}
+		${bookingConfig.packages
+			.map(
+				(item) => `
+					<article class="package-card ${item.featured ? "is-featured" : ""}">
+						${item.featured ? `<p class="package-badge">Most booked</p>` : ""}
+						<h2>${escapeHtml(item.name)}</h2>
+						${item.duration ? `<p class="package-duration">${escapeHtml(item.duration)}</p>` : ""}
+						<p class="package-price">${escapeHtml(item.price)}</p>
+						${item.summary ? `<p class="package-summary">${escapeHtml(item.summary)}</p>` : ""}
+						<ul>${item.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("")}</ul>
+						<a class="${item.featured ? "brand-button" : "outline-button"}" href="#booking-form" data-package="${escapeHtml(item.name)}">Inquire</a>
+					</article>
+				`,
+			)
+			.join("")}
 	</div>
 	${
 		bookingConfig.included?.length || bookingConfig.notes?.length
@@ -918,7 +900,6 @@ const renderBooking = () => {
 				<p class="page-intro">Whether it’s a company event, graduation, birthday party, holiday party, reunion, personal event, or something else, I am passionate about capturing the authentic energy and highlights of your event.</p>
 			</header>
 			${showPackages ? renderPackages() : ""}
-			${showPackages && bookingConfig.portraitPackages?.length ? renderPortraitPackages() : ""}
 			${showTestimonials ? renderTestimonials() : ""}
 			${renderBookingForm()}
 		</section>
