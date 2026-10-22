@@ -117,11 +117,11 @@ test("Headshots lists 20+ digital images and Grad shoot lists outfits and locati
 	assert.match(card("Grad shoot"), /<ul><li>2 outfits, 2 locations<\/li><\/ul>/);
 });
 
-test("there are two testimonials and the second points at special-occasion index 14", () => {
+test("there are two testimonials and the newest, first, points at special-occasion index 14", () => {
 	assert.equal(config.testimonials.length, 2);
-	assert.deepEqual(config.testimonials[1].photo, { album: "special-occasion", index: 14 });
-	assert.equal(config.testimonials[1].name, "");
-	assert.equal(config.testimonials[1].context, "Special occasion");
-	assert.match(config.testimonials[1].quote, /^Claire did such an amazing job/);
+	assert.deepEqual(config.testimonials[0].photo, { album: "special-occasion", index: 14 });
+	assert.equal(config.testimonials[0].name, "");
+	assert.equal(config.testimonials[0].context, "Special occasion");
+	assert.match(config.testimonials[0].quote, /^Claire did such an amazing job/);
 	assert.match(html, /https:\/\/img\.test\/special-14/);
 });

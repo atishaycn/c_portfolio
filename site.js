@@ -792,17 +792,17 @@ const bookingConfig = {
 	],
 	testimonials: [
 		{
-			quote: "Claire went out of her way to preview the location and snap some mock pics beforehand, freezing the actual moments for us perfectly. The wild weather, our widest smiles, and San Francisco truly came alive.",
-			name: "",
-			context: "Special occasion, San Francisco",
-			// Photo shown beside the quote: an album and the photo's position in it (0 = first, the album's cover).
-			photo: { album: "special-occasion", index: 0 },
-		},
-		{
 			quote: "Claire did such an amazing job capturing the little authentic moments throughout the day. I'm not too comfortable being in front of a camera, but I truly felt safe around Claire. If you're looking for a relaxed, elopement-style day, Claire is the perfect match! I found her through a referral, and within the day we were able to chat about my vision. I initially did not plan to have a photographer, but I'm so glad I found Claire. I'll cherish her photos for years to come! She was also incredibly professional and agile throughout the day.",
 			name: "",
 			context: "Special occasion",
+			// Photo shown beside the quote: an album and the photo's position in it (0 = first, the album's cover).
 			photo: { album: "special-occasion", index: 14 },
+		},
+		{
+			quote: "Claire went out of her way to preview the location and snap some mock pics beforehand, freezing the actual moments for us perfectly. The wild weather, our widest smiles, and San Francisco truly came alive.",
+			name: "",
+			context: "Special occasion, San Francisco",
+			photo: { album: "special-occasion", index: 0 },
 		},
 	],
 	// Portrait sessions are priced separately from the event packages; shown below them.
