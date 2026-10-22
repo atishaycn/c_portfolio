@@ -812,16 +812,8 @@ const bookingConfig = {
 	],
 };
 
-// Booking price layouts. Every design renders Events and Portraits at the top of the page;
-// ?design=a|b|c|d picks one (bookingDesignFromQuery).
-const bookingDesigns = ["a", "b", "c", "d"];
 const eventsGroup = { key: "events", heading: "Events", lead: "Documentary coverage, priced by length" };
 const portraitsGroup = { key: "portraits", heading: "Portraits", lead: "One-hour sessions" };
-
-const bookingDesignFromQuery = () => {
-	const value = typeof location === "undefined" ? null : new URLSearchParams(location.search).get("design");
-	return bookingDesigns.includes(value) ? value : "a";
-};
 
 const priceGroupHead = (group) => `
 	<header class="price-group-head">
@@ -830,53 +822,15 @@ const priceGroupHead = (group) => `
 	</header>
 `;
 
-const priceMeta = (item) => [item.duration, ...item.features].filter(Boolean).map(escapeHtml).join(" · ");
-
-const inquireLink = (item, className) =>
-	`<a class="${className}" href="#booking-form" data-package="${escapeHtml(item.name)}">Inquire</a>`;
-
 const renderPriceCard = (item) => `
 	<article class="package-card">
 		<h3 class="package-name">${escapeHtml(item.name)}</h3>
 		<p class="package-duration">${escapeHtml(item.duration)}</p>
 		<p class="package-price">${escapeHtml(item.price)}</p>
 		${item.features.length ? `<ul>${item.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("")}</ul>` : ""}
-		${inquireLink(item, "outline-button")}
+		<a class="outline-button" href="#booking-form" data-package="${escapeHtml(item.name)}">Inquire</a>
 	</article>
 `;
-
-const renderPriceRow = (item) => `
-	<li class="price-row">
-		<div class="price-row-text">
-			<h3 class="price-row-name">${escapeHtml(item.name)}</h3>
-			<p class="price-row-meta">${priceMeta(item)}</p>
-		</div>
-		<p class="price-row-price">${escapeHtml(item.price)}</p>
-		${inquireLink(item, "outline-button price-row-inquire")}
-	</li>
-`;
-
-const renderPriceRows = (items) => `<ul class="price-rows">${items.map(renderPriceRow).join("")}</ul>`;
-
-const renderMenuItem = (item) => `
-	<li class="price-menu-item">
-		<div class="price-menu-line">
-			<h3 class="price-menu-name">${escapeHtml(item.name)}</h3>
-			<span class="price-menu-leader" aria-hidden="true"></span>
-			<p class="price-menu-price">${escapeHtml(item.price)}</p>
-		</div>
-		<div class="price-menu-meta">
-			<p>${priceMeta(item)}</p>
-			${inquireLink(item, "price-menu-inquire")}
-		</div>
-	</li>
-`;
-
-const renderPanelPhoto = (albumKey, alt) => {
-	const photo = testimonialPhoto({ album: albumKey, index: 0 });
-	if (!photo) return "";
-	return `<figure class="price-photo"><img src="${resolveImageUrl(photo, { width: 900 })}" srcset="${imageSrcSet(photo, [400, 800, 1200])}" sizes="(max-width: 820px) 100vw, 50vw" data-local-src="${localImageUrl(photo)}" alt="${escapeHtml(alt)}" width="${photo.width}" height="${photo.height}" loading="lazy" decoding="async" /></figure>`;
-};
 
 const renderWhatsIncluded = () =>
 	bookingConfig.included?.length || bookingConfig.notes?.length
@@ -887,23 +841,8 @@ const renderWhatsIncluded = () =>
 		</section>`
 		: "";
 
-// a: two equal columns, each a list of compact price rows.
-const renderPricesA = () => `
-	<div class="price-columns">
-		<section class="price-column" aria-labelledby="events-heading">
-			${priceGroupHead(eventsGroup)}
-			${renderPriceRows(bookingConfig.packages)}
-		</section>
-		<section class="price-column" aria-labelledby="portraits-heading">
-			${priceGroupHead(portraitsGroup)}
-			${renderPriceRows(bookingConfig.portraitPackages)}
-		</section>
-	</div>
-	${renderWhatsIncluded()}
-`;
-
-// b: one switch; the panel for the other group is hidden.
-const renderPricesB = () => `
+// Events | Portraits switch: one price panel is shown at a time (setupPriceSwitch). The included block is part of Events.
+const renderPrices = () => `
 	<div class="price-switch" role="group" aria-label="Choose which prices to show">
 		<button type="button" class="price-switch-button" aria-pressed="true" aria-controls="events-panel" data-price-group="events">Events</button>
 		<button type="button" class="price-switch-button" aria-pressed="false" aria-controls="portraits-panel" data-price-group="portraits">Portraits</button>
@@ -911,46 +850,12 @@ const renderPricesB = () => `
 	<section class="price-panel" id="events-panel" data-price-panel="events" aria-labelledby="events-heading">
 		${priceGroupHead(eventsGroup)}
 		<div class="price-cards">${bookingConfig.packages.map(renderPriceCard).join("")}</div>
+		${renderWhatsIncluded()}
 	</section>
 	<section class="price-panel" id="portraits-panel" data-price-panel="portraits" aria-labelledby="portraits-heading" hidden>
 		${priceGroupHead(portraitsGroup)}
 		<div class="price-cards">${bookingConfig.portraitPackages.map(renderPriceCard).join("")}</div>
 	</section>
-	${renderWhatsIncluded()}
-`;
-
-// c: two full-width bands; Events keeps the cards, Portraits uses horizontal rows on cream.
-const renderPricesC = () => `
-	<section class="price-band price-band-events" aria-labelledby="events-heading">
-		${priceGroupHead(eventsGroup)}
-		<div class="price-cards">${bookingConfig.packages.map(renderPriceCard).join("")}</div>
-		${renderWhatsIncluded()}
-	</section>
-	<section class="price-band price-band-portraits" aria-labelledby="portraits-heading">
-		${priceGroupHead(portraitsGroup)}
-		${renderPriceRows(bookingConfig.portraitPackages)}
-	</section>
-`;
-
-// d: two equal panels, each with a photo and a menu-style price list.
-const renderPricesD = () => `
-	<div class="price-panels">
-		<section class="price-panel" aria-labelledby="events-heading">
-			${renderPanelPhoto("protests", "Event photograph by Claire Thomas")}
-			<div class="price-panel-body">
-				${priceGroupHead(eventsGroup)}
-				<ul class="price-menu">${bookingConfig.packages.map(renderMenuItem).join("")}</ul>
-			</div>
-		</section>
-		<section class="price-panel" aria-labelledby="portraits-heading">
-			${renderPanelPhoto("portraits", "Portrait photograph by Claire Thomas")}
-			<div class="price-panel-body">
-				${priceGroupHead(portraitsGroup)}
-				<ul class="price-menu">${bookingConfig.portraitPackages.map(renderMenuItem).join("")}</ul>
-			</div>
-		</section>
-	</div>
-	${renderWhatsIncluded()}
 `;
 
 const testimonialPhoto = (photo) => {
@@ -1046,12 +951,10 @@ const renderBookingForm = () => `
 	</section>
 `;
 
-const renderBooking = (design = bookingDesignFromQuery()) => {
+const renderBooking = () => {
 	const { showPackages, showTestimonials } = bookingConfig;
-	const layout = bookingDesigns.includes(design) ? design : "a";
-	const renderPrices = { a: renderPricesA, b: renderPricesB, c: renderPricesC, d: renderPricesD }[layout];
 	return `
-		<section class="detail-page booking-page booking-design-${layout}">
+		<section class="detail-page booking-page">
 			<header class="page-title">
 				<h1>Booking</h1>
 				<p class="page-lead">Comprehensive, documentary-style coverage of key interactions and candid moments</p>
@@ -1625,7 +1528,7 @@ const setupAutoHideHeader = () => {
 // An email address or a phone number with at least seven digits.
 const looksLikeContact = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.replace(/\D/g, "").length >= 7;
 
-// Option b only: the Events | Portraits buttons show one price panel at a time.
+// The Events | Portraits buttons show one price panel at a time.
 const setupPriceSwitch = () => {
 	const buttons = [...document.querySelectorAll("[data-price-group]")];
 	buttons.forEach((button) => {
