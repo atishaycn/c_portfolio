@@ -799,6 +799,12 @@ const bookingConfig = {
 			photo: { album: "special-occasion", index: 14 },
 		},
 		{
+			quote: "Claire's eye for the critical moments of our rally really shone through in all the photos taken. She was not at all reluctant to get into the mix of the action/chaos unfolding and even join in on our cause. I wouldn't describe Claire as an observer, but as a full partner to us and participant in our rally– there's nothing more we could've asked from her in that moment.",
+			name: "",
+			context: "Rally",
+			photo: { album: "protests", index: 43 },
+		},
+		{
 			quote: "Claire went out of her way to preview the location and snap some mock pics beforehand, freezing the actual moments for us perfectly. The wild weather, our widest smiles, and San Francisco truly came alive.",
 			name: "",
 			context: "Special occasion, San Francisco",

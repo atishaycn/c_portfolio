@@ -17,7 +17,7 @@ const escapeHtmlSource = sliceFrom("const escapeHtml =", "\n\n");
 const bookingSource = sliceFrom("const bookingConfig = {", "const renderPrints =");
 
 const albumOf = (prefix) =>
-	Array.from({ length: 26 }, (_, index) => ({
+	Array.from({ length: 48 }, (_, index) => ({
 		publicId: `${prefix}-${index}`,
 		width: 1200,
 		height: 800,
@@ -117,11 +117,21 @@ test("Headshots lists 20 digital images and Grad shoot lists images, outfits and
 	assert.match(card("Grad shoot"), /<ul><li>20 digital images, 2 outfits, 2 locations<\/li><\/ul>/);
 });
 
-test("there are two testimonials and the newest, first, points at special-occasion index 14", () => {
-	assert.equal(config.testimonials.length, 2);
+test("the newest testimonial, first, points at special-occasion index 14", () => {
 	assert.deepEqual(config.testimonials[0].photo, { album: "special-occasion", index: 14 });
 	assert.equal(config.testimonials[0].name, "");
 	assert.equal(config.testimonials[0].context, "Special occasion");
 	assert.match(config.testimonials[0].quote, /^Claire did such an amazing job/);
 	assert.match(html, /https:\/\/img\.test\/special-14/);
+});
+
+test("the rally testimonial sits in the middle of three, beside Events photo 44", () => {
+	assert.equal(config.testimonials.length, 3);
+	assert.match(config.testimonials[0].quote, /^Claire did such an amazing job/);
+	assert.match(config.testimonials[1].quote, /^Claire's eye for the critical moments of our rally/);
+	assert.match(config.testimonials[2].quote, /^Claire went out of her way/);
+	assert.deepEqual(config.testimonials[1].photo, { album: "protests", index: 43 });
+	assert.match(html, /https:\/\/img\.test\/protests-43/);
+	const order = ["special-14", "protests-43", "special-0"].map((id) => html.indexOf(`https://img.test/${id}`));
+	assert.deepEqual([...order].sort((a, b) => a - b), order);
 });
