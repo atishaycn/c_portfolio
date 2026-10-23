@@ -702,21 +702,6 @@ const renderGalleryCard = (page, item, index, className, sizes) => {
 	`;
 };
 
-// A client quote sits after its photo in the gallery; it is not a lightbox item, so it has no index.
-const renderGalleryQuote = (quote) => {
-	if (!quote?.text) return "";
-	return `
-		<figure class="section-quote">
-			<blockquote>${escapeHtml(quote.text)}</blockquote>
-			${
-				quote.name || quote.context
-					? `<figcaption>${quote.name ? `<strong>${escapeHtml(quote.name)}</strong>` : ""}${quote.context ? `<span>${escapeHtml(quote.context)}</span>` : ""}</figcaption>`
-					: ""
-			}
-		</figure>
-	`;
-};
-
 const renderGallery = (page) => {
 	const title = galleryTitleFor(page);
 	if (!page.items.length) {
@@ -745,7 +730,7 @@ const renderGallery = (page) => {
 			${
 				rest.length
 					? `<div class="section-photos">
-						${rest.map(({ item, index }) => `${renderGalleryCard(page, item, index, "section-photo", galleryLayoutSizes[galleryConfig.layout] || galleryLayoutSizes.grid)}${renderGalleryQuote(item.quote)}`).join("")}
+						${rest.map(({ item, index }) => renderGalleryCard(page, item, index, "section-photo", galleryLayoutSizes[galleryConfig.layout] || galleryLayoutSizes.grid)).join("")}
 					</div>`
 					: ""
 			}

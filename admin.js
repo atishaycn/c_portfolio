@@ -366,53 +366,6 @@ const renderPhotoCard = (album, item, index) => {
 	printToggleText.textContent = "Available for print";
 	printToggle.append(printCheckbox, printToggleText);
 
-	// A quote exists only while its text is non-blank; the server drops a blank one the same way.
-	const quoteDetails = document.createElement("details");
-	quoteDetails.className = "photo-quote";
-	quoteDetails.open = Boolean(item.quote);
-	const quoteSummary = document.createElement("summary");
-	quoteSummary.textContent = "Quote after this photo";
-	const quoteText = document.createElement("textarea");
-	quoteText.value = item.quote?.text || "";
-	quoteText.maxLength = 2000;
-	quoteText.placeholder = "Client testimonial shown after this photo";
-	quoteText.dataset.testid = `quote-text-${item.id}`;
-	const quoteTextLabel = document.createElement("label");
-	quoteTextLabel.textContent = "Quote";
-	quoteTextLabel.append(quoteText);
-	const quoteName = document.createElement("input");
-	quoteName.type = "text";
-	quoteName.value = item.quote?.name || "";
-	quoteName.maxLength = 200;
-	quoteName.dataset.testid = `quote-name-${item.id}`;
-	const quoteNameLabel = document.createElement("label");
-	quoteNameLabel.textContent = "Name (optional)";
-	quoteNameLabel.append(quoteName);
-	const quoteContext = document.createElement("input");
-	quoteContext.type = "text";
-	quoteContext.value = item.quote?.context || "";
-	quoteContext.maxLength = 200;
-	quoteContext.dataset.testid = `quote-context-${item.id}`;
-	const quoteContextLabel = document.createElement("label");
-	quoteContextLabel.textContent = "Context (optional)";
-	quoteContextLabel.append(quoteContext);
-	const quoteBadge = document.createElement("span");
-	quoteBadge.className = "photo-quote-badge";
-	quoteBadge.textContent = "Quote";
-	quoteBadge.hidden = !item.quote;
-	imageWrap.append(quoteBadge);
-	const syncQuote = () => {
-		if (quoteText.value.trim()) {
-			item.quote = { text: quoteText.value, name: quoteName.value, context: quoteContext.value };
-		} else {
-			delete item.quote;
-		}
-		quoteBadge.hidden = !item.quote;
-		markDirty();
-	};
-	[quoteText, quoteName, quoteContext].forEach((field) => field.addEventListener("input", syncQuote));
-	quoteDetails.append(quoteSummary, quoteTextLabel, quoteNameLabel, quoteContextLabel);
-
 	const actions = document.createElement("div");
 	actions.className = "photo-actions";
 	const orderActions = document.createElement("div");
@@ -425,7 +378,7 @@ const renderPhotoCard = (album, item, index) => {
 	orderActions.append(left, right);
 	const remove = createButton("Delete", "delete-photo", () => deletePhoto(album, item));
 	actions.append(orderActions, remove);
-	body.append(label, printToggle, quoteDetails, actions);
+	body.append(label, printToggle, actions);
 	card.append(imageWrap, body);
 	return card;
 };
