@@ -799,6 +799,19 @@ a:focus-visible {
 	font-size: 12px;
 }
 
+.testimonial-field input[type="range"] {
+	width: 100%;
+	margin: 0;
+}
+
+.testimonial-scale {
+	display: flex;
+	justify-content: space-between;
+	color: #77776f;
+	text-transform: none;
+	letter-spacing: normal;
+}
+
 .testimonial-actions {
 	display: grid;
 	gap: 8px;

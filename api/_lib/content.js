@@ -73,6 +73,8 @@ const DEFAULT_TESTIMONIALS = Object.freeze([
 		name: "",
 		context: "Special occasion",
 		photoId: "special-occasion-3cf6a06e-62fa-4f35-9c1b-51acc07ccb53",
+		photoShape: "tall",
+		photoFocus: 50,
 	},
 	{
 		id: "testimonial-rally",
@@ -80,6 +82,8 @@ const DEFAULT_TESTIMONIALS = Object.freeze([
 		name: "",
 		context: "Rally",
 		photoId: "protests-ece5f222-4377-4c47-b51a-09ba107c450d",
+		photoShape: "tall",
+		photoFocus: 50,
 	},
 	{
 		id: "testimonial-san-francisco",
@@ -87,8 +91,16 @@ const DEFAULT_TESTIMONIALS = Object.freeze([
 		name: "",
 		context: "Special occasion, San Francisco",
 		photoId: "special-occasion-5ae56d56-289f-4b39-b73d-0b0e7a9a1140",
+		photoShape: "tall",
+		photoFocus: 50,
 	},
 ]);
+
+// Vertical crop position for a wide testimonial photo: 0 keeps the top, 100 keeps the bottom.
+const validPhotoFocus = (value) => {
+	if (typeof value !== "number" || !Number.isFinite(value)) return 50;
+	return Math.min(100, Math.max(0, Math.round(value)));
+};
 
 // An explicit list is kept as Claire saved it: blank quotes and id-less entries are dropped, nothing is invented.
 const validateTestimonials = (candidate) => {
@@ -116,6 +128,8 @@ const validateTestimonials = (candidate) => {
 			name: cleanText(entry.name, 200),
 			context: cleanText(entry.context, 200),
 			photoId: cleanText(entry.photoId, 140),
+			photoShape: entry.photoShape === "wide" ? "wide" : "tall",
+			photoFocus: validPhotoFocus(entry.photoFocus),
 		});
 	}
 	if (testimonials.length > TESTIMONIAL_LIMIT) {

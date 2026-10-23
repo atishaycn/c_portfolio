@@ -205,3 +205,27 @@ test("on wide screens, even testimonial rows swap column widths so every photo g
 		/@media \(min-width: 1001px\) \{ \.testimonial\.has-photo:nth-child\(even\) \{ grid-template-columns: minmax\(0, 6fr\) minmax\(0, 5fr\); \}/,
 	);
 });
+
+const testimonialPhotoBox = (testimonials) => {
+	const section = kindWordsSection(renderWithTestimonials(testimonials));
+	return section.split('<div class="testimonial-photo').slice(1).map((chunk) => chunk.split("</div>")[0]);
+};
+
+test("a wide testimonial photo gets the is-wide class and the crop position on its image", () => {
+	const [box] = testimonialPhotoBox([{ ...testimonial("t-wide", "Wide quote", "Rally", RALLY_44), photoShape: "wide", photoFocus: 70 }]);
+	assert.match(box, /^ is-wide"/);
+	assert.match(box, /<img [^>]*data-focus="70"/);
+});
+
+test("a tall testimonial photo keeps the default frame and is not marked is-wide", () => {
+	const [box] = testimonialPhotoBox([{ ...testimonial("t-tall", "Tall quote", "Rally", RALLY_44), photoShape: "tall", photoFocus: 50 }]);
+	assert.doesNotMatch(box, /is-wide/);
+	assert.match(box, /<img [^>]*data-focus="50"/);
+});
+
+test("the Kind words photo crop is applied after render, not as an inline style attribute", () => {
+	assert.doesNotMatch(source, /<img[^>]*style=/);
+	assert.match(source, /data-focus/);
+	const css = readFileSync(new URL("../styles.css", import.meta.url), "utf8").replace(/\s+/g, " ");
+	assert.match(css, /\.testimonial-photo\.is-wide img \{ aspect-ratio: 5 \/ 4;/);
+});

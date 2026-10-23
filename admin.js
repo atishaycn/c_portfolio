@@ -800,10 +800,14 @@ const renderTestimonialRow = (entry, index, count) => {
 	empty.textContent = "No photo";
 	thumb.append(image, empty);
 
+	// The preview crops exactly as the Booking page does: same aspect ratio and vertical position.
 	const refreshThumb = () => {
 		const placement = photoPlacement(entry.photoId);
 		image.hidden = !placement;
 		empty.hidden = Boolean(placement);
+		image.style.aspectRatio = entry.photoShape === "wide" ? "5 / 4" : "4 / 5";
+		image.style.objectFit = "cover";
+		image.style.objectPosition = `50% ${entry.photoFocus ?? 50}%`;
 		if (placement) image.src = cloudinaryThumb(placement.item.publicId, 240);
 	};
 
@@ -895,6 +899,33 @@ const renderTestimonialRow = (entry, index, count) => {
 	fields.append(picker);
 	syncPicker();
 
+	const look = document.createElement("div");
+	look.className = "testimonial-picker";
+	const shape = document.createElement("select");
+	shape.append(new Option("Tall (4:5)", "tall"), new Option("Wide (5:4)", "wide"));
+	const shapeField = testimonialField("Photo shape", shape, `testimonial-shape-${entry.id}`, entry.photoShape === "wide" ? "wide" : "tall", (value) => {
+		entry.photoShape = value === "wide" ? "wide" : "tall";
+		refreshThumb();
+	});
+	const focus = document.createElement("input");
+	focus.type = "range";
+	focus.min = "0";
+	focus.max = "100";
+	focus.step = "1";
+	const focusField = testimonialField("Crop position", focus, `testimonial-focus-${entry.id}`, String(entry.photoFocus ?? 50), (value) => {
+		entry.photoFocus = Math.round(Number(value));
+		refreshThumb();
+	});
+	const focusScale = document.createElement("span");
+	focusScale.className = "testimonial-scale";
+	focusScale.append(document.createElement("span"), document.createElement("span"));
+	focusScale.firstChild.textContent = "Top";
+	focusScale.lastChild.textContent = "Bottom";
+	focusField.append(focusScale);
+	look.append(shapeField, focusField);
+	fields.append(look);
+	refreshThumb();
+
 	const actions = document.createElement("div");
 	actions.className = "testimonial-actions";
 	const up = createButton("↑", "icon-button", () => moveTestimonial(index, -1));
@@ -932,6 +963,8 @@ const renderTestimonialsEditor = () => {
 			name: "",
 			context: "",
 			photoId: "",
+			photoShape: "tall",
+			photoFocus: 50,
 		});
 		markDirty();
 		renderEditor();

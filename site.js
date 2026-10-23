@@ -852,14 +852,18 @@ const testimonialPhoto = (photoId) => {
 	return null;
 };
 
+// The vertical crop of a testimonial photo, 0 (top) to 100 (bottom). Set on the image after render, not as an inline style, so the page's CSP holds.
+const testimonialFocus = (item) =>
+	Number.isFinite(item.photoFocus) ? Math.min(100, Math.max(0, Math.round(item.photoFocus))) : 50;
+
 const renderTestimonial = (item) => {
 	const photo = testimonialPhoto(item.photoId);
 	return `
 		<figure class="testimonial ${photo ? "has-photo" : ""}">
 			${
 				photo
-					? `<div class="testimonial-photo">
-						<img src="${resolveImageUrl(photo, { width: 900 })}" srcset="${imageSrcSet(photo, [400, 800, 1200])}" sizes="(max-width: 820px) 100vw, 40vw" data-local-src="${localImageUrl(photo)}" alt="${escapeHtml(item.context ? `Photograph from ${item.context}` : "Photograph by Claire Thomas")}" width="${photo.width}" height="${photo.height}" loading="lazy" decoding="async" />
+					? `<div class="testimonial-photo${item.photoShape === "wide" ? " is-wide" : ""}">
+						<img src="${resolveImageUrl(photo, { width: 900 })}" srcset="${imageSrcSet(photo, [400, 800, 1200])}" sizes="(max-width: 820px) 100vw, 40vw" data-local-src="${localImageUrl(photo)}" data-focus="${testimonialFocus(item)}" alt="${escapeHtml(item.context ? `Photograph from ${item.context}` : "Photograph by Claire Thomas")}" width="${photo.width}" height="${photo.height}" loading="lazy" decoding="async" />
 					</div>`
 					: ""
 			}
@@ -1667,6 +1671,9 @@ const setupSectionReveal = () => {
 };
 
 setupHomeDropdown();
+app.querySelectorAll(".testimonial-photo img[data-focus]").forEach((image) => {
+	image.style.objectPosition = `50% ${image.dataset.focus}%`;
+});
 setupPriceSwitch();
 setupBookingForm();
 

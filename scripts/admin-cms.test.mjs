@@ -302,3 +302,29 @@ test("the admin has a Testimonials panel with the required controls", () => {
 	assert.match(adminScript, /"testimonial-" \+ crypto\.randomUUID\(\)/);
 	assert.match(adminScript, /A testimonial without a quote is removed when you save\./);
 });
+
+test("a testimonial photo is tall or wide, with a crop position from 0 to 100", () => {
+	const shaped = (overrides) =>
+		contentModule.validateContent({ ...portfolio, testimonials: [testimonialEntry({ id: "t-shape", ...overrides })] })
+			.testimonials[0];
+	assert.equal(shaped({ photoShape: "wide", photoFocus: 70.4 }).photoShape, "wide");
+	assert.equal(shaped({ photoShape: "wide", photoFocus: 70.4 }).photoFocus, 70);
+	assert.equal(shaped({ photoShape: "odd", photoFocus: "x" }).photoShape, "tall");
+	assert.equal(shaped({ photoShape: "odd", photoFocus: "x" }).photoFocus, 50);
+	assert.equal(shaped({ photoFocus: 150 }).photoFocus, 100);
+	assert.equal(shaped({ photoFocus: -5 }).photoFocus, 0);
+	assert.equal(shaped({}).photoShape, "tall");
+	assert.equal(shaped({}).photoFocus, 50);
+});
+
+test("the default testimonials are tall photos cropped at the middle", () => {
+	const validated = contentModule.validateContent(portfolio);
+	assert.ok(validated.testimonials.every((entry) => entry.photoShape === "tall" && entry.photoFocus === 50));
+});
+
+test("the admin lets Claire choose the photo shape and crop position per testimonial", () => {
+	assert.match(adminScript, /testimonial-shape-/);
+	assert.match(adminScript, /testimonial-focus-/);
+	assert.match(adminScript, /"Photo shape"/);
+	assert.match(adminScript, /"Crop position"/);
+});

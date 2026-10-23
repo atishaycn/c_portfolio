@@ -1246,6 +1246,10 @@ body[data-page="protests"] .masonry-grid {
 	background: var(--cream);
 }
 
+.testimonial-photo.is-wide img {
+	aspect-ratio: 5 / 4;
+}
+
 .testimonial-body {
 	display: grid;
 	gap: 28px;
