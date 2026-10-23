@@ -1806,7 +1806,7 @@ body[data-page="protests"] .masonry-grid {
 .section-quote {
 	width: 100%;
 	max-width: 760px;
-	margin: 0 auto clamp(36px, 5vw, 80px);
+	margin: clamp(36px, 5vw, 80px) auto clamp(56px, 7vw, 112px);
 	break-inside: avoid;
 	column-span: all;
 	text-align: center;
