@@ -596,7 +596,15 @@ a:focus-visible {
 }
 
 .other-print-card .photo-print-toggle {
-	padding: 8px 9px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px;
+	color: #363631;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0;
+	text-transform: none;
 }
 
 .other-print-empty {
@@ -960,7 +968,7 @@ a:focus-visible {
 		grid-template-columns: 125px 1fr;
 	}
 
-	.photo-image {
+	.photo-card .photo-image {
 		height: 100%;
 		aspect-ratio: auto;
 	}
