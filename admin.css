@@ -432,6 +432,24 @@ a:focus-visible {
 	text-transform: uppercase;
 }
 
+.album-fields .album-shop-only {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	align-self: end;
+	color: #363631;
+	font-size: 13px;
+	letter-spacing: 0;
+	text-transform: none;
+}
+
+.album-shop-only input {
+	width: 17px;
+	height: 17px;
+	margin: 0;
+	accent-color: #1f5c44;
+}
+
 .album-meta {
 	grid-column: 1 / -1;
 	color: #77776f;

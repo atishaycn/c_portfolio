@@ -588,7 +588,7 @@ const lightboxImageSizes = "100vw";
 const currentPageKey = document.body.dataset.page || "the-natural-world";
 
 // The Portfolio dropdown in admin order: top-level albums and groups. Only albums with photos
-// show; the slideshow, child albums and empty nodes are left out. With no Content, the three
+// show; the slideshow, Shop only albums, child albums and empty nodes are left out. With no Content, the three
 // original sections stand in.
 const buildPortfolioMenu = (content, sections, slideshowKey) => {
 	if (!content) {
@@ -603,7 +603,8 @@ const buildPortfolioMenu = (content, sections, slideshowKey) => {
 	const byOrder = (nodes) => [...nodes].sort((left, right) => left.order - right.order);
 	const albums = content.albums || [];
 	const groups = content.groups || [];
-	const hasPhotos = (album) => album.key !== slideshowKey && (album.items || []).length > 0;
+	// Shop only albums sell prints but are not listed in the Portfolio.
+	const isListed = (album) => album.key !== slideshowKey && !album.shopOnly && (album.items || []).length > 0;
 	const linkFor = (album) => ({
 		type: "link",
 		key: album.key,
@@ -616,8 +617,8 @@ const buildPortfolioMenu = (content, sections, slideshowKey) => {
 		...groups.filter((group) => !group.parentId).map((node) => ({ node, isGroup: true })),
 	].sort((left, right) => left.node.order - right.node.order);
 	return roots.flatMap(({ node, isGroup }) => {
-		if (!isGroup) return hasPhotos(node) ? [linkFor(node)] : [];
-		const links = byOrder(albums.filter((album) => album.parentId === node.id && hasPhotos(album))).map(linkFor);
+		if (!isGroup) return isListed(node) ? [linkFor(node)] : [];
+		const links = byOrder(albums.filter((album) => album.parentId === node.id && isListed(album))).map(linkFor);
 		return links.length ? [{ type: "group", label: node.label, links }] : [];
 	});
 };
@@ -632,8 +633,8 @@ const sectionRootFor = (page) =>
 
 const sectionFamilyFor = (page) => {
 	const root = sectionRootFor(page);
-	if (!root) return [];
-	const children = galleryPages.filter((candidate) => candidate.parentId === root.id && candidate.items.length);
+	if (!root || root.shopOnly) return [];
+	const children = galleryPages.filter((candidate) => candidate.parentId === root.id && candidate.items.length && !candidate.shopOnly);
 	return children.length ? [root, ...children] : [];
 };
 

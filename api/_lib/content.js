@@ -220,6 +220,7 @@ const validateContent = (candidate) => {
 			parentId: album.parentId ? cleanKey(album.parentId) : null,
 			preserveCase: album.preserveCase === true,
 			printEnabled: album.printEnabled !== false,
+			shopOnly: album.shopOnly === true,
 			items,
 		};
 	});

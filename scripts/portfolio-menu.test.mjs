@@ -119,3 +119,32 @@ test("the bundled fallback Content still gives Events, Nature and Street", () =>
 	const labels = labelsOf(buildPortfolioMenu(bundled, sections, "slideshow"));
 	for (const label of ["Events", "Nature", "Street"]) assert.ok(labels.includes(label), `${label} must be in the menu`);
 });
+
+test("a Shop only album is left out of the Portfolio menu, at the top level and inside a section", () => {
+	const content = {
+		groups: [{ id: "place", label: "place", order: 4, parentId: null }],
+		albums: [
+			album("protests", 0, 50, { label: "events" }),
+			{ ...album("print-only", 1, 12, { label: "print only" }), shopOnly: true },
+			{ ...album("print-only-child", 0, 9, { label: "print child", parentId: "place" }), shopOnly: true },
+			album("portraits", 3, 17, { label: "portraits", parentId: "place" }),
+		],
+	};
+	assert.deepEqual(labelsOf(buildPortfolioMenu(content, sections, "slideshow")), ["Events", "place: portraits"]);
+});
+
+test("a Shop only child album is not offered as a tab under its section", () => {
+	const pages = [
+		{ id: "protests", key: "protests", parentId: null, items: [{ id: "p-1" }] },
+		{ id: "special", key: "special", parentId: "protests", items: [{ id: "s-1" }] },
+		{ id: "print-child", key: "print-child", parentId: "protests", shopOnly: true, items: [{ id: "c-1" }] },
+	];
+	const source = readFileSync(new URL("../site.js", import.meta.url), "utf8");
+	const start = source.indexOf("const sectionRootFor =");
+	const end = source.indexOf("const albumPathFor =", start);
+	assert(start >= 0 && end > start, "site.js must define sectionRootFor and sectionFamilyFor before albumPathFor");
+	const family = vm.runInNewContext(
+		`const galleryPages = ${JSON.stringify(pages)};\n${source.slice(start, end)}\nsectionFamilyFor(galleryPages[0]).map((page) => page.key);`,
+	);
+	assert.deepEqual([...family], ["protests", "special"]);
+});

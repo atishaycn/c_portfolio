@@ -307,6 +307,18 @@ const deletePhoto = (album, item) => {
 	render();
 };
 
+// Shop only albums exist to sell prints, so their new photos start available for print.
+const newPhotoPrintDefault = (album) => album.shopOnly === true;
+
+// Turning Shop only on makes the album and every photo in it available for print. Turning it off
+// leaves each photo's print flag as it is.
+const setAlbumShopOnly = (album, shopOnly) => {
+	album.shopOnly = shopOnly;
+	if (!shopOnly) return;
+	album.printEnabled = true;
+	for (const item of album.items) item.printEnabled = true;
+};
+
 const renderPhotoCard = (album, item, index) => {
 	const card = document.createElement("article");
 	card.className = "photo-card";
@@ -417,7 +429,7 @@ const uploadPhotos = async (album, files, progressElement) => {
 				width: uploaded.width,
 				height: uploaded.height,
 				order: album.items.length,
-				printEnabled: false,
+				printEnabled: newPhotoPrintDefault(album),
 			});
 			markDirty();
 		}
@@ -536,7 +548,19 @@ const renderAlbumEditor = (album) => {
 	const meta = document.createElement("div");
 	meta.className = "album-meta";
 	meta.textContent = `${album.items.length} photo${album.items.length === 1 ? "" : "s"} • Choose another album to make this a sub-album • URL stays stable`;
-	fields.append(nameLabel, parentLabel, meta);
+	const shopOnlyLabel = document.createElement("label");
+	shopOnlyLabel.className = "album-shop-only";
+	const shopOnlyCheckbox = document.createElement("input");
+	shopOnlyCheckbox.type = "checkbox";
+	shopOnlyCheckbox.checked = album.shopOnly === true;
+	shopOnlyCheckbox.dataset.testid = "album-shop-only";
+	shopOnlyCheckbox.addEventListener("change", () => {
+		setAlbumShopOnly(album, shopOnlyCheckbox.checked);
+		markDirty();
+		render();
+	});
+	shopOnlyLabel.append(shopOnlyCheckbox, "Shop only (hidden from Portfolio, shown in the print store)");
+	fields.append(nameLabel, parentLabel, shopOnlyLabel, meta);
 
 	const uploadBar = document.createElement("div");
 	uploadBar.className = "upload-bar";

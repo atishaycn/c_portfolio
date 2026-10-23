@@ -302,3 +302,20 @@ test("keeps photo selection, size orientation, and crop behavior", () => {
 	assert.equal(portrait.height, 14);
 	assert.deepEqual(plain(shop.clampCrop({ x: 85, y: -73 })), { x: 50, y: -50 });
 });
+
+test("a Shop only album's print-enabled photos are in the store, and a photo turned off is not", () => {
+	const photos = shop.selectStorePhotos([
+		{
+			key: "print-only",
+			label: "Print only",
+			printEnabled: true,
+			shopOnly: true,
+			items: [
+				{ id: "print-only-1", printEnabled: true },
+				{ id: "print-only-2", printEnabled: false },
+			],
+		},
+	]);
+	assert.equal(photos.map((entry) => entry.id).join(","), "print-only-1");
+	assert.equal(photos[0].albumLabel, "Print only");
+});

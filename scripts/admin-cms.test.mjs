@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import vm from "node:vm";
 import test, { mock } from "node:test";
 import auth from "../api/_lib/auth.js";
 import contentModule from "../api/_lib/content.js";
@@ -327,4 +328,58 @@ test("the admin lets Claire choose the photo shape and crop position per testimo
 	assert.match(adminScript, /testimonial-focus-/);
 	assert.match(adminScript, /"Photo shape"/);
 	assert.match(adminScript, /"Crop position"/);
+});
+
+test("a Shop only flag is kept on albums and is off unless it is exactly true", () => {
+	const flagged = structuredClone(portfolio);
+	const firstId = flagged.albums[0].id;
+	const secondId = flagged.albums[1].id;
+	flagged.albums[0].shopOnly = true;
+	flagged.albums[1].shopOnly = "yes";
+	const validated = contentModule.validateContent(flagged);
+	assert.equal(validated.albums.find((album) => album.id === firstId).shopOnly, true);
+	assert.equal(validated.albums.find((album) => album.id === secondId).shopOnly, false);
+});
+
+const adminHelpers = () => {
+	const from = adminScript.indexOf("const newPhotoPrintDefault");
+	const to = adminScript.indexOf("const renderPhotoCard", from);
+	assert(from >= 0 && to > from, "admin.js must define the Shop only helpers before renderPhotoCard");
+	const context = {};
+	vm.runInNewContext(`${adminScript.slice(from, to)}\nglobalThis.helpers = { newPhotoPrintDefault, setAlbumShopOnly };`, context);
+	return context.helpers;
+};
+
+test("new photos start available for print only in a Shop only album", () => {
+	const { newPhotoPrintDefault } = adminHelpers();
+	assert.equal(newPhotoPrintDefault({ shopOnly: true }), true);
+	assert.equal(newPhotoPrintDefault({ shopOnly: false }), false);
+	assert.equal(newPhotoPrintDefault({}), false);
+});
+
+test("turning Shop only on makes the album and each of its photos available for print; turning it off keeps their prints", () => {
+	const { setAlbumShopOnly } = adminHelpers();
+	const album = {
+		shopOnly: false,
+		printEnabled: false,
+		items: [
+			{ id: "a", printEnabled: false },
+			{ id: "b", printEnabled: false },
+		],
+	};
+	setAlbumShopOnly(album, true);
+	assert.equal(album.shopOnly, true);
+	assert.equal(album.printEnabled, true);
+	assert.deepEqual(album.items.map((item) => item.printEnabled), [true, true]);
+	album.items[1].printEnabled = false;
+	setAlbumShopOnly(album, false);
+	assert.equal(album.shopOnly, false);
+	assert.deepEqual(album.items.map((item) => item.printEnabled), [true, false]);
+});
+
+test("the album settings have a Shop only checkbox that marks the content dirty and feeds new uploads", () => {
+	assert.match(adminScript, /Shop only \(hidden from Portfolio, shown in the print store\)/);
+	assert.match(adminScript, /dataset\.testid = "album-shop-only"/);
+	assert.match(adminScript, /setAlbumShopOnly\(album, shopOnlyCheckbox\.checked\);\s*markDirty\(\);/);
+	assert.match(adminScript, /printEnabled: newPhotoPrintDefault\(album\)/);
 });
