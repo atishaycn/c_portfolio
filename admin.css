@@ -552,6 +552,59 @@ a:focus-visible {
 	accent-color: #1f5c44;
 }
 
+.other-print-photos {
+	display: grid;
+	gap: 12px;
+	margin-top: 28px;
+	padding-top: 20px;
+	border-top: 1px solid #e0e0da;
+}
+
+.other-print-photos h3 {
+	margin: 0;
+	font-size: 15px;
+}
+
+.other-print-group {
+	display: grid;
+	gap: 8px;
+}
+
+.other-print-group h4 {
+	margin: 0;
+	color: #686861;
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.other-print-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 10px;
+}
+
+.other-print-card {
+	overflow: hidden;
+	border: 1px solid #e0e0da;
+	border-radius: 10px;
+	background: #fafaf7;
+}
+
+.other-print-card .photo-image {
+	aspect-ratio: 4 / 3;
+}
+
+.other-print-card .photo-print-toggle {
+	padding: 8px 9px;
+}
+
+.other-print-empty {
+	margin: 0;
+	color: #686861;
+	font-size: 13px;
+}
+
 .photo-actions {
 	display: flex;
 	align-items: center;

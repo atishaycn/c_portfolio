@@ -319,6 +319,19 @@ const setAlbumShopOnly = (album, shopOnly) => {
 	for (const item of album.items) item.printEnabled = true;
 };
 
+// Mirrors selectStorePhotos in shop.js: the photos the print store sells from albums other than this one.
+const printPhotosFromOtherAlbums = (albums, currentAlbum) => {
+	const byAdminOrder = (left, right) => left.order - right.order || (left.label || "").localeCompare(right.label || "");
+	return [...albums]
+		.filter((album) => album.id !== currentAlbum.id && album.printEnabled === true)
+		.sort(byAdminOrder)
+		.map((album) => ({
+			album,
+			items: album.items.filter((item) => item.printEnabled === true).sort(byAdminOrder),
+		}))
+		.filter((group) => group.items.length > 0);
+};
+
 const renderPhotoCard = (album, item, index) => {
 	const card = document.createElement("article");
 	card.className = "photo-card";
@@ -340,10 +353,7 @@ const renderPhotoCard = (album, item, index) => {
 
 	const imageWrap = document.createElement("div");
 	imageWrap.className = "photo-image";
-	const image = document.createElement("img");
-	image.src = cloudinaryThumb(item.publicId);
-	image.alt = item.title || `${album.label} photo ${index + 1}`;
-	image.loading = "lazy";
+	const image = photoThumb(item, item.title || `${album.label} photo ${index + 1}`);
 	const position = document.createElement("span");
 	position.className = "photo-position";
 	position.textContent = `${index + 1} / ${album.items.length}`;
@@ -397,6 +407,67 @@ const renderPhotoCard = (album, item, index) => {
 	body.append(label, printToggle, actions);
 	card.append(imageWrap, body);
 	return card;
+};
+
+const photoThumb = (item, alt) => {
+	const image = document.createElement("img");
+	image.src = cloudinaryThumb(item.publicId);
+	image.alt = alt;
+	image.loading = "lazy";
+	return image;
+};
+
+const renderOtherPrintCard = (album, item) => {
+	const card = document.createElement("article");
+	card.className = "other-print-card";
+	const imageWrap = document.createElement("div");
+	imageWrap.className = "photo-image";
+	imageWrap.append(photoThumb(item, item.title || `${album.label} photo`));
+	const printToggle = document.createElement("label");
+	printToggle.className = "photo-print-toggle";
+	const printCheckbox = document.createElement("input");
+	printCheckbox.type = "checkbox";
+	printCheckbox.checked = item.printEnabled === true;
+	printCheckbox.dataset.testid = `other-print-toggle-${item.id}`;
+	printCheckbox.addEventListener("change", () => {
+		item.printEnabled = printCheckbox.checked;
+		markDirty();
+	});
+	const printToggleText = document.createElement("span");
+	printToggleText.textContent = "Available for print";
+	printToggle.append(printCheckbox, printToggleText);
+	card.append(imageWrap, printToggle);
+	return card;
+};
+
+// Shop only albums show the other albums' print photos so every print sale is managed in one place.
+const renderOtherPrintSection = (album) => {
+	const section = document.createElement("section");
+	section.className = "other-print-photos";
+	section.dataset.testid = "other-print-photos";
+	const title = document.createElement("h3");
+	title.textContent = "Also for sale from other albums";
+	section.append(title);
+	const groups = printPhotosFromOtherAlbums(state.content.albums, album);
+	if (!groups.length) {
+		const empty = document.createElement("p");
+		empty.className = "other-print-empty";
+		empty.textContent = "No other photos are for sale yet.";
+		section.append(empty);
+		return section;
+	}
+	for (const group of groups) {
+		const groupElement = document.createElement("div");
+		groupElement.className = "other-print-group";
+		const groupTitle = document.createElement("h4");
+		groupTitle.textContent = group.album.label;
+		const grid = document.createElement("div");
+		grid.className = "other-print-grid";
+		for (const item of group.items) grid.append(renderOtherPrintCard(group.album, item));
+		groupElement.append(groupTitle, grid);
+		section.append(groupElement);
+	}
+	return section;
 };
 
 const uploadPhotos = async (album, files, progressElement) => {
@@ -603,6 +674,7 @@ const renderAlbumEditor = (album) => {
 		grid.append(empty);
 	}
 	fragment.append(heading, fields, uploadBar, grid);
+	if (album.shopOnly === true) fragment.append(renderOtherPrintSection(album));
 	elements.albumEditor.replaceChildren(fragment);
 };
 

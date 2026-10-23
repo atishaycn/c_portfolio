@@ -346,7 +346,7 @@ const adminHelpers = () => {
 	const to = adminScript.indexOf("const renderPhotoCard", from);
 	assert(from >= 0 && to > from, "admin.js must define the Shop only helpers before renderPhotoCard");
 	const context = {};
-	vm.runInNewContext(`${adminScript.slice(from, to)}\nglobalThis.helpers = { newPhotoPrintDefault, setAlbumShopOnly };`, context);
+	vm.runInNewContext(`${adminScript.slice(from, to)}\nglobalThis.helpers = { newPhotoPrintDefault, setAlbumShopOnly, printPhotosFromOtherAlbums };`, context);
 	return context.helpers;
 };
 
@@ -382,4 +382,42 @@ test("the album settings have a Shop only checkbox that marks the content dirty 
 	assert.match(adminScript, /dataset\.testid = "album-shop-only"/);
 	assert.match(adminScript, /setAlbumShopOnly\(album, shopOnlyCheckbox\.checked\);\s*markDirty\(\);/);
 	assert.match(adminScript, /printEnabled: newPhotoPrintDefault\(album\)/);
+});
+
+test("the Shop only section lists print-on photos of other print-on albums, grouped in admin order", () => {
+	const { printPhotosFromOtherAlbums } = adminHelpers();
+	const current = { id: "shop", label: "Shop", order: 2, printEnabled: true, items: [{ id: "s1", order: 0, printEnabled: true }] };
+	const late = { id: "late", label: "Late", order: 3, printEnabled: true, items: [{ id: "l1", order: 0, printEnabled: true }] };
+	const off = { id: "off", label: "Off", order: 0, printEnabled: false, items: [{ id: "o1", order: 0, printEnabled: true }] };
+	const early = {
+		id: "early",
+		label: "Early",
+		order: 1,
+		printEnabled: true,
+		items: [
+			{ id: "e2", order: 1, printEnabled: true },
+			{ id: "e3", order: 2, printEnabled: false },
+			{ id: "e1", order: 0, printEnabled: true },
+		],
+	};
+	const groups = printPhotosFromOtherAlbums([late, current, off, early], current);
+	assert.deepEqual(
+		JSON.parse(JSON.stringify(groups.map((group) => ({ album: group.album.id, items: group.items.map((item) => item.id) })))),
+		[
+			{ album: "early", items: ["e1", "e2"] },
+			{ album: "late", items: ["l1"] },
+		],
+	);
+	assert.equal(groups[0].items[0], early.items[2], "groups hold the photo objects so checkboxes can edit them");
+	assert.equal(printPhotosFromOtherAlbums([current, off], current).length, 0);
+});
+
+test("the Shop only section appears only in Shop only album editors, below the photo grid", () => {
+	assert.match(adminScript, /if \(album\.shopOnly === true\) fragment\.append\(renderOtherPrintSection\(album\)\);/);
+	assert.match(adminScript, /fragment\.append\(heading, fields, uploadBar, grid\);\s*if \(album\.shopOnly/);
+	assert.match(adminScript, /"Also for sale from other albums"/);
+	assert.match(adminScript, /"No other photos are for sale yet\."/);
+	assert.match(adminScript, /dataset\.testid = "other-print-photos"/);
+	assert.match(adminScript, /dataset\.testid = `other-print-toggle-\$\{item\.id\}`/);
+	assert.match(adminScript, /item\.printEnabled = printCheckbox\.checked;\s*markDirty\(\);/);
 });
