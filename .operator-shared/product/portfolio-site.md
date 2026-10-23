@@ -24,5 +24,5 @@
 
 - Albums on the site: Events (`protests`), Nature (`the-natural-world`), Street (`shapes-and-shadows`), Slideshow (homepage only), Special occasions (nested under Events). Old album pages (`california`, `san-francisco`, `india`, `commissioned-work`) are orphaned; cleanup deferred by the user.
 - Print sales (2026-10-13): the Shop store on `prints.html` (`specs/shop-store.md`) replaces the Shopify shop. Gelato is the only lab and the catalog is limited to what Gelato makes. Stripe takes payment.
-- Booking testimonials are real client quotes only, each beside a photo from that shoot. The first (2026-10-17) uses the Special occasions cover photo; no client name is shown until the user supplies one.
+- Booking testimonials are real client quotes only, each beside a photo from that shoot; Claire adds them in the admin. No client name is shown until the user supplies one.
 - The Drive replacement is per-album folders under `Website/` in the Drive folder, using shortcuts for byte-exact matches and uploads of backed-up originals for the rest. Visual (non-exact) matches need explicit approval.

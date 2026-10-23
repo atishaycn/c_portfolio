@@ -36,6 +36,10 @@ The rotating photos on the homepage. It is drawn from its own album and falls ba
 The setting on an album or photo that makes it sold in the Shop and shows the "Order print" link in the lightbox.
 _Avoid_: Printable, print-enabled
 
+**Testimonial**:
+A client quote in "Kind words" on the Booking page, shown beside one photo from that shoot. Claire edits them in the admin's Testimonials panel. "In the middle" means its place in that list, not inside a gallery.
+_Avoid_: Review, quote (for gallery text)
+
 **Trash**:
 Where deleted albums and photos wait until Claire restores them or empties the Trash for good.
 

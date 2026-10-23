@@ -5,7 +5,7 @@ Last updated: 2026-10-22. The CEO thread keeps this current. Every row's code is
 ## Production
 
 - `infra/cloudflare` is live on clairethomas.art and `www` via Cloudflare Worker `clairethomas-site`. Release `7018ac1` removes the Graduation Session package from Booking (2026-10-17); three event packages and inquiry choices remain. Verified: 259 tests; desktop and 390px phone; Inquire pre-fill; no console errors. Worker version `16e86994-8413-4025-82ff-f451e5425521` (2026-10-18: workers.dev test host back on, same site code).
-- Live 2026-10-22: `a621704` adds gallery quotes (user request): a quote after any photo, edited in admin. Rally quote set on Events photo 44 (Content revision 251, no name). Haiku 5.5 child built it on `ui/gallery-quotes` (fast-forwarded into `infra/cloudflare`, branch removed); CEO checks: diff read, 312 tests, local admin edit and save round trip, live page at 1280px and 390px (quote after photo 44, centred, no sideways scroll, no failed requests), `verify-live c_portfolio` PASS at `a621704`, Worker version `1e6b569c`.
+- Live 2026-10-22: `2ff05c0` moves Booking testimonials into the Content with a Testimonials panel in admin (add, edit, reorder, delete, pick album and photo number); the rally quote is the middle of three, beside Events photo 44 (context "Rally", no name). Earlier the same evening `a621704` put the quote inside the Events gallery; the user said it belongs on Booking, so that code was reverted and the Content resaved without it (revision 252). Haiku 5.5 children built both; CEO checks: diffs read, 314 tests, local admin add/photo pick/reorder/save round trip shown on Booking (HTML escaped), admin at 390px, live Booking at 1280px and 390px, `verify-live c_portfolio` PASS at `2ff05c0`, Worker version `63bc761a`. Not checked: a save from the live admin (needs Claire's sign-in link).
 - Live 2026-10-21: `b7fdd6a` sets Portrait features: Headshots "20 digital images"; Grad shoot "20 digital images, 2 outfits, 2 locations" (one line at 1280px and 390px). 302 tests, `verify-live c_portfolio` PASS at `b7fdd6a`, Worker version `629065cc`.
 - Live 2026-10-21: `e09e64a` shows the newest testimonial first in "Kind words". 302 tests, `verify-live c_portfolio` PASS at `e09e64a`, Worker version `e6a8fa7c`.
 - Live 2026-10-21: `e1bfdbf` evens the price card spacing (user: "fix the space") and sets Portrait features: Headshots "20+ digital images", Grad shoot "2 outfits, 2 locations" on one line. 302 tests, local check at 1440px and 390px, `verify-live c_portfolio` PASS at `e1bfdbf`, Worker version `40acf4e4`.
@@ -76,11 +76,10 @@ The fork thread that did this work handed it back to the CEO thread, which owns 
 
 1. Rotate the admin password and session secret; delete the three deployments that served the credentials file (`specs/release-and-security.md`). Needs user go-ahead.
 2. Send one real test inquiry from the live Booking page and confirm it arrives at `contact@` with a working Reply-To.
-3. Booking testimonials: waiting on real quotes and photos from Claire.
-4. Orphaned album pages (`california`, `san-francisco`, `india`, `commissioned-work`) still render Nature photos. User deferred cleanup.
-5. `README.md` and `program.md` describe the pre-overhaul site; refresh or fold into this brain.
-6. Shop is "Coming soon" (header Shop → `prints.html`, since 2026-10-06), but the "Order print" links on photos with prints switched on still open the Shopify store. Decide whether to hide them until the shop opens.
-7. Fold the useful parts of `APP_OPERATIONS.md` / `APP_REFERENCE.md` (only on `work/local-changes-handoff`) into the brain, then retire that branch.
+3. Orphaned album pages (`california`, `san-francisco`, `india`, `commissioned-work`) still render Nature photos. User deferred cleanup.
+4. `README.md` and `program.md` describe the pre-overhaul site; refresh or fold into this brain.
+5. Shop is "Coming soon" (header Shop → `prints.html`, since 2026-10-06), but the "Order print" links on photos with prints switched on still open the Shopify store. Decide whether to hide them until the shop opens.
+6. Fold the useful parts of `APP_OPERATIONS.md` / `APP_REFERENCE.md` (only on `work/local-changes-handoff`) into the brain, then retire that branch.
 
 ## Archived branches (kept for reference, do not build on)
 
