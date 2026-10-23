@@ -1802,6 +1802,68 @@ body[data-page="protests"] .masonry-grid {
 	font-size: 12px;
 }
 
+/* Client quote after a photo: spans both grid columns, centred, styled like the Booking testimonials. */
+.section-quote {
+	width: 100%;
+	max-width: 760px;
+	margin: 0 auto clamp(36px, 5vw, 80px);
+	break-inside: avoid;
+	column-span: all;
+	text-align: center;
+}
+
+.section-quote blockquote {
+	position: relative;
+	margin: 0;
+	padding-top: 48px;
+	color: var(--brand-brown);
+	font-family: Georgia, "Times New Roman", serif;
+	font-size: clamp(1.25rem, 2.1vw, 1.7rem);
+	font-style: italic;
+	line-height: 1.5;
+}
+
+.section-quote blockquote::before {
+	content: "\201C";
+	position: absolute;
+	top: -18px;
+	left: 50%;
+	transform: translateX(-50%);
+	color: transparent;
+	background: var(--brand-gradient);
+	-webkit-background-clip: text;
+	background-clip: text;
+	font-family: Georgia, serif;
+	font-size: 96px;
+	font-style: normal;
+	line-height: 1;
+}
+
+.section-quote figcaption {
+	display: grid;
+	justify-items: center;
+	gap: 6px;
+	margin-top: 28px;
+	padding-top: 20px;
+	border-top: 1px solid var(--hairline);
+	font-size: 12px;
+	letter-spacing: 0.08em;
+}
+
+.section-quote figcaption strong {
+	color: var(--brand-brown);
+	text-transform: uppercase;
+	letter-spacing: 0.2em;
+}
+
+.section-quote figcaption span {
+	color: var(--ink-soft);
+}
+
+.section-page[data-layout="stream"] .section-quote {
+	padding-inline: clamp(20px, 5vw, 80px);
+}
+
 /* Grid: two airy columns with a slight lift on hover. */
 .section-page[data-layout="grid"] .section-photos {
 	max-width: 1560px;

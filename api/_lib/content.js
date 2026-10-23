@@ -10,6 +10,13 @@ const cleanText = (value, maximum = 500) =>
 		.trim()
 		.slice(0, maximum);
 
+// A quote needs text; name and context are optional. Blank text leaves the photo without a quote key.
+const quoteFieldFor = (quote) => {
+	const text = cleanText(quote?.text, 2_000);
+	if (!text) return {};
+	return { quote: { text, name: cleanText(quote.name, 200), context: cleanText(quote.context, 200) } };
+};
+
 const cleanKey = (value) =>
 	cleanText(value, 80)
 		.toLowerCase()
@@ -131,6 +138,7 @@ const validateContent = (candidate) => {
 						height: Math.max(1, Math.round(Number(item.height) || 1)),
 						order: Number.isFinite(item.order) ? item.order : itemIndex,
 						printEnabled: item.printEnabled === true,
+						...quoteFieldFor(item.quote),
 					};
 				})
 			: [];
@@ -191,6 +199,7 @@ const validateContent = (candidate) => {
 					height: Math.max(1, Math.round(Number(entry.item?.height) || 1)),
 					order: Number(entry.item?.order) || 0,
 					printEnabled: entry.item?.printEnabled === true,
+					...quoteFieldFor(entry.item?.quote),
 				},
 			}))
 		: [];
