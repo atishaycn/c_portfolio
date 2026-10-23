@@ -195,3 +195,13 @@ test("testimonial quotes and names are HTML-escaped", () => {
 	assert.match(section, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt; &amp; &quot;quoted&quot;/);
 	assert.match(section, /&lt;b&gt;Ann&lt;\/b&gt;/);
 });
+
+// Regression: 2ff05c0 put even-row photos in the wider 6fr column, so the middle testimonial's photo was larger than the others.
+test("on wide screens, even testimonial rows swap column widths so every photo gets the 5fr column", () => {
+	const css = readFileSync(new URL("../styles.css", import.meta.url), "utf8").replace(/\s+/g, " ");
+	assert.match(css, /\.testimonial\.has-photo \{[^}]*grid-template-columns: minmax\(0, 5fr\) minmax\(0, 6fr\);/);
+	assert.match(
+		css,
+		/@media \(min-width: 1001px\) \{ \.testimonial\.has-photo:nth-child\(even\) \{ grid-template-columns: minmax\(0, 6fr\) minmax\(0, 5fr\); \}/,
+	);
+});

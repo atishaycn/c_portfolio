@@ -1212,6 +1212,13 @@ body[data-page="protests"] .masonry-grid {
 	order: 2;
 }
 
+/* Photo on the right: swap the column widths so every photo is the same size. */
+@media (min-width: 1001px) {
+	.testimonial.has-photo:nth-child(even) {
+		grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+	}
+}
+
 .testimonial-photo {
 	position: relative;
 	isolation: isolate;
