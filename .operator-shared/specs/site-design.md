@@ -12,3 +12,4 @@ Decisions the user settled during the October 2026 overhaul. Change them only on
 - Colour: logo blue-to-purple gradient (`#004aad` → `#cb6ce6`) is the accent; text is dark brown `#37170d`; header is a near-white faint gradient wash; footer is the original dark brown with white outline icons. The homepage header and footer are plain white.
 - Footer icons: Email, Writing (pen, clarityincatastrophe.substack.com), Photos of the Week (Substack logo), Instagram.
 - Centre content with flex/grid alignment on the full-width container, never by fixed `max-width` boxes with left-pinned margins; verify centring from 390px up to 2560px.
+- Fixed pages (home, Shop, About, Booking, Workshops, BTS) never show an album in their place; an album whose key matches one shows only at `gallery.html?album=<key>`.
