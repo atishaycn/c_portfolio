@@ -586,6 +586,14 @@ const imageSrcSet = (item, widths = responsiveWidths) => {
 const lightboxImageSizes = "100vw";
 
 const currentPageKey = document.body.dataset.page || "the-natural-world";
+const isAlbumPage = document.body.dataset.albumPage === "true";
+
+// Pages with their own content. An album whose key matches one (e.g. an album named "Prints")
+// shows only at gallery.html?album=<key>, never in place of the page.
+const FIXED_PAGE_KEYS = new Set(["home", "prints", "about-contact", "booking", "workshops", "bts"]);
+const albumForPage = (pages, pageKey, albumPage) =>
+	albumPage || !FIXED_PAGE_KEYS.has(pageKey) ? pages.find((page) => page.key === pageKey) || null : null;
+// End page routing
 
 // The Portfolio dropdown in admin order: top-level albums and groups. Only albums with photos
 // show; the slideshow, Shop only albums, child albums and empty nodes are left out. With no Content, the three
@@ -1001,7 +1009,7 @@ const renderBts = () => {
 };
 
 const renderMain = () => {
-	const galleryPage = galleryPages.find((page) => page.key === currentPageKey);
+	const galleryPage = albumForPage(galleryPages, currentPageKey, isAlbumPage);
 	if (galleryPage) return renderGallery(galleryPage);
 	if (currentPageKey === "workshops") return renderWorkshops();
 	if (currentPageKey === "prints") return renderPrints();
@@ -1062,7 +1070,7 @@ const footerLinks = [
 	},
 ];
 
-const currentSectionKey = sectionRootFor(galleryPages.find((page) => page.key === currentPageKey))?.key || currentPageKey;
+const currentSectionKey = sectionRootFor(albumForPage(galleryPages, currentPageKey, isAlbumPage))?.key || currentPageKey;
 const portfolioMenu = buildPortfolioMenu(portfolioContent, homeConfig.portfolioSections, homeConfig.slideshowAlbumKey);
 const portfolioMenuLinks = portfolioMenu.flatMap((entry) => (entry.type === "group" ? entry.links : [entry]));
 const isPortfolioPage = portfolioMenuLinks.some((link) => link.key === currentSectionKey);
@@ -1083,7 +1091,7 @@ const renderPortfolioMenuItems = () =>
 const renderSiteHeader = () => `
 	<header class="home-header">
 		<nav class="home-nav home-nav-left" aria-label="Primary">
-			<a href="./about-contact.html" ${currentAttribute(currentPageKey === "about-contact")}>About</a>
+			<a href="./about-contact.html" ${currentAttribute(!isAlbumPage && currentPageKey === "about-contact")}>About</a>
 			<div class="home-dropdown ${isPortfolioPage ? "is-current" : ""}">
 				<button class="home-dropdown-toggle" type="button" aria-expanded="false" aria-controls="home-portfolio-menu">
 					Portfolio <span class="home-dropdown-caret" aria-hidden="true"></span>
@@ -1095,8 +1103,8 @@ const renderSiteHeader = () => `
 		</nav>
 		<a class="home-logo" href="./index.html"><img src="${siteLogoPath}" alt="${siteTitle}" /></a>
 		<nav class="home-nav home-nav-right" aria-label="Secondary">
-			<a href="${homeConfig.bookingUrl}" ${currentAttribute(currentPageKey === "booking")}>Booking</a>
-			<a href="./prints.html" ${currentAttribute(currentPageKey === "prints")}>Shop</a>
+			<a href="${homeConfig.bookingUrl}" ${currentAttribute(!isAlbumPage && currentPageKey === "booking")}>Booking</a>
+			<a href="./prints.html" ${currentAttribute(!isAlbumPage && currentPageKey === "prints")}>Shop</a>
 		</nav>
 	</header>
 `;
@@ -1143,7 +1151,7 @@ const renderPage = () => `
 `;
 
 const app = document.getElementById("app");
-const isHomePage = currentPageKey === "home";
+const isHomePage = !isAlbumPage && currentPageKey === "home";
 
 app.innerHTML = `
 	${isHomePage ? renderHome() : renderPage()}
@@ -1167,7 +1175,7 @@ app.innerHTML = `
 	</div>
 `;
 
-if (currentPageKey === "prints") window.PortfolioShop.mount(app);
+if (!isAlbumPage && currentPageKey === "prints") window.PortfolioShop.mount(app);
 
 document.addEventListener("submit", (event) => {
 	if (!(event.target instanceof HTMLFormElement)) return;
