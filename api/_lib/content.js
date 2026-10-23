@@ -63,6 +63,69 @@ const validateShopSettings = (candidate) => {
 // Effective settings for pricing. Content from validateContent always has all three values.
 const shopSettings = (content) => validateShopSettings(content?.shopSettings);
 
+const TESTIMONIAL_LIMIT = 50;
+
+// Stands in for a Content that has no testimonials list yet; Claire's three Booking quotes.
+const DEFAULT_TESTIMONIALS = Object.freeze([
+	{
+		id: "testimonial-special-occasion",
+		quote: "Claire did such an amazing job capturing the little authentic moments throughout the day. I'm not too comfortable being in front of a camera, but I truly felt safe around Claire. If you're looking for a relaxed, elopement-style day, Claire is the perfect match! I found her through a referral, and within the day we were able to chat about my vision. I initially did not plan to have a photographer, but I'm so glad I found Claire. I'll cherish her photos for years to come! She was also incredibly professional and agile throughout the day.",
+		name: "",
+		context: "Special occasion",
+		photoId: "special-occasion-3cf6a06e-62fa-4f35-9c1b-51acc07ccb53",
+	},
+	{
+		id: "testimonial-rally",
+		quote: "Claire's eye for the critical moments of our rally really shone through in all the photos taken. She was not at all reluctant to get into the mix of the action/chaos unfolding and even join in on our cause. I wouldn't describe Claire as an observer, but as a full partner to us and participant in our rally– there's nothing more we could've asked from her in that moment.",
+		name: "",
+		context: "Rally",
+		photoId: "protests-ece5f222-4377-4c47-b51a-09ba107c450d",
+	},
+	{
+		id: "testimonial-san-francisco",
+		quote: "Claire went out of her way to preview the location and snap some mock pics beforehand, freezing the actual moments for us perfectly. The wild weather, our widest smiles, and San Francisco truly came alive.",
+		name: "",
+		context: "Special occasion, San Francisco",
+		photoId: "special-occasion-5ae56d56-289f-4b39-b73d-0b0e7a9a1140",
+	},
+]);
+
+// An explicit list is kept as Claire saved it: blank quotes and id-less entries are dropped, nothing is invented.
+const validateTestimonials = (candidate) => {
+	if (candidate === undefined) return DEFAULT_TESTIMONIALS.map((entry) => ({ ...entry }));
+	if (!Array.isArray(candidate)) {
+		const error = new Error("Testimonials must be a list");
+		error.statusCode = 400;
+		throw error;
+	}
+	const ids = new Set();
+	const testimonials = [];
+	for (const entry of candidate) {
+		const id = cleanText(entry?.id, 140);
+		const quote = cleanText(entry?.quote, 2_000);
+		if (!id || !quote) continue;
+		if (ids.has(id)) {
+			const error = new Error("Testimonial IDs must be unique");
+			error.statusCode = 400;
+			throw error;
+		}
+		ids.add(id);
+		testimonials.push({
+			id,
+			quote,
+			name: cleanText(entry.name, 200),
+			context: cleanText(entry.context, 200),
+			photoId: cleanText(entry.photoId, 140),
+		});
+	}
+	if (testimonials.length > TESTIMONIAL_LIMIT) {
+		const error = new Error("Testimonial limit exceeded");
+		error.statusCode = 400;
+		throw error;
+	}
+	return testimonials;
+};
+
 const validateContent = (candidate) => {
 	if (!candidate || !Array.isArray(candidate.albums) || !Array.isArray(candidate.groups)) {
 		const error = new Error("Content must include albums and groups");
@@ -202,6 +265,7 @@ const validateContent = (candidate) => {
 		groups,
 		albums,
 		trash,
+		testimonials: validateTestimonials(candidate.testimonials),
 		shopSettings: validateShopSettings(candidate.shopSettings),
 	};
 };

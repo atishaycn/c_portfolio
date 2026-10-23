@@ -18,6 +18,7 @@ const elements = {
 	trashButton: document.getElementById("trash-button"),
 	trashCount: document.getElementById("trash-count"),
 	shopSettingsButton: document.getElementById("shop-settings-button"),
+	testimonialsButton: document.getElementById("testimonials-button"),
 	ordersButton: document.getElementById("orders-button"),
 	ordersCount: document.getElementById("orders-count"),
 };
@@ -29,6 +30,7 @@ const state = {
 	selectedAlbumId: null,
 	showTrash: false,
 	showShopSettings: false,
+	showTestimonials: false,
 	showOrders: false,
 	orders: null,
 	ordersLoading: false,
@@ -192,7 +194,7 @@ const moveAlbum = (albumId, direction) => {
 
 const appendAlbumNode = (container, album, depth, siblingIndex, siblingCount) => {
 	const row = document.createElement("div");
-	row.className = `album-row${state.selectedAlbumId === album.id && !state.showTrash && !state.showShopSettings && !state.showOrders ? " is-selected" : ""}`;
+	row.className = `album-row${state.selectedAlbumId === album.id && !state.showTrash && !state.showShopSettings && !state.showTestimonials && !state.showOrders ? " is-selected" : ""}`;
 	row.style.setProperty("--depth", depth);
 	const select = createButton(
 		`${album.label} (${album.items.length})`,
@@ -201,6 +203,7 @@ const appendAlbumNode = (container, album, depth, siblingIndex, siblingCount) =>
 			state.selectedAlbumId = album.id;
 			state.showTrash = false;
 			state.showShopSettings = false;
+			state.showTestimonials = false;
 			state.showOrders = false;
 			render();
 		},
@@ -256,6 +259,7 @@ const renderAlbumList = () => {
 	elements.trashCount.textContent = state.content.trash.length;
 	elements.trashButton.classList.toggle("is-selected", state.showTrash);
 	elements.shopSettingsButton.classList.toggle("is-selected", state.showShopSettings);
+	elements.testimonialsButton.classList.toggle("is-selected", state.showTestimonials);
 	elements.ordersButton.classList.toggle("is-selected", state.showOrders);
 	elements.ordersCount.textContent = state.orders ? String(state.orders.filter((order) => order.state === "waiting").length) : "";
 };
@@ -748,10 +752,216 @@ const renderShopSettings = () => {
 	elements.albumEditor.replaceChildren(heading, fields, note);
 };
 
+// Where a photo sits in its album, by the same order the album editor shows (the "44 / 48" numbering).
+const photoPlacement = (photoId) => {
+	if (!photoId) return null;
+	for (const album of state.content.albums) {
+		const items = sortByOrder(album.items);
+		const index = items.findIndex((item) => item.id === photoId);
+		if (index !== -1) return { album, index, item: items[index] };
+	}
+	return null;
+};
+
+const moveTestimonial = (index, direction) => {
+	const list = state.content.testimonials;
+	const nextIndex = index + direction;
+	if (nextIndex < 0 || nextIndex >= list.length) return;
+	[list[index], list[nextIndex]] = [list[nextIndex], list[index]];
+	markDirty();
+	renderEditor();
+};
+
+const testimonialField = (labelText, control, testid, value, onInput) => {
+	const label = document.createElement("label");
+	label.className = "testimonial-field";
+	label.textContent = labelText;
+	control.value = value;
+	control.dataset.testid = testid;
+	control.addEventListener("input", () => {
+		onInput(control.value);
+		markDirty();
+	});
+	label.append(control);
+	return label;
+};
+
+const renderTestimonialRow = (entry, index, count) => {
+	const row = document.createElement("article");
+	row.className = "testimonial-row";
+
+	const thumb = document.createElement("div");
+	thumb.className = "testimonial-thumb";
+	const image = document.createElement("img");
+	image.alt = "";
+	image.loading = "lazy";
+	const empty = document.createElement("span");
+	empty.className = "testimonial-thumb-empty";
+	empty.textContent = "No photo";
+	thumb.append(image, empty);
+
+	const refreshThumb = () => {
+		const placement = photoPlacement(entry.photoId);
+		image.hidden = !placement;
+		empty.hidden = Boolean(placement);
+		if (placement) image.src = cloudinaryThumb(placement.item.publicId, 240);
+	};
+
+	const fields = document.createElement("div");
+	fields.className = "testimonial-fields";
+
+	const quote = document.createElement("textarea");
+	quote.maxLength = 2000;
+	quote.rows = 4;
+	fields.append(testimonialField("Quote", quote, `testimonial-quote-${entry.id}`, entry.quote, (value) => {
+		entry.quote = value;
+	}));
+
+	const name = document.createElement("input");
+	name.type = "text";
+	name.maxLength = 200;
+	const nameField = testimonialField("Name (optional)", name, `testimonial-name-${entry.id}`, entry.name, (value) => {
+		entry.name = value;
+	});
+	const context = document.createElement("input");
+	context.type = "text";
+	context.maxLength = 200;
+	const contextField = testimonialField("Context (optional)", context, `testimonial-context-${entry.id}`, entry.context, (value) => {
+		entry.context = value;
+	});
+	fields.append(nameField, contextField);
+
+	const picker = document.createElement("div");
+	picker.className = "testimonial-picker";
+	const placement = photoPlacement(entry.photoId);
+
+	const albumSelect = document.createElement("select");
+	albumSelect.dataset.testid = `testimonial-album-${entry.id}`;
+	albumSelect.append(new Option("No photo", ""));
+	for (const album of sortByOrder(state.content.albums)) {
+		albumSelect.append(new Option(album.label, album.id));
+	}
+	albumSelect.value = placement ? placement.album.id : "";
+	const albumField = document.createElement("label");
+	albumField.className = "testimonial-field";
+	albumField.textContent = "Album";
+	albumField.append(albumSelect);
+
+	const numberInput = document.createElement("input");
+	numberInput.type = "number";
+	numberInput.min = "1";
+	numberInput.step = "1";
+	numberInput.dataset.testid = `testimonial-photo-${entry.id}`;
+	const numberField = document.createElement("label");
+	numberField.className = "testimonial-field";
+	numberField.textContent = "Photo number";
+	numberField.append(numberInput);
+
+	const hint = document.createElement("p");
+	hint.className = "testimonial-hint";
+
+	const syncPicker = () => {
+		const album = albumById(albumSelect.value);
+		const count = album ? album.items.length : 0;
+		numberInput.max = String(count);
+		numberInput.disabled = !count;
+		const current = photoPlacement(entry.photoId);
+		numberInput.value = current ? String(current.index + 1) : "";
+		hint.textContent = album && !count ? "This album has no photos yet." : "";
+		refreshThumb();
+	};
+	albumSelect.addEventListener("change", () => {
+		const album = albumById(albumSelect.value);
+		entry.photoId = album ? (sortByOrder(album.items)[0]?.id ?? "") : "";
+		markDirty();
+		syncPicker();
+	});
+	const applyPhotoNumber = (revertIfInvalid) => {
+		const album = albumById(albumSelect.value);
+		const items = album ? sortByOrder(album.items) : [];
+		const number = Number(numberInput.value);
+		if (Number.isInteger(number) && number >= 1 && number <= items.length) {
+			entry.photoId = items[number - 1].id;
+			markDirty();
+			refreshThumb();
+		} else if (revertIfInvalid) {
+			syncPicker();
+		}
+	};
+	numberInput.addEventListener("input", () => applyPhotoNumber(false));
+	numberInput.addEventListener("change", () => applyPhotoNumber(true));
+
+	picker.append(albumField, numberField, hint);
+	fields.append(picker);
+	syncPicker();
+
+	const actions = document.createElement("div");
+	actions.className = "testimonial-actions";
+	const up = createButton("↑", "icon-button", () => moveTestimonial(index, -1));
+	up.setAttribute("aria-label", "Move testimonial up");
+	up.disabled = index === 0;
+	const down = createButton("↓", "icon-button", () => moveTestimonial(index, 1));
+	down.setAttribute("aria-label", "Move testimonial down");
+	down.disabled = index === count - 1;
+	const remove = createButton("Delete", "danger-button", () => {
+		if (!window.confirm("Delete this testimonial?")) return;
+		state.content.testimonials.splice(index, 1);
+		markDirty();
+		renderEditor();
+	});
+	actions.append(up, down, remove);
+
+	row.append(thumb, fields, actions);
+	return row;
+};
+
+const renderTestimonialsEditor = () => {
+	const heading = document.createElement("div");
+	heading.className = "editor-heading";
+	const copy = document.createElement("div");
+	const eyebrow = document.createElement("p");
+	eyebrow.className = "eyebrow";
+	eyebrow.textContent = "Booking";
+	const title = document.createElement("h2");
+	title.textContent = "Testimonials";
+	copy.append(eyebrow, title);
+	const add = createButton("Add testimonial", "secondary-button", () => {
+		state.content.testimonials.unshift({
+			id: "testimonial-" + crypto.randomUUID(),
+			quote: "",
+			name: "",
+			context: "",
+			photoId: "",
+		});
+		markDirty();
+		renderEditor();
+	});
+	add.dataset.testid = "add-testimonial";
+	heading.append(copy, add);
+
+	const note = document.createElement("p");
+	note.className = "shop-settings-note";
+	note.textContent = "Shown on Booking in this order. A testimonial without a quote is removed when you save.";
+
+	const list = document.createElement("div");
+	list.className = "testimonial-list";
+	const testimonials = state.content.testimonials;
+	if (testimonials.length) {
+		testimonials.forEach((entry, index) => list.append(renderTestimonialRow(entry, index, testimonials.length)));
+	} else {
+		const none = document.createElement("p");
+		none.className = "empty-editor";
+		none.textContent = "No testimonials. Booking hides “Kind words” until you add one.";
+		list.append(none);
+	}
+	elements.albumEditor.replaceChildren(heading, note, list);
+};
+
 const renderEditor = () => {
 	if (state.showOrders) return renderOrders();
 	if (state.showTrash) return renderTrash();
 	if (state.showShopSettings) return renderShopSettings();
+	if (state.showTestimonials) return renderTestimonialsEditor();
 	const album = albumById(state.selectedAlbumId) || state.content.albums[0];
 	if (!album) {
 		elements.albumEditor.innerHTML = '<div class="empty-editor">Create an album to begin.</div>';
@@ -1207,6 +1417,7 @@ elements.addAlbumForm.addEventListener("submit", (event) => {
 	state.selectedAlbumId = album.id;
 	state.showTrash = false;
 	state.showShopSettings = false;
+	state.showTestimonials = false;
 	state.showOrders = false;
 	elements.newAlbumName.value = "";
 	markDirty();
@@ -1216,6 +1427,7 @@ elements.addAlbumForm.addEventListener("submit", (event) => {
 elements.trashButton.addEventListener("click", () => {
 	state.showTrash = true;
 	state.showShopSettings = false;
+	state.showTestimonials = false;
 	state.showOrders = false;
 	render();
 });
@@ -1223,6 +1435,15 @@ elements.trashButton.addEventListener("click", () => {
 elements.shopSettingsButton.addEventListener("click", () => {
 	state.showShopSettings = true;
 	state.showTrash = false;
+	state.showTestimonials = false;
+	state.showOrders = false;
+	render();
+});
+
+elements.testimonialsButton.addEventListener("click", () => {
+	state.showTestimonials = true;
+	state.showTrash = false;
+	state.showShopSettings = false;
 	state.showOrders = false;
 	render();
 });
@@ -1231,6 +1452,7 @@ elements.ordersButton.addEventListener("click", () => {
 	state.showOrders = true;
 	state.showTrash = false;
 	state.showShopSettings = false;
+	state.showTestimonials = false;
 	loadOrders();
 });
 

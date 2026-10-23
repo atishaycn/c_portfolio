@@ -196,3 +196,109 @@ test("saves only against the current revision, bumps it, and keeps the previous 
 	}
 });
 
+
+const testimonialEntry = (overrides = {}) => ({
+	id: "testimonial-test",
+	quote: "A quote",
+	name: "",
+	context: "",
+	photoId: "",
+	...overrides,
+});
+
+test("Content without a testimonials list gets the three Booking testimonials in order", () => {
+	const validated = contentModule.validateContent(portfolio);
+	assert.deepEqual(
+		validated.testimonials.map((entry) => entry.id),
+		["testimonial-special-occasion", "testimonial-rally", "testimonial-san-francisco"],
+	);
+	assert.deepEqual(
+		validated.testimonials.map((entry) => entry.photoId),
+		[
+			"special-occasion-3cf6a06e-62fa-4f35-9c1b-51acc07ccb53",
+			"protests-ece5f222-4377-4c47-b51a-09ba107c450d",
+			"special-occasion-5ae56d56-289f-4b39-b73d-0b0e7a9a1140",
+		],
+	);
+	assert.deepEqual(
+		validated.testimonials.map((entry) => entry.context),
+		["Special occasion", "Rally", "Special occasion, San Francisco"],
+	);
+	assert.ok(validated.testimonials.every((entry) => entry.name === "" && entry.quote.length > 0));
+	assert.match(validated.testimonials[0].quote, /^Claire did such an amazing job/);
+});
+
+test("an explicit empty testimonials list stays empty", () => {
+	const validated = contentModule.validateContent({ ...portfolio, testimonials: [] });
+	assert.deepEqual(validated.testimonials, []);
+});
+
+test("testimonials keep their order and are trimmed to their field limits", () => {
+	const validated = contentModule.validateContent({
+		...portfolio,
+		testimonials: [
+			testimonialEntry({ id: "b", quote: "  Second  ", name: " Ann ", context: "x".repeat(300), photoId: " photo-1 " }),
+			testimonialEntry({ id: "a", quote: "First" }),
+		],
+	});
+	assert.deepEqual(
+		validated.testimonials.map((entry) => entry.id),
+		["b", "a"],
+	);
+	assert.equal(validated.testimonials[0].quote, "Second");
+	assert.equal(validated.testimonials[0].name, "Ann");
+	assert.equal(validated.testimonials[0].context.length, 200);
+	assert.equal(validated.testimonials[0].photoId, "photo-1");
+});
+
+test("drops testimonials with a blank quote and entries without an id", () => {
+	const validated = contentModule.validateContent({
+		...portfolio,
+		testimonials: [
+			testimonialEntry({ id: "blank", quote: "   " }),
+			testimonialEntry({ id: "", quote: "No id" }),
+			testimonialEntry({ id: "kept", quote: "Kept" }),
+		],
+	});
+	assert.deepEqual(
+		validated.testimonials.map((entry) => entry.id),
+		["kept"],
+	);
+});
+
+test("rejects duplicate testimonial ids", () => {
+	assert.throws(
+		() =>
+			contentModule.validateContent({
+				...portfolio,
+				testimonials: [testimonialEntry({ id: "same" }), testimonialEntry({ id: "same", quote: "Other" })],
+			}),
+		(error) => error.statusCode === 400 && /unique/.test(error.message),
+	);
+});
+
+test("caps the testimonial list at 50", () => {
+	const fifty = Array.from({ length: 50 }, (_, index) => testimonialEntry({ id: `t-${index}` }));
+	assert.equal(contentModule.validateContent({ ...portfolio, testimonials: fifty }).testimonials.length, 50);
+	assert.throws(
+		() =>
+			contentModule.validateContent({
+				...portfolio,
+				testimonials: [...fifty, testimonialEntry({ id: "t-50" })],
+			}),
+		(error) => error.statusCode === 400 && /limit/.test(error.message),
+	);
+});
+
+test("the admin has a Testimonials panel with the required controls", () => {
+	assert.match(adminHtml, /id="testimonials-button"/);
+	assert.match(adminHtml, /data-testid="testimonials-button"/);
+	assert.match(adminScript, /"add-testimonial"/);
+	assert.match(adminScript, /testimonial-quote-/);
+	assert.match(adminScript, /testimonial-name-/);
+	assert.match(adminScript, /testimonial-context-/);
+	assert.match(adminScript, /testimonial-album-/);
+	assert.match(adminScript, /testimonial-photo-/);
+	assert.match(adminScript, /"testimonial-" \+ crypto\.randomUUID\(\)/);
+	assert.match(adminScript, /A testimonial without a quote is removed when you save\./);
+});

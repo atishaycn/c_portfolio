@@ -771,7 +771,7 @@ const renderAbout = () => `
 	</section>
 `;
 
-// Packages and what's included are Claire's event pricing. Testimonials are real client quotes only.
+// Packages and what's included are Claire's event pricing.
 const bookingConfig = {
 	showPackages: true,
 	showTestimonials: true,
@@ -789,27 +789,6 @@ const bookingConfig = {
 	notes: [
 		"My standard event rate is $150 per hour. For special occasions such as proposals or courthouse weddings, please fill out my {contact form} to get a quote!",
 		"A travel fee of $0.76 per mile will be applied if the event is beyond the limits of SF",
-	],
-	testimonials: [
-		{
-			quote: "Claire did such an amazing job capturing the little authentic moments throughout the day. I'm not too comfortable being in front of a camera, but I truly felt safe around Claire. If you're looking for a relaxed, elopement-style day, Claire is the perfect match! I found her through a referral, and within the day we were able to chat about my vision. I initially did not plan to have a photographer, but I'm so glad I found Claire. I'll cherish her photos for years to come! She was also incredibly professional and agile throughout the day.",
-			name: "",
-			context: "Special occasion",
-			// Photo shown beside the quote: an album and the photo's position in it (0 = first, the album's cover).
-			photo: { album: "special-occasion", index: 14 },
-		},
-		{
-			quote: "Claire's eye for the critical moments of our rally really shone through in all the photos taken. She was not at all reluctant to get into the mix of the action/chaos unfolding and even join in on our cause. I wouldn't describe Claire as an observer, but as a full partner to us and participant in our rally– there's nothing more we could've asked from her in that moment.",
-			name: "",
-			context: "Rally",
-			photo: { album: "protests", index: 43 },
-		},
-		{
-			quote: "Claire went out of her way to preview the location and snap some mock pics beforehand, freezing the actual moments for us perfectly. The wild weather, our widest smiles, and San Francisco truly came alive.",
-			name: "",
-			context: "Special occasion, San Francisco",
-			photo: { album: "special-occasion", index: 0 },
-		},
 	],
 	// Portrait sessions are priced separately from the event packages; shown below them.
 	portraitPackages: [
@@ -864,14 +843,17 @@ const renderPrices = () => `
 	</section>
 `;
 
-const testimonialPhoto = (photo) => {
-	if (!photo) return null;
-	const album = galleryPages.find((page) => page.key === photo.album);
-	return album?.items[photo.index] ?? null;
+const testimonialPhoto = (photoId) => {
+	if (!photoId) return null;
+	for (const page of galleryPages) {
+		const item = page.items.find((entry) => entry.id === photoId);
+		if (item) return item;
+	}
+	return null;
 };
 
 const renderTestimonial = (item) => {
-	const photo = testimonialPhoto(item.photo);
+	const photo = testimonialPhoto(item.photoId);
 	return `
 		<figure class="testimonial ${photo ? "has-photo" : ""}">
 			${
@@ -889,14 +871,19 @@ const renderTestimonial = (item) => {
 	`;
 };
 
-const renderTestimonials = () => `
+// Testimonials are Content (Claire edits them in admin); the section is hidden until there is at least one.
+const renderTestimonials = () => {
+	const testimonials = portfolioContent?.testimonials ?? [];
+	if (!testimonials.length) return "";
+	return `
 	<section class="testimonials" aria-labelledby="testimonials-heading">
 		<h2 id="testimonials-heading" class="section-eyebrow">Kind words</h2>
 		<div class="testimonial-list">
-			${bookingConfig.testimonials.map(renderTestimonial).join("")}
+			${testimonials.map(renderTestimonial).join("")}
 		</div>
 	</section>
 `;
+};
 
 const bookingProjectTypes = ["Corporate", "Personal", "Graduation", "Special occasion", "Other"];
 const bookingReferralSources = ["Google", "Instagram", "Referral", "Other"];

@@ -18,16 +18,35 @@ const bookingSource = sliceFrom("const bookingConfig = {", "const renderPrints =
 
 const albumOf = (prefix) =>
 	Array.from({ length: 48 }, (_, index) => ({
+		id: `${prefix}-${index}`,
 		publicId: `${prefix}-${index}`,
 		width: 1200,
 		height: 800,
 	}));
 
+// The three photos the live Content's testimonials point at, by photo id.
+const SPECIAL_15 = "special-occasion-3cf6a06e-62fa-4f35-9c1b-51acc07ccb53";
+const RALLY_44 = "protests-ece5f222-4377-4c47-b51a-09ba107c450d";
+const SPECIAL_1 = "special-occasion-5ae56d56-289f-4b39-b73d-0b0e7a9a1140";
+const specialOccasion = albumOf("special");
+specialOccasion[14].id = SPECIAL_15;
+specialOccasion[0].id = SPECIAL_1;
+const protests = albumOf("protests");
+protests[43].id = RALLY_44;
+
+const testimonial = (id, quote, context, photoId) => ({ id, quote, name: "", context, photoId });
+const defaultTestimonials = [
+	testimonial("testimonial-special-occasion", "Claire did such an amazing job capturing", "Special occasion", SPECIAL_15),
+	testimonial("testimonial-rally", "Claire's eye for the critical moments of our rally", "Rally", RALLY_44),
+	testimonial("testimonial-san-francisco", "Claire went out of her way", "Special occasion, San Francisco", SPECIAL_1),
+];
+
 const context = {
 	homeConfig: { inquiryEmail: "hello@example.test" },
+	portfolioContent: { testimonials: defaultTestimonials },
 	galleryPages: [
-		{ key: "special-occasion", label: "special occasion", items: albumOf("special") },
-		{ key: "protests", label: "events", items: albumOf("protests") },
+		{ key: "special-occasion", label: "special occasion", items: specialOccasion },
+		{ key: "protests", label: "events", items: protests },
 		{ key: "portraits", label: "portraits", items: albumOf("portraits") },
 	],
 	resolveImageUrl: (item) => `https://img.test/${item.publicId}`,
@@ -117,21 +136,62 @@ test("Headshots lists 20 digital images and Grad shoot lists images, outfits and
 	assert.match(card("Grad shoot"), /<ul><li>20 digital images, 2 outfits, 2 locations<\/li><\/ul>/);
 });
 
-test("the newest testimonial, first, points at special-occasion index 14", () => {
-	assert.deepEqual(config.testimonials[0].photo, { album: "special-occasion", index: 14 });
-	assert.equal(config.testimonials[0].name, "");
-	assert.equal(config.testimonials[0].context, "Special occasion");
-	assert.match(config.testimonials[0].quote, /^Claire did such an amazing job/);
-	assert.match(html, /https:\/\/img\.test\/special-14/);
+const renderWithTestimonials = (testimonials) => {
+	context.portfolioContent = testimonials === null ? null : { testimonials };
+	return context.renderBooking();
+};
+const kindWordsSection = (page) => {
+	const start = page.indexOf('<section class="testimonials"');
+	assert(start >= 0, "Kind words must render");
+	return page.slice(start, page.indexOf("</section>", start));
+};
+const photoSources = (section) => [...section.matchAll(/<img src="([^"]+)"/g)].map((match) => match[1]);
+
+test("Booking takes testimonials from Content, not from bookingConfig", () => {
+	assert.equal(config.testimonials, undefined);
 });
 
-test("the rally testimonial sits in the middle of three, beside Events photo 44", () => {
-	assert.equal(config.testimonials.length, 3);
-	assert.match(config.testimonials[0].quote, /^Claire did such an amazing job/);
-	assert.match(config.testimonials[1].quote, /^Claire's eye for the critical moments of our rally/);
-	assert.match(config.testimonials[2].quote, /^Claire went out of her way/);
-	assert.deepEqual(config.testimonials[1].photo, { album: "protests", index: 43 });
-	assert.match(html, /https:\/\/img\.test\/protests-43/);
-	const order = ["special-14", "protests-43", "special-0"].map((id) => html.indexOf(`https://img.test/${id}`));
-	assert.deepEqual([...order].sort((a, b) => a - b), order);
+test("Kind words renders the Content testimonials in list order, each with the photo its photoId names", () => {
+	const section = kindWordsSection(html);
+	const quotes = ["Claire did such an amazing job", "critical moments of our rally", "Claire went out of her way"];
+	const positions = quotes.map((quote) => section.indexOf(quote));
+	assert(positions.every((position) => position >= 0), "all three quotes must render");
+	assert.deepEqual([...positions].sort((a, b) => a - b), positions);
+	assert.deepEqual(photoSources(section), [
+		"https://img.test/special-14",
+		"https://img.test/protests-43",
+		"https://img.test/special-0",
+	]);
+	assert.match(section, /<figcaption><span>Special occasion, San Francisco<\/span><\/figcaption>/);
+});
+
+test("a testimonial whose photoId matches no photo renders without a photo", () => {
+	const page = renderWithTestimonials([testimonial("t-1", "A plain quote", "Rally", "no-such-photo")]);
+	const section = kindWordsSection(page);
+	assert.match(section, /A plain quote/);
+	assert.deepEqual(photoSources(section), []);
+	assert.doesNotMatch(section, /has-photo/);
+});
+
+test("an empty testimonial list hides the Kind words section", () => {
+	const page = renderWithTestimonials([]);
+	assert.doesNotMatch(page, /Kind words/);
+	assert.doesNotMatch(page, /testimonials-heading/);
+});
+
+test("with no Content loaded, the Kind words section is hidden", () => {
+	const page = renderWithTestimonials(null);
+	assert.doesNotMatch(page, /Kind words/);
+	assert.match(page, /I'd love to hear from you!/);
+});
+
+test("testimonial quotes and names are HTML-escaped", () => {
+	const page = renderWithTestimonials([
+		{ id: "t-1", quote: '<img src=x onerror="alert(1)"> & "quoted"', name: "<b>Ann</b>", context: "", photoId: "" },
+	]);
+	const section = kindWordsSection(page);
+	assert.doesNotMatch(section, /<img src=x/);
+	assert.doesNotMatch(section, /<b>Ann<\/b>/);
+	assert.match(section, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt; &amp; &quot;quoted&quot;/);
+	assert.match(section, /&lt;b&gt;Ann&lt;\/b&gt;/);
 });
