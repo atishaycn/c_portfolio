@@ -1,10 +1,11 @@
 # Work Board
 
-Last updated: 2026-10-17. The CEO thread keeps this current. Every row's code is committed and pushed on its branch.
+Last updated: 2026-10-22. The CEO thread keeps this current. Every row's code is committed and pushed on its branch.
 
 ## Production
 
 - `infra/cloudflare` is live on clairethomas.art and `www` via Cloudflare Worker `clairethomas-site`. Release `7018ac1` removes the Graduation Session package from Booking (2026-10-17); three event packages and inquiry choices remain. Verified: 259 tests; desktop and 390px phone; Inquire pre-fill; no console errors. Worker version `16e86994-8413-4025-82ff-f451e5425521` (2026-10-18: workers.dev test host back on, same site code).
+- Live 2026-10-22: `a621704` adds gallery quotes (user request): a quote after any photo, edited in admin. Rally quote set on Events photo 44 (Content revision 251, no name). Haiku 5.5 child built it on `ui/gallery-quotes` (fast-forwarded into `infra/cloudflare`, branch removed); CEO checks: diff read, 312 tests, local admin edit and save round trip, live page at 1280px and 390px (quote after photo 44, centred, no sideways scroll, no failed requests), `verify-live c_portfolio` PASS at `a621704`, Worker version `1e6b569c`.
 - Live 2026-10-21: `b7fdd6a` sets Portrait features: Headshots "20 digital images"; Grad shoot "20 digital images, 2 outfits, 2 locations" (one line at 1280px and 390px). 302 tests, `verify-live c_portfolio` PASS at `b7fdd6a`, Worker version `629065cc`.
 - Live 2026-10-21: `e09e64a` shows the newest testimonial first in "Kind words". 302 tests, `verify-live c_portfolio` PASS at `e09e64a`, Worker version `e6a8fa7c`.
 - Live 2026-10-21: `e1bfdbf` evens the price card spacing (user: "fix the space") and sets Portrait features: Headshots "20+ digital images", Grad shoot "2 outfits, 2 locations" on one line. 302 tests, local check at 1440px and 390px, `verify-live c_portfolio` PASS at `e1bfdbf`, Worker version `40acf4e4`.
