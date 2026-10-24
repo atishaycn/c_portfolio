@@ -7,6 +7,8 @@
 *.PNG
 *.webp
 *.WEBP
+# Room backdrops for the Shop wall view are site assets, not product photos.
+!assets/rooms/*.webp
 *.gif
 *.GIF
 

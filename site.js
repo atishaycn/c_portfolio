@@ -977,6 +977,7 @@ const renderPrints = () =>
 	window.PortfolioShop.renderPage({
 		albums: galleryPages,
 		imageUrl: (item) => resolveImageUrl(item, { width: cloudinaryConfig.galleryWidth }),
+		wallImageUrl: (item) => resolveImageUrl(item, { width: 800 }),
 	});
 
 const renderBts = () => {

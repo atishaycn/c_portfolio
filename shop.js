@@ -103,6 +103,15 @@
 		},
 	};
 
+	const WALL_PRODUCT_SLUG = "wood-frame";
+	const WALL_DEFAULT_FRAME = "white";
+	const WALL_CARD = { width: 384, height: 256, plainArea: 36000, plainMargin: 9 };
+	const WALL_ROOMS = [
+		{ src: "./assets/rooms/living.webp", cx: 0.57, bottom: 0.46 },
+		{ src: "./assets/rooms/entry.webp", cx: 0.46, bottom: 0.52 },
+		{ src: "./assets/rooms/bedroom.webp", cx: 0.35, bottom: 0.47 },
+	];
+
 	let SHOP_CATALOG = [];
 	let storeClosed = false;
 
@@ -293,15 +302,35 @@
 		};
 	}
 
-	function readCheckoutParams(search) {
+	function queryParameter(search, name) {
 		const query = String(search || "").replace(/^\?/, "");
-		const parameter = (name) => {
-			const entry = query.split("&").find((part) => part.split("=", 1)[0] === name);
-			if (!entry) return "";
-			const value = entry.slice(entry.indexOf("=") + 1).replace(/\+/g, " ");
-			try { return decodeURIComponent(value); } catch { return ""; }
+		const entry = query.split("&").find((part) => part.split("=", 1)[0] === name);
+		if (!entry) return "";
+		const value = entry.slice(entry.indexOf("=") + 1).replace(/\+/g, " ");
+		try { return decodeURIComponent(value); } catch { return ""; }
+	}
+
+	function readCheckoutParams(search) {
+		return { checkout: queryParameter(search, "checkout"), sessionId: queryParameter(search, "session_id") };
+	}
+
+	// A wall card opens the wood frame page with its photo and frame. Unknown or invalid values fall back to the plain page.
+	function readProductParams(search, product, photos) {
+		const photoId = queryParameter(search, "photo");
+		const list = Array.isArray(photos) ? photos : [];
+		const photoIndex = photoId ? list.findIndex((photo) => photoIdFor(photo) === photoId) : -1;
+		const frame = queryParameter(search, "frame");
+		const frameGroup = product ? (product.optionGroups || []).find((entry) => entry.key === "frame") : null;
+		const frameValid = Boolean(frame && frameGroup && frameGroup.options.some((entry) => entry.value === frame));
+		return {
+			photoIndex: Math.max(0, photoIndex),
+			photoId: photoIndex >= 0 ? photoId : "",
+			selections: frameValid ? { frame } : {},
 		};
-		return { checkout: parameter("checkout"), sessionId: parameter("session_id") };
+	}
+
+	function preselectedPhotoIds(photo, size) {
+		return new Set(photo && photoSupportsSize(photo, size) ? [photoIdFor(photo)] : []);
 	}
 
 	function clampCrop(crop) {
@@ -530,33 +559,112 @@
 			'</a>';
 	}
 
-	function renderHeroSlide(product, index, state) {
-		const photo = state.photos.length ? state.photos[(index * 3) % state.photos.length] : null;
-		return '<div class="shop-hero-copy"><p class="shop-eyebrow">PRINTS AND WALL ART</p><h1>' + escapeHtml(product.name.toUpperCase()) +
-			'</h1><p>' + escapeHtml(product.heroDescription || product.description) + '</p><a class="shop-hero-link" href="./prints.html?product=' +
-			encodeURIComponent(product.slug) + '">EXPLORE ' + escapeHtml(product.name.toUpperCase()) + '</a></div>' +
-			'<a class="shop-hero-art" href="./prints.html?product=' + encodeURIComponent(product.slug) + '" aria-label="View ' +
-			escapeHtml(product.name) + '">' + renderMockup(product, defaultSelections(product), photo, { imageUrl: state.imageUrl }) + '</a>';
+	function wallFrameOptions(product) {
+		const group = product ? (product.optionGroups || []).find((entry) => entry.key === "frame") : null;
+		const options = group ? group.options.slice() : [];
+		const defaultIndex = options.findIndex((entry) => entry.value === WALL_DEFAULT_FRAME);
+		if (defaultIndex > 0) options.unshift(...options.splice(defaultIndex, 1));
+		return options;
+	}
+
+	function wallCardHref(slug, photoId, frame) {
+		const frameQuery = frame ? "&frame=" + encodeURIComponent(frame) : "";
+		return "./prints.html?product=" + encodeURIComponent(slug) + "&photo=" + encodeURIComponent(photoId) + frameQuery;
+	}
+
+	// The lowest wood frame price among the sizes this photo can be printed at, or null when it supports none.
+	function wallPrice(product, photo) {
+		const supported = new Set((product && product.sizes ? product.sizes : []).filter((size) => photoSupportsSize(photo, size)));
+		const prices = (product && product.variants ? product.variants : [])
+			.filter((variant) => supported.has(variant.size))
+			.map((variant) => Number(variant.price))
+			.filter(Number.isFinite);
+		return prices.length ? Math.min(...prices) : null;
+	}
+
+	function photoRatio(photo) {
+		const width = Number(photo && photo.width);
+		const height = Number(photo && photo.height);
+		return width > 0 && height > 0 ? width / height : 1.5;
+	}
+
+	// Boxes are in card units (384 x 256), scaled to the card width by --u in CSS.
+	function wallGeometry(ratio, room) {
+		const { width: W, height: H, plainArea, plainMargin: m } = WALL_CARD;
+		let iw = Math.sqrt(plainArea * ratio);
+		let ih = Math.sqrt(plainArea / ratio);
+		const k = Math.min(1, (0.82 * H - 2 * m) / ih);
+		iw *= k;
+		ih *= k;
+		const plainW = iw + 2 * m;
+		const plainH = ih + 2 * m;
+		let roomW;
+		let roomH;
+		let roomM;
+		if (ratio < 1) {
+			roomH = 0.4 * H;
+			roomM = 0.04 * roomH;
+			roomW = (roomH - 2 * roomM) * ratio + 2 * roomM;
+		} else {
+			roomW = 0.34 * W;
+			roomM = 0.04 * roomW;
+			roomH = (roomW - 2 * roomM) / ratio + 2 * roomM;
+		}
+		return {
+			plain: { x: (W - plainW) / 2, y: (H - plainH) / 2, w: plainW, h: plainH, m },
+			room: { x: room.cx * W - roomW / 2, y: room.bottom * H - roomH, w: roomW, h: roomH, m: roomM },
+		};
+	}
+
+	function wallBoxStyle(box) {
+		return "--shop-wall-x:" + box.x.toFixed(2) + ";--shop-wall-y:" + box.y.toFixed(2) + ";--shop-wall-w:" + box.w.toFixed(2) +
+			";--shop-wall-h:" + box.h.toFixed(2) + ";--shop-wall-m:" + box.m.toFixed(2);
+	}
+
+	function renderWallCard(product, photo, index, state) {
+		const frames = wallFrameOptions(product);
+		const frame = frames.length ? frames[0].value : "";
+		const photoId = photoIdFor(photo);
+		const room = WALL_ROOMS[index % WALL_ROOMS.length];
+		const geometry = wallGeometry(photoRatio(photo), room);
+		const imageSource = (state.wallImageUrl || state.imageUrl)(photo);
+		const title = String(photo.title || "").trim();
+		const alt = title || photo.alt || "Photograph by Claire Thomas";
+		const href = wallCardHref(product.slug, photoId, frame);
+		const price = wallPrice(product, photo);
+		const loading = index < 3 ? "eager" : "lazy";
+		const image = (source, text, loadMode) => '<img src="' + escapeHtml(source) + '" alt="' + escapeHtml(text) + '" loading="' + loadMode + '" decoding="async" />';
+		const swatches = frames.map((entry) => '<button class="shop-wall-swatch" type="button" data-wall-frame="' + escapeHtml(entry.value) +
+			'" aria-label="' + escapeHtml(entry.label) + ' frame" title="' + escapeHtml(entry.label) + '" aria-pressed="' + (entry.value === frame ? "true" : "false") +
+			'" style="--shop-swatch:' + escapeHtml(entry.swatch || "#cccccc") + '"></button>').join("");
+		return '<article class="shop-wall-card" data-frame="' + escapeHtml(frame) + '" data-wall-photo="' + escapeHtml(photoId) + '">' +
+			'<div class="shop-wall-media"><a class="shop-wall-open" href="' + escapeHtml(href) + '" aria-label="' + escapeHtml((title || "Print") + ", choose size and frame") + '"><span class="shop-wall-stage">' +
+			'<span class="shop-wall-layer shop-wall-plain"><span class="shop-wall-print" style="' + wallBoxStyle(geometry.plain) + '"><span class="shop-wall-frame">' + image(imageSource, alt, loading) + '</span></span></span>' +
+			'<span class="shop-wall-layer shop-wall-room" aria-hidden="true"><span class="shop-wall-scene"><img class="shop-wall-room-img" src="' + escapeHtml(room.src) + '" alt="" loading="lazy" decoding="async" />' +
+			'<span class="shop-wall-print" style="' + wallBoxStyle(geometry.room) + '"><span class="shop-wall-frame">' + image(imageSource, "", "lazy") + '</span></span></span></span>' +
+			'</span></a><button class="shop-wall-toggle" type="button" data-wall-toggle aria-pressed="false">See on wall</button></div>' +
+			(title ? '<a class="shop-wall-title" href="' + escapeHtml(href) + '">' + escapeHtml(title) + '</a>' : '') +
+			(price === null ? '' : '<p class="shop-wall-price">From ' + escapeHtml(formatPrice(price)) + '</p>') +
+			'<div class="shop-wall-swatches" role="group" aria-label="Frame colour">' + swatches + '</div></article>';
 	}
 
 	function renderStoreHome(state) {
-		const activeIndex = state.heroIndex || 0;
 		const categories = Array.from(new Set(SHOP_CATALOG.map((product) => product.category)));
-		return '<section class="shop-page shop-home"><div class="shop-hero" aria-roledescription="carousel" aria-label="Featured print products">' +
-			'<button class="shop-hero-arrow shop-hero-prev" type="button" data-shop-action="hero-prev" aria-label="Previous product">‹</button>' +
-			'<div class="shop-hero-inner"><div class="shop-hero-slide">' + renderHeroSlide(SHOP_CATALOG[activeIndex], activeIndex, state) + '</div></div>' +
-			'<button class="shop-hero-arrow shop-hero-next" type="button" data-shop-action="hero-next" aria-label="Next product">›</button>' +
-			'<div class="shop-hero-dots" aria-label="Choose featured product">' + SHOP_CATALOG.map((product, index) =>
-				'<button class="shop-hero-dot' + (index === activeIndex ? " is-active" : "") + '" type="button" data-shop-action="hero-go" data-shop-index="' + index +
-				'" aria-label="Show ' + escapeHtml(product.name) + '" aria-pressed="' + (index === activeIndex ? "true" : "false") + '"></button>').join("") + '</div></div>' +
-			'<div class="shop-shell"><nav class="shop-category-nav" aria-label="Shop categories"><span>Categories:</span>' +
+		const wallProduct = productForSlug(WALL_PRODUCT_SLUG);
+		const wall = !wallProduct ? "" : state.photos.length
+			? '<section class="shop-wall-grid" aria-label="Prints">' + state.photos.map((photo, index) => renderWallCard(wallProduct, photo, index, state)).join("") + '</section>'
+			: '<p class="shop-wall-empty">No print-enabled photos are available yet.</p>';
+		return '<section class="shop-page shop-home"><div class="shop-wall-home"><h1 class="shop-wall-heading">Prints</h1>' +
+			'<p class="shop-wall-intro">Photographs of San Francisco, the natural world and the street, printed to order. Choose a plain print or a wood frame.</p>' +
+			wall + '</div><div class="shop-shell"><section class="shop-by-product"><h2 class="shop-section-heading">Shop by product</h2>' +
+			'<nav class="shop-category-nav" aria-label="Shop categories"><span>Categories:</span>' +
 			categories.map((category) => '<a href="#shop-category-' + categorySlug(category) + '">' + escapeHtml(category) + '</a>').join("") +
 			'</nav>' + categories.map((category) => {
 				const products = productsInCategory(category);
 				return '<section class="shop-category-section" id="shop-category-' + categorySlug(category) + '">' +
 					'<h2 class="shop-section-heading">' + escapeHtml(category) + '</h2><div class="shop-product-grid">' +
 					products.map((product) => renderProductCard(product, state)).join("") + '</div></section>';
-			}).join("") + '</div></section>';
+			}).join("") + '</section></div></section>';
 	}
 
 	function renderOptionGroup(product, group, state) {
@@ -741,7 +849,6 @@
 
 	let activeState = null;
 	let activeRoot = null;
-	let heroTimer = null;
 
 	function renderPage(context) {
 		if (storeClosed) {
@@ -758,12 +865,14 @@
 		const safeContext = context || {};
 		const photos = selectStorePhotos(safeContext.albums || []);
 		const params = global.location && global.URLSearchParams ? new global.URLSearchParams(global.location.search) : null;
-		const checkout = readCheckoutParams(global.location ? global.location.search : "");
+		const search = global.location ? global.location.search : "";
+		const checkout = readCheckoutParams(search);
 		const screen = checkout.checkout === "success"
 			? "order"
 			: checkout.checkout === "cancelled" || (params && params.get("view") === "cart") ? "cart" : "page";
 		const url = safeContext.productSlug === undefined ? (params ? params.get("product") : "") : safeContext.productSlug;
 		const product = productForSlug(url);
+		const productParams = readProductParams(search, product, photos);
 		let storage = null;
 		try { storage = global.localStorage || null; } catch { storage = null; }
 		activeState = {
@@ -771,11 +880,12 @@
 			imageUrl: typeof safeContext.imageUrl === "function"
 				? safeContext.imageUrl
 				: (photo) => photo && (photo.url || photo.image) ? photo.url || photo.image : "",
-			heroIndex: 0,
+			wallImageUrl: typeof safeContext.wallImageUrl === "function" ? safeContext.wallImageUrl : null,
 			product,
-			photoIndex: 0,
+			photoIndex: product ? productParams.photoIndex : 0,
+			preselectedPhotoId: product ? productParams.photoId : "",
 			view: "angle",
-			selections: product ? resolveSelections(product, safeContext.selections) : {},
+			selections: product ? resolveSelections(product, Object.assign({}, productParams.selections, safeContext.selections)) : {},
 			invalid: new Set(),
 			cart: readCart(storage, photos),
 			storage,
@@ -882,7 +992,10 @@
 			const line = activeState.lines.find((entry) => entry.lineId === activeState.changeLineId);
 			activeState.selectedPhotoIds = new Set(line ? [line.photoId] : []);
 		} else if (activeState.pickerMode === "review") activeState.selectedPhotoIds = new Set(activeState.lines.map((line) => line.photoId));
-		else activeState.selectedPhotoIds = new Set();
+		else {
+			activeState.selectedPhotoIds = preselectedPhotoIds(activeState.preselectedPhotoId ? photoForId(activeState.photos, activeState.preselectedPhotoId) : null, activeState.pickerSize);
+			activeState.preselectedPhotoId = "";
+		}
 		activeState.screen = "picker";
 		renderStore();
 		focusShop('[data-shop-action="picker-close"]');
@@ -896,17 +1009,6 @@
 		activeState.changeLineId = "";
 		renderStore();
 		focusShop(returnScreen === "customize" ? '[data-shop-action="change-photo"]' : '[data-shop-action="open-picker"]');
-	}
-
-	function updateHero() {
-		if (!activeRoot || !activeState || activeState.product) return;
-		const slide = activeRoot.querySelector(".shop-hero-slide");
-		if (slide) slide.innerHTML = renderHeroSlide(SHOP_CATALOG[activeState.heroIndex], activeState.heroIndex, activeState);
-		activeRoot.querySelectorAll(".shop-hero-dot").forEach((dot) => {
-			const selected = Number(dot.dataset.shopIndex) === activeState.heroIndex;
-			dot.classList.toggle("is-active", selected);
-			dot.setAttribute("aria-pressed", selected ? "true" : "false");
-		});
 	}
 
 	function updateProductPriceAndOptions() {
@@ -1138,6 +1240,24 @@
 
 	function handlePointerUp() { if (activeState) activeState.cropDrag = null; }
 
+	function setWallFrame(swatch) {
+		const card = swatch.closest(".shop-wall-card");
+		if (!card) return;
+		const frame = swatch.dataset.wallFrame;
+		card.dataset.frame = frame;
+		card.querySelectorAll("[data-wall-frame]").forEach((entry) => entry.setAttribute("aria-pressed", String(entry === swatch)));
+		const href = wallCardHref(WALL_PRODUCT_SLUG, card.dataset.wallPhoto || "", frame);
+		card.querySelectorAll(".shop-wall-open, .shop-wall-title").forEach((link) => link.setAttribute("href", href));
+	}
+
+	function toggleWallRoom(button) {
+		const card = button.closest(".shop-wall-card");
+		if (!card) return;
+		const onWall = card.classList.toggle("shop-wall-card--room");
+		button.textContent = onWall ? "Back to print" : "See on wall";
+		button.setAttribute("aria-pressed", String(onWall));
+	}
+
 	function handleClick(event) {
 		const target = event.target && event.target.closest ? event.target : null;
 		if (!target || !activeRoot || !activeState) return;
@@ -1145,19 +1265,13 @@
 		if (pickerDialog && target.matches(".shop-picker-overlay")) { closePhotoPicker(); return; }
 		if (target.matches(".shop-preview-overlay")) { activeState.previewLineId = ""; renderStore(); focusShop('[data-shop-action="preview"]'); return; }
 		if (target.matches(".shop-edit-product-backdrop")) { activeState.editPanelOpen = false; renderStore(); focusShop('[data-shop-action="edit-product"]'); return; }
+		const wallSwatch = target.closest("[data-wall-frame]");
+		if (wallSwatch) { setWallFrame(wallSwatch); return; }
+		const wallToggle = target.closest("[data-wall-toggle]");
+		if (wallToggle) { toggleWallRoom(wallToggle); return; }
 		const action = target.closest("[data-shop-action]");
 		if (action) {
 			const name = action.dataset.shopAction;
-			if (name === "hero-next" || name === "hero-prev") {
-				activeState.heroIndex = (activeState.heroIndex + (name === "hero-next" ? 1 : SHOP_CATALOG.length - 1)) % SHOP_CATALOG.length;
-				updateHero();
-				return;
-			}
-			if (name === "hero-go") {
-				activeState.heroIndex = Number(action.dataset.shopIndex) % SHOP_CATALOG.length;
-				updateHero();
-				return;
-			}
 			if (name === "photo-prev" || name === "photo-next") {
 				updatePhoto(activeState.photoIndex + (name === "photo-next" ? 1 : -1));
 				return;
@@ -1275,17 +1389,6 @@
 			root.addEventListener("pointercancel", handlePointerUp);
 			root.dataset.shopBound = "true";
 		}
-		if (heroTimer) {
-			global.clearInterval(heroTimer);
-			heroTimer = null;
-		}
-		if (!activeState.product && typeof global.matchMedia === "function" && !global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-				heroTimer = global.setInterval(() => {
-					if (!activeState || activeState.product || activeState.screen !== "page") return;
-				activeState.heroIndex = (activeState.heroIndex + 1) % SHOP_CATALOG.length;
-				updateHero();
-			}, 6500);
-		}
 		if (activeState.screen === "order" && activeState.orderStatus === "loading") confirmOrder();
 	}
 
@@ -1302,11 +1405,15 @@
 		openPhotoPicker,
 		parseCart,
 		photoSupportsSize,
+		preselectedPhotoIds,
 		priceFor,
+		readProductParams,
 		readCheckoutParams,
 		renderMockup,
 		renderPage,
 		selectStorePhotos,
+		wallCardHref,
+		wallPrice,
 		serializeCart,
 		setCatalog,
 		mount,

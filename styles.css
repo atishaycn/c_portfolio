@@ -1941,77 +1941,6 @@ body[data-page="protests"] .masonry-grid {
 	margin-inline: auto;
 }
 
-.shop-hero {
-	position: relative;
-	display: grid;
-	align-items: center;
-	min-height: clamp(320px, 34vw, 460px);
-	padding: 48px 64px 62px;
-	background: radial-gradient(ellipse at 78% 42%, rgba(255, 255, 255, 0.92), transparent 44%), linear-gradient(115deg, #eeeef0, #f7f7f7 58%, #e9e8e8);
-}
-
-.shop-hero-inner {
-	width: min(1190px, 100%);
-	margin-inline: auto;
-}
-
-.shop-hero-slide {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(220px, 0.8fr);
-	align-items: center;
-	gap: clamp(30px, 7vw, 100px);
-	min-width: 0;
-}
-
-.shop-hero-copy {
-	max-width: 560px;
-}
-
-.shop-eyebrow {
-	margin: 0 0 16px;
-	color: var(--shop-muted);
-	font-size: 11px;
-	letter-spacing: 0.22em;
-	text-transform: uppercase;
-}
-
-.shop-hero-copy h1 {
-	margin: 0 0 12px;
-	font-size: clamp(26px, 3vw, 40px);
-	font-weight: 600;
-	letter-spacing: 0.075em;
-	line-height: 1.18;
-}
-
-.shop-hero-copy p:not(.shop-eyebrow) {
-	max-width: 580px;
-	margin: 0;
-	font-size: 15px;
-	line-height: 1.65;
-}
-
-.shop-hero-link {
-	display: inline-block;
-	margin-top: 22px;
-	padding-bottom: 5px;
-	border-bottom: 1px solid currentColor;
-	font-size: 11px;
-	letter-spacing: 0.16em;
-}
-
-.shop-hero-art {
-	display: grid;
-	place-items: center;
-	min-width: 0;
-	height: 265px;
-}
-
-.shop-hero-art .shop-mockup {
-	width: 76%;
-	max-height: 100%;
-}
-
-.shop-hero-arrow,
 .shop-product-arrow {
 	position: absolute;
 	z-index: 2;
@@ -2029,40 +1958,274 @@ body[data-page="protests"] .masonry-grid {
 	cursor: pointer;
 }
 
-.shop-hero-arrow:hover,
 .shop-product-arrow:hover {
 	color: #222;
 }
 
-.shop-hero-prev {
-	left: 10px;
+/* Shop home: wall view of print-enabled photos (approved design B, white frames by default) */
+.shop-wall-home {
+	padding: clamp(48px, 7vw, 72px) 24px 56px;
+	text-align: center;
 }
 
-.shop-hero-next {
-	right: 10px;
+.shop-wall-heading {
+	margin: 0;
+	color: #111;
+	font-size: 64px;
+	font-weight: 400;
+	letter-spacing: -0.01em;
+	line-height: 1;
 }
 
-.shop-hero-dots {
+.shop-wall-intro {
+	max-width: 640px;
+	margin: 28px auto 0;
+	color: #3c3c3c;
+	font-size: 18px;
+	line-height: 1.7;
+}
+
+.shop-wall-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 384px));
+	justify-content: center;
+	gap: 64px 26px;
+	margin: 72px auto 0;
+}
+
+.shop-wall-empty {
+	margin: 48px 0 0;
+	color: var(--shop-muted);
+	font-size: 15px;
+}
+
+.shop-wall-card {
+	min-width: 0;
+	color: #111;
+}
+
+/* The card image area is 3:2 at every size; --u is one card unit, so the print scales with the card. */
+.shop-wall-media {
+	position: relative;
+	container-type: inline-size;
+	--u: calc(100cqw / 384);
+}
+
+.shop-wall-open {
+	display: block;
+	color: inherit;
+	text-decoration: none;
+}
+
+.shop-wall-stage {
+	position: relative;
+	display: block;
+	width: 100%;
+	aspect-ratio: 384 / 256;
+	overflow: hidden;
+}
+
+.shop-wall-layer {
 	position: absolute;
-	bottom: 18px;
-	left: 50%;
-	display: flex;
-	gap: 7px;
-	transform: translateX(-50%);
+	inset: 0;
+	display: block;
+	transition: opacity 0.7s ease;
 }
 
-.shop-hero-dot {
-	width: 6px;
-	height: 6px;
-	padding: 0;
-	border: 0;
-	border-radius: 50%;
-	background: #c6c6c6;
+.shop-wall-room {
+	opacity: 0;
+}
+
+.shop-wall-scene {
+	position: absolute;
+	inset: 0;
+	display: block;
+}
+
+.shop-wall-room-img {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.shop-wall-print {
+	position: absolute;
+	left: calc(var(--u) * var(--shop-wall-x));
+	top: calc(var(--u) * var(--shop-wall-y));
+	width: calc(var(--u) * var(--shop-wall-w));
+	height: calc(var(--u) * var(--shop-wall-h));
+}
+
+.shop-wall-frame {
+	position: relative;
+	display: block;
+	width: 100%;
+	height: 100%;
+	padding: calc(var(--u) * var(--shop-wall-m));
+	background: #111;
+	box-shadow: 0 calc(var(--u) * 9) calc(var(--u) * 16) calc(var(--u) * -4) rgba(24, 14, 6, 0.42), 0 calc(var(--u) * 1) calc(var(--u) * 3) rgba(0, 0, 0, 0.22);
+}
+
+.shop-wall-frame img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	box-shadow: 0 0 0 calc(var(--u) * 0.6) rgba(0, 0, 0, 0.35);
+}
+
+.shop-wall-frame::after {
+	position: absolute;
+	inset: calc(var(--u) * var(--shop-wall-m));
+	background: linear-gradient(118deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 40%);
+	content: "";
+	pointer-events: none;
+}
+
+.shop-wall-room .shop-wall-frame {
+	box-shadow: calc(var(--u) * 6) calc(var(--u) * 8) calc(var(--u) * 12) rgba(0, 0, 0, 0.36), calc(var(--u) * 1) calc(var(--u) * 2) calc(var(--u) * 2) rgba(0, 0, 0, 0.22);
+}
+
+/* Frame finishes, one per catalog frame value */
+.shop-wall-card[data-frame="white"] .shop-wall-frame {
+	background: linear-gradient(135deg, #ffffff, #e9e8e4);
+	box-shadow: inset 0 0 0 calc(var(--u) * 0.8) rgba(0, 0, 0, 0.08), 0 calc(var(--u) * 9) calc(var(--u) * 16) calc(var(--u) * -4) rgba(24, 14, 6, 0.38), 0 calc(var(--u) * 1) calc(var(--u) * 3) rgba(0, 0, 0, 0.18);
+}
+
+.shop-wall-card[data-frame="white"] .shop-wall-room .shop-wall-frame {
+	box-shadow: inset 0 0 0 calc(var(--u) * 0.8) rgba(0, 0, 0, 0.08), calc(var(--u) * 6) calc(var(--u) * 8) calc(var(--u) * 12) rgba(0, 0, 0, 0.36);
+}
+
+.shop-wall-card[data-frame="black"] .shop-wall-frame {
+	background: linear-gradient(135deg, #2c2c2c, #111 50%, #1e1e1e);
+}
+
+.shop-wall-card[data-frame="natural-wood"] .shop-wall-frame {
+	background: repeating-linear-gradient(90deg, rgba(110, 70, 30, 0.1) 0 calc(var(--u) * 1), rgba(110, 70, 30, 0) calc(var(--u) * 1) calc(var(--u) * 5)),
+		linear-gradient(90deg, #dcb98f, #c99a66 40%, #e1c29b 70%, #c4955f);
+}
+
+.shop-wall-card[data-frame="dark-wood"] .shop-wall-frame {
+	background: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.14) 0 calc(var(--u) * 1), rgba(0, 0, 0, 0) calc(var(--u) * 1) calc(var(--u) * 5)),
+		linear-gradient(90deg, #5b3822, #3c2316 50%, #5b3822);
+}
+
+/* Plain print is the default; room view shows on desktop hover and on the wall toggle */
+@media (hover: hover) {
+	.shop-wall-card:hover .shop-wall-room {
+		opacity: 1;
+	}
+
+	.shop-wall-card:hover .shop-wall-plain {
+		opacity: 0;
+	}
+}
+
+.shop-wall-card--room .shop-wall-room {
+	opacity: 1;
+}
+
+.shop-wall-card--room .shop-wall-plain {
+	opacity: 0;
+}
+
+.shop-wall-toggle {
+	display: none;
+	width: max-content;
+	height: 32px;
+	margin: 10px auto 0;
+	padding: 0 16px;
+	align-items: center;
+	border: 1px solid #111;
+	border-radius: 0;
+	background: #fff;
+	color: #111;
+	font: inherit;
+	font-size: 12px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
 	cursor: pointer;
 }
 
-.shop-hero-dot.is-active {
-	background: #333;
+@media (hover: none), (max-width: 560px) {
+	.shop-wall-toggle {
+		display: flex;
+	}
+}
+
+.shop-wall-title {
+	display: block;
+	margin-top: 18px;
+	color: #111;
+	font-size: 18px;
+	line-height: 1.3;
+	text-decoration: none;
+}
+
+.shop-wall-price {
+	margin: 6px 0 0;
+	color: #111;
+	font-size: 15px;
+}
+
+.shop-wall-swatches {
+	display: flex;
+	justify-content: center;
+	gap: 10px;
+	margin-top: 12px;
+}
+
+.shop-wall-swatch {
+	width: 18px;
+	height: 18px;
+	padding: 0;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	border-radius: 50%;
+	background: var(--shop-swatch);
+	cursor: pointer;
+}
+
+.shop-wall-swatch[aria-pressed="true"] {
+	box-shadow: 0 0 0 2px #fff, 0 0 0 3px #37170d;
+}
+
+.shop-by-product {
+	padding-top: 24px;
+}
+
+@media (max-width: 1099px) {
+	.shop-wall-grid {
+		grid-template-columns: repeat(2, minmax(0, 384px));
+	}
+}
+
+@media (max-width: 560px) {
+	.shop-wall-home {
+		padding: 48px 20px 56px;
+	}
+
+	.shop-wall-heading {
+		font-size: 44px;
+	}
+
+	.shop-wall-intro {
+		font-size: 16px;
+	}
+
+	.shop-wall-grid {
+		grid-template-columns: minmax(0, 384px);
+		gap: 52px;
+		margin-top: 48px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.shop-wall-layer {
+		transition: none;
+	}
 }
 
 .shop-category-nav {
@@ -3191,20 +3354,6 @@ body[data-page="protests"] .masonry-grid {
 		width: min(100% - 32px, 680px);
 	}
 
-	.shop-hero {
-		min-height: 360px;
-		padding: 38px 42px 58px;
-	}
-
-	.shop-hero-slide {
-		grid-template-columns: minmax(0, 1fr) minmax(150px, 0.8fr);
-		gap: 20px;
-	}
-
-	.shop-hero-art {
-		height: 220px;
-	}
-
 	.shop-product-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 24px 14px;
@@ -3249,51 +3398,6 @@ body[data-page="protests"] .masonry-grid {
 @media (max-width: 480px) {
 	.shop-shell {
 		width: calc(100% - 28px);
-	}
-
-	.shop-hero {
-		min-height: 410px;
-		padding: 34px 28px 54px;
-	}
-
-	.shop-hero-slide {
-		grid-template-columns: minmax(0, 1fr);
-		gap: 6px;
-	}
-
-	.shop-hero-copy {
-		padding-inline: 2px;
-	}
-
-	.shop-hero-copy h1 {
-		font-size: 25px;
-	}
-
-	.shop-hero-copy p:not(.shop-eyebrow) {
-		font-size: 13px;
-	}
-
-	.shop-hero-art {
-		height: 190px;
-	}
-
-	.shop-hero-art .shop-mockup {
-		width: 65%;
-		max-height: 100%;
-	}
-
-	.shop-hero-arrow {
-		top: 43%;
-		width: 28px;
-		font-size: 28px;
-	}
-
-	.shop-hero-prev {
-		left: 1px;
-	}
-
-	.shop-hero-next {
-		right: 1px;
 	}
 
 	.shop-category-nav {
